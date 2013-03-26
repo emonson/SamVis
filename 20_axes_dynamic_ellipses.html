@@ -35,43 +35,30 @@
 			var h = 500;
 			var padding = 30;
 			var selectColor = "gold";
+			var n_points = 50;
 			
-			//Dynamic, random dataset
-			var dataset = [];											//Initialize empty array
-			var colordata = [];
-			var filldata = [];
-			var numDataPoints = 100;										//Number of dummy data points to create
-			var maxRange = 400 + Math.random() * 600;						//Max range of new values
-			var maxRadius = 50;
-			for (var i = 0; i < numDataPoints; i++) {					//Loop numDataPoints times
-				var newX = (Math.random() * maxRange);	//New random integer
-				var newY = (Math.random() * maxRange);	//New random integer
-				var newRX = (Math.random() * maxRadius);	//New random integer
-				var newRY = (Math.random() * maxRadius);	//New random integer
-				var newPhi = (Math.random() * 90); // NOTE: fix range…
-				var newC = 2*Math.random() - 1;
-				var newF = Math.round(Math.random()*100)/100; // round to two digits
-				dataset.push([newX, newY, newRX, newRY, newPhi, i]);	//Add new numbers to array
-				colordata.push(newC);
-				filldata.push(newF);
-			}
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
 
-			//Create scale functions
+			//Create scale functions with placeholder domains
 			var xScale = d3.scale.linear()
-								 .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+								 .domain([0, 1])
 								 .range([padding, w - padding * 2]);
 
 			var yScale = d3.scale.linear()
-								 .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+								 .domain([0, 1])
 								 .range([h - padding, padding]);
 			
 			// NOTE: May not be right with rotation if unequal XY domains
 			var xrScale = d3.scale.linear()
-								 .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+								 .domain([0, 1])
 								 .range([0, w]);
 
 			var yrScale = d3.scale.linear()
-									.domain([0, d3.max(dataset, function(d) { return d[1]; })])
+									.domain([0, 1])
 									.range([0, h]);
 			
 			var cScale = d3.scale.linear()
@@ -80,69 +67,86 @@
 			
 			//Define X axis
 			var xAxis = d3.svg.axis()
-							  .scale(xScale)
-							  .orient("bottom")
-							  .ticks(5);
+								.scale(xScale)
+								.orient("bottom")
+								.ticks(5);
 
 			//Define Y axis
 			var yAxis = d3.svg.axis()
-							  .scale(yScale)
-							  .orient("left")
-							  .ticks(5);
+								.scale(yScale)
+								.orient("left")
+								.ticks(5);
 
-			//Create SVG element
-			var svg = d3.select("body")
-						.append("svg")
-						.attr("width", w)
-						.attr("height", h);
+			//Dynamic, random dataset
+			var dataset = [];											//Initialize empty array
+			var colordata = [];
+			var filldata = [];
 
-			//Create circles
-			svg.selectAll("ellipse")
-			   .data(dataset)
-			   .enter()
-			   .append("ellipse")
-			   .attr("class", "ell")
-				 .attr("stroke", function(d,i){return cScale(colordata[i]);})
-				 .attr("fill-opacity", function(d,i){return filldata[i];})
-				 .attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
-				.attr("rx", function(d) {
-						return xrScale(d[2]);
-				})
-				.attr("ry", function(d) {
-						return yrScale(d[3]);
-				});
+			d3.json("http://emo2.trinity.duke.edu/~emonson/D3_V2/ellipses.php?n=" + n_points, function(json) {
 			
-			//Create X axis
-			svg.append("g")
-				.attr("class", "x axis")
-				.attr("transform", "translate(0," + (h - padding) + ")")
-				.call(xAxis);
+					dataset = json.data;
+					colordata = json.color;
+					filldata = json.fill;
 			
-			//Create Y axis
-			svg.append("g")
-				.attr("class", "y axis")
-				.attr("transform", "translate(" + padding + ",0)")
-				.call(yAxis);
+					//Update scale domains
+					xScale.domain([0, d3.max(dataset, function(d) { return d[0]; })]);
+					yScale.domain([0, d3.max(dataset, function(d) { return d[1]; })]);
+					xrScale.domain([0, d3.max(dataset, function(d) { return d[0]; })]);
+					yrScale.domain([0, d3.max(dataset, function(d) { return d[1]; })]);
+		
+					//Create circles
+					svg.selectAll("ellipse")
+						 .data(dataset)
+						 .enter()
+						 .append("ellipse")
+						 .attr("class", "ell")
+						 .attr("stroke", function(d,i){return cScale(colordata[i]);})
+						 .attr("fill-opacity", function(d,i){return filldata[i];})
+						 .attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
+						.attr("rx", function(d) {
+								return xrScale(d[2]);
+						})
+						.attr("ry", function(d) {
+								return yrScale(d[3]);
+						});
+			
+					//Create X axis
+					svg.append("g")
+						.attr("class", "x axis")
+						.attr("transform", "translate(0," + (h - padding) + ")")
+						.call(xAxis);
+			
+					//Create Y axis
+					svg.append("g")
+						.attr("class", "y axis")
+						.attr("transform", "translate(" + padding + ",0)")
+						.call(yAxis);
+		
+				d3.selectAll("ellipse")
+						.on("click", clickfctn)
+						.on("mousewheel", function() {
+								d3.select(this)
+										.attr("fill-opacity", function(d){
+												var o = filldata[d[5]]; // HACK: storing index in data…
+												o += 0.005*d3.event.wheelDelta; 
+												o = (o > 1.0) ? 1.0 : o;
+												o = (o < 0.1) ? 0.1 : o;
+												filldata[d[5]] = o;
+												return o;});
+						 });
+
+				}); // JSON function end
 
 		var clickfctn = function() {
 							
 							var that = this;
 							d3.select(this)
 							    .attr("stroke", selectColor);
-							    
-							//New values for dataset
-							var numValues = dataset.length;						 		//Count original length of dataset
-							var maxRange = 400 + Math.random() * 600;						//Max range of new values
-							dataset = [];  						 				 		//Initialize empty array
-							for (var i = 0; i < numValues; i++) {					//Loop numDataPoints times
-								var newX = (Math.random() * maxRange);	//New random integer
-								var newY = (Math.random() * maxRange);	//New random integer
-								var newRX = (Math.random() * maxRadius);	//New random integer
-								var newRY = (Math.random() * maxRadius);	//New random integer
-								var newPhi = (Math.random() * 90); // NOTE: fix range...
-								dataset.push([newX, newY, newRX, newRY, newPhi, i]);					//Add new numbers to array
-							}
-							
+
+			d3.json("http://emo2.trinity.duke.edu/~emonson/D3_V2/ellipses.php?n=" + n_points, function(json) {
+			
+							dataset = json.data;
+										
 							//Update scale domains
 							xScale.domain([0, d3.max(dataset, function(d) { return d[0]; })]);
 							yScale.domain([0, d3.max(dataset, function(d) { return d[1]; })]);
@@ -174,21 +178,10 @@
 						    	.transition()
 						    	.duration(1000)
 								.call(yAxis);
-		
-						};
+			});
+						}; // close clickfunction
+
     
-    d3.selectAll("ellipse")
-				.on("click", clickfctn)
-			  .on("mousewheel", function() {
-			      d3.select(this)
-			          .attr("fill-opacity", function(d){
-			              var o = filldata[d[5]]; // HACK: storing index in data…
-			              o += 0.005*d3.event.wheelDelta; 
-			              o = (o > 1.0) ? 1.0 : o;
-			              o = (o < 0.1) ? 0.1 : o;
-			              filldata[d[5]] = o;
-			              return o;});
-			   });
 
 		</script>
 	</body>
