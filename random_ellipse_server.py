@@ -46,6 +46,7 @@ class EllipseData:
 		self.max_val = 1000
 		self.min_val = 400
 		self.max_radius = 50
+		self.n_dig = 1
 		
 	def index(self):
 		return "Random Ellipse Server"
@@ -56,14 +57,14 @@ class EllipseData:
 			# parameters come in and get parsed out as strings
 			self.n_pts = int(n)
 		
-		maxRange = self.min_val + N.random.random(self.n_pts)*(self.max_val-self.min_val)
-		newX = N.round(N.random.random(self.n_pts) * maxRange, 2).tolist()
-		newY = N.round(N.random.random(self.n_pts) * maxRange, 2).tolist()
-		newRX = N.round(N.random.random(self.n_pts) * self.max_radius, 2).tolist()
-		newRY = N.round(N.random.random(self.n_pts) * self.max_radius, 2).tolist()
-		newPhi = N.round(N.random.random(self.n_pts) * 90, 2).tolist()
-		newC = N.round(2 * N.random.random(self.n_pts) - 1, 2).tolist()
-		newF = N.round(N.random.random(self.n_pts), 2).tolist()
+		maxRange = self.min_val + N.random.random(1)[0]*(self.max_val-self.min_val)
+		newX = N.round(N.random.random(self.n_pts) * maxRange, self.n_dig).tolist()
+		newY = N.round(N.random.random(self.n_pts) * maxRange, self.n_dig).tolist()
+		newRX = N.round(N.random.random(self.n_pts) * self.max_radius, self.n_dig).tolist()
+		newRY = N.round(N.random.random(self.n_pts) * self.max_radius, self.n_dig).tolist()
+		newPhi = N.round(N.random.random(self.n_pts) * 90, self.n_dig).tolist()
+		newC = N.round(2 * N.random.random(self.n_pts) - 1, self.n_dig).tolist()
+		newF = N.round(N.random.random(self.n_pts), self.n_dig).tolist()
 
 		zipped = zip(newX, newY, newRX, newRY, newPhi, range(self.n_pts))
 		data = {'data':zipped, 'color':newC, 'fill':newF}
