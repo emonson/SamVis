@@ -34,7 +34,7 @@ var partition = d3.layout.partition()
 //   console.log(partition(json))
 // });
 
-d3.json("http://emo2.trinity.duke.edu/~emonson/D3_V2/treedatafacade.php", function(json) {
+d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function(json) {
   var rect = vis.selectAll("rect")
       .data(partition(json))
     .enter().append("svg:rect")
