@@ -10,13 +10,19 @@ rect {
   stroke: #fff;
 }
 
+p {
+	font-family: sans-serif;
+	font-size: 80%;
+}
+
     </style>
   </head>
   <body>
     <div id="chart"></div>
+    <p id="nodeinfo"></p>
     <script type="text/javascript">
 
-var w = 960,
+var w = 800,
     h = 500,
     x = d3.scale.linear().range([0, w]),
     y = d3.scale.linear().range([0, h]),
@@ -24,11 +30,18 @@ var w = 960,
 
 var vis = d3.select("#chart").append("svg:svg")
     .attr("width", w)
-    .attr("height", h);
+    .attr("height", h)
+    .on("mouseout", function() {d3.select("#nodeinfo").text("")});
+
+// JSON object member keys have simplified names to keep
+// file and transfer size down.
+// d.c = d.children
+// d.v = d.value
+// d.i = d.id
 
 var partition = d3.layout.partition()
-		.children(function(d){ return d.children ? d.children : null;})
-		.value(function(d){return d.value ? d.value : null;});
+		.children(function(d){ return d.c ? d.c : null;})
+		.value(function(d){return d.v ? d.v : null;});
 
 // d3.json("mnist12.json", function(json) {
 //   console.log(partition(json))
@@ -42,13 +55,14 @@ d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function
       .attr("y", function(d) { return y(d.y); })
       .attr("width", function(d) { return x(d.dx); })
       .attr("height", function(d) { return y(d.dy); })
-      .attr("fill", function(d) { return color(Math.round(d.id/20)); })
-      .on("click", click);
+      .attr("fill", function(d) { return color(Math.round(d.i/5)); })
+      .on("click", click)
+      .on("mouseover", hover);
 
   function click(d) {
     x.domain([d.x, d.x + d.dx]);
     y.domain([d.y, 1]).range([d.y ? 20 : 0, h]);
-
+    
     rect.transition()
       .duration(750)
       .attr("x", function(d) { return x(d.x); })
@@ -56,9 +70,13 @@ d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function
       .attr("width", function(d) { return x(d.x + d.dx) - x(d.x); })
       .attr("height", function(d) { return y(d.y + d.dy) - y(d.y); });
   }
+  
+  function hover(d) {
+    d3.select("#nodeinfo")
+    	.text("id = " + d.i + ", scale = " + d.s);
+  }
 });
 
     </script>
   </body>
 </html>
-February 24, 2013

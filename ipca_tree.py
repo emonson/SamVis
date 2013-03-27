@@ -12,7 +12,7 @@ class IPCATree(object):
 		self.data_loaded = False
 		self.data_file = None
 
-		# Built so it will automatically load a valid matlab file if given in constructor
+		# Built so it will automatically load a valid ipca file if given in constructor
 		# Otherwise, call SetFileName('file.ipca') and LoadData() separately
 		
 		if filename:
@@ -26,6 +26,7 @@ class IPCATree(object):
 			except:
 				print "Problem loading data"
 
+	# --------------------
 	def SetFileName(self, filename):
 		"""Set file name manually for Matlab file. Can also do this in constructor."""
 
@@ -37,6 +38,7 @@ class IPCATree(object):
 		if not os.path.isfile(self.data_file):
 			raise IOError, "input file does not exist"
 
+	# --------------------
 	def LoadData(self):
 		"""Routine that does the actual data loading and some format conversion.
 		If a valid file name is given in the constructor, then this routine is called
@@ -55,6 +57,7 @@ class IPCATree(object):
 		(epsilon, d, m, minPoints) = struct.unpack("dIIi", r_header)
 
 		self.tree_root = None
+		self.nodes_by_id = []
 		nodes = C.deque()
 		cur = None
 		self.lite_tree_root = None
@@ -79,14 +82,19 @@ class IPCATree(object):
 				(isLeaf,) = struct.unpack("?", f.read(1))
 		
 		
+				# Lite node key names are minimized to reduce transferred JSON size
+				# 'i' = 'id'
+				# 'c' = 'children'
+				# 'v' = 'value'
+				
 				node = {}
 				node['id'] = id
 				node['children'] = C.deque()
 				lite_node = {}
-				lite_node['id'] = id
-				lite_node['children'] = C.deque()
+				lite_node['i'] = id
+				lite_node['c'] = C.deque()
 				if isLeaf:
-					lite_node['value'] = nPoints
+					lite_node['v'] = nPoints
 		
 				if cur == None:
 					self.tree_root = node
@@ -121,13 +129,18 @@ class IPCATree(object):
 						lite_cur = lite_nodes.popleft()
 			
 					# fill up cur's children list
+					node['parent_id'] = cur['id']
 					cur['children'].append(node)
-					lite_cur['children'].append(lite_node)
+					# lite_node['p'] = lite_cur['i']
+					lite_cur['c'].append(lite_node)
 			
 				else:
 					cur = node
 					lite_cur = lite_node
 		
+				# Keep a copy arranged by ID, too (relying on sequential IDs)
+				self.nodes_by_id.append(node)
+				
 				r_nPhi = f.read(4)
 				id = id + 1
 		
@@ -137,12 +150,23 @@ class IPCATree(object):
 		finally:
 			f.close()
 			
-		self.CleanUpChildNodes(self.tree_root)
-		self.CleanUpChildNodes(self.lite_tree_root)
+		self.post_process_nodes(self.tree_root)
+		self.post_process_nodes(self.lite_tree_root, 'c', 's')
 
-	def CleanUpChildNodes(self, root_node):
+		# Since nodes now have scale (depth) info attached, can make nice 
+		# reference map (lists of lists) indexed first by scale
+		self.nodes_by_scale = self.collect_nodes_by_scale(self.nodes_by_id)
+		
+		# Now that data is loaded, default projection basis is
+		# root node first two PCA directions
+		# Using Sam's notation for now on matrices / arrays
+		self.V = self.nodes_by_id[0]['phi'][:2,:]
+
+	# --------------------
+	def post_process_nodes(self, root_node, child_key='children', scale_key='scale'):
 	
 		# Clear out empty children from tree and convert deques into lists
+		# and add scale (depth in tree starting with 0 at root) as we go
 
 		MODE = 'breadth_first'
 		# MODE = 'depth_first'
@@ -153,28 +177,56 @@ class IPCATree(object):
 		#				               popleft <--             --> pop
 
 		nodes = C.deque()
+		scales = C.deque()
 		nodes.appendleft(root_node)
+		scales.appendleft(0)
 
 		while len(nodes) > 0:
+			# Get next node to process from deque for iterative traversal
 			if MODE == 'breadth_first':
 				current_node = nodes.pop()
+				current_scale = scales.pop()
 			elif MODE == 'depth_first':
 				current_node = nodes.popleft()
+				current_scale = scales.popleft()
 			else:
 				break
 		
-			# Calculate something on the current node
-			if 'children' in current_node:
-				if len(current_node['children']) == 0:
-					del current_node['children']
+			# Add scale (depth) on to current node
+			current_node[scale_key] = current_scale
+			
+			# Delete empty children deques and change rest into lists
+			if child_key in current_node:
+				if len(current_node[child_key]) == 0:
+					del current_node[child_key]
 				else:
-					current_node['children'] = list(current_node['children'])
+					current_node[child_key] = list(current_node[child_key])
 	
-			if 'children' in current_node:
-				nodes.extendleft(current_node['children'])
-				# for child in current_node['children']:
-				# 	nodes.appendleft(child)
+			# Add on to deque for ongoing iterative tree traveral
+			if child_key in current_node:
+				nodes.extendleft(current_node[child_key])
+				scales.extendleft([current_scale+1]*len(current_node[child_key]))
 
+	# --------------------
+	def collect_nodes_by_scale(self, nodes_by_id, scale_key='scale'):
+		
+		if len(nodes_by_id) == 0 or scale_key not in nodes_by_id[0]:
+			return None
+		
+		# This will be a list of lists
+		nodes_by_scale = []
+		
+		for node in nodes_by_id:
+			scale = node[scale_key]
+			
+			if scale > (len(nodes_by_scale) - 1):
+				nodes_by_scale.extend(list([[]]*((scale+1)-len(nodes_by_scale))))
+			
+			nodes_by_scale[scale].append(node)
+		
+		return nodes_by_scale
+	
+	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):
 		
 		if pretty:
@@ -182,6 +234,7 @@ class IPCATree(object):
 		else:
 			return json.dumps(self.lite_tree_root)
 	
+	# --------------------
 	def WriteLiteTreeJSON(self, filename, pretty = False):
 	
 		out_file = None
@@ -198,6 +251,8 @@ class IPCATree(object):
 			f.write(self.GetLiteTreeJSON())
 		f.close()
 
+# --------------------
+# --------------------
 if __name__ == "__main__":
 
 	# from tkFileDialog import askopenfilename
@@ -207,6 +262,6 @@ if __name__ == "__main__":
 	# DataSource loads .ipca file and can generate data from it for other views
 	tree = IPCATree(data_file)
 	
-	print tree.GetLiteTreeJSON()
+	# print tree.GetLiteTreeJSON()
 
 		

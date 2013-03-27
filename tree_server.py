@@ -5,6 +5,7 @@ class HelloWorld:
   
   def __init__(self):
   	
+  	# self.tree = IPCATree('../test/orig2-copy2.ipca')
   	self.tree = IPCATree('../test/mnist12.ipca')
   	
   def index(self):
