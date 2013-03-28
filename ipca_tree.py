@@ -344,6 +344,13 @@ class IPCATree(object):
 				lite_node[v] = node[k]
 
 	# --------------------
+	def SetBasisID(self, id):
+	
+		if (id is not None) and self.data_loaded and id >= 0 and id < len(self.nodes_by_id):
+			
+			self.V = self.nodes_by_id[id]['phi'][:2,:].T
+
+	# --------------------
 	def GetMaxID(self):
 	
 		if self.data_loaded:

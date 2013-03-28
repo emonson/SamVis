@@ -16,11 +16,16 @@ class HelloWorld:
 		
 		return self.tree.GetLiteTreeJSON()
 		
-	def scaleellipses(self, id=None):
+	def scaleellipses(self, id=None, basis=None):
 		
 		if id is not None:
 			# parameters come in and get parsed out as strings
 			node_id = int(id)
+			
+			if basis is not None:
+				basis_id = int(basis)
+				self.tree.SetBasisID(basis_id)
+				print "id", node_id, "basis_id", basis_id
 		
 			return self.tree.GetScaleEllipsesJSON(node_id)
 		
