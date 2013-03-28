@@ -26,7 +26,11 @@ var w = 800,
     h = 500,
     x = d3.scale.linear().range([0, w]),
     y = d3.scale.linear().range([0, h]),
-    color = d3.scale.category20c();
+    color = d3.scale.category20c(),
+    cLabelScale = d3.scale.linear()
+									.domain([0.0, 0.5, 1.0])
+									.range(["#CA0020", "#EEEEEE", "#0571B0"]);
+
 
 var vis = d3.select("#chart").append("svg:svg")
     .attr("width", w)
@@ -47,7 +51,8 @@ var partition = d3.layout.partition()
 //   console.log(partition(json))
 // });
 
-d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function(json) {
+// d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function(json) {
+d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
   var rect = vis.selectAll("rect")
       .data(partition(json))
     .enter().append("svg:rect")
@@ -55,7 +60,7 @@ d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function
       .attr("y", function(d) { return y(d.y); })
       .attr("width", function(d) { return x(d.dx); })
       .attr("height", function(d) { return y(d.dy); })
-      .attr("fill", function(d) { return color(Math.round(d.i/5)); })
+      .attr("fill", function(d) { return cLabelScale(d.l); })
       .on("click", click)
       .on("mouseover", hover);
 

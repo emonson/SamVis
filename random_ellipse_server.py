@@ -75,7 +75,7 @@ class EllipseData:
 
 cherrypy.config.update({
 		'server.socket_port': 9000, 
-		# 'server.socket_host':'127.0.0.1'
-		'server.socket_host':'152.3.61.80'
+		'server.socket_host':'127.0.0.1'
+		# 'server.socket_host':'152.3.61.80'
 		})
 cherrypy.quickstart(EllipseData())

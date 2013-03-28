@@ -82,7 +82,8 @@
 			var colordata = [];
 			var filldata = [];
 
-			d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/ellipses.php?n=" + n_points, function(json) {
+//			d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/ellipses.php?n=" + n_points, function(json) {
+			d3.json("http://localhost/~emonson/Sam/ellipses.php?n=" + n_points, function(json) {
 			
 					dataset = json.data;
 					colordata = json.color;
@@ -143,7 +144,8 @@
 							d3.select(this)
 							    .attr("stroke", selectColor);
 
-			d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/ellipses.php?n=" + n_points, function(json) {
+// 			d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/ellipses.php?n=" + n_points, function(json) {
+			d3.json("http://localhost/~emonson/Sam/ellipses.php?n=" + n_points, function(json) {
 			
 							dataset = json.data;
 										

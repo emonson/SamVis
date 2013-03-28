@@ -11,6 +11,10 @@ class IPCATree(object):
 
 		self.data_loaded = False
 		self.data_file = None
+		self.label_file = None
+		self.labels = None
+		self.lite_tree_root = None
+		self.nodes_by_id = None
 
 		# Built so it will automatically load a valid ipca file if given in constructor
 		# Otherwise, call SetFileName('file.ipca') and LoadData() separately
@@ -28,7 +32,7 @@ class IPCATree(object):
 
 	# --------------------
 	def SetFileName(self, filename):
-		"""Set file name manually for Matlab file. Can also do this in constructor."""
+		"""Set file name manually for IPCA file. Can also do this in constructor."""
 
 		if filename and type(filename) == str:
 			self.data_file = os.path.abspath(filename)
@@ -38,6 +42,51 @@ class IPCATree(object):
 		if not os.path.isfile(self.data_file):
 			raise IOError, "input file does not exist"
 
+	# --------------------
+	def SetLabelFileName(self, filename):
+		"""Set file name manually for label file."""
+
+		if filename and type(filename) == str:
+			self.label_file = os.path.abspath(filename)
+		else:
+			raise IOError, "filename needs to be a non-empty string"
+
+		if not os.path.isfile(self.label_file):
+			raise IOError, "input file does not exist"
+
+	# --------------------
+	def LoadLabelData(self):
+		
+		if not self.label_file:
+			raise IOError, "No label file set: Use SetLabelFileName('labelfile.data.hdr')"
+		
+		f = open(self.label_file, 'r')
+		vectype = f.readline().strip()
+		if vectype != 'DenseVector':
+			raise IOError, "Label file needs to be a DenseVector"
+		
+		size = f.readline().strip().split()
+		if size[0] != 'Size:':
+			raise IOError, "Problem reading label vector size"
+		n_elements = int(size[1])
+		
+		elsize = f.readline().strip().split()
+		if elsize[0] != 'ElementSize:':
+			raise IOError, "Problem reading label vector element size"
+		n_bytes = int(elsize[1])
+		
+		f.close()
+		
+		fb = open(os.path.splitext(self.label_file)[0], 'rb')
+		data = fb.read(n_elements*n_bytes)
+		self.labels = N.array(struct.unpack("i"*n_elements, data))
+		fb.close()
+		
+		# If the data is already loaded, compute mean labels
+		# TODO: Really need to do something more robust for data/label loading order...
+		if self.data_loaded and self.nodes_by_id:
+			self.post_process_mean_labels()
+		
 	# --------------------
 	def LoadData(self):
 		"""Routine that does the actual data loading and some format conversion.
@@ -60,9 +109,6 @@ class IPCATree(object):
 		self.nodes_by_id = []
 		nodes = C.deque()
 		cur = None
-		self.lite_tree_root = None
-		lite_nodes = C.deque()
-		lite_cur = None
 
 		id = 0
 
@@ -82,23 +128,12 @@ class IPCATree(object):
 				(isLeaf,) = struct.unpack("?", f.read(1))
 		
 		
-				# Lite node key names are minimized to reduce transferred JSON size
-				# 'i' = 'id'
-				# 'c' = 'children'
-				# 'v' = 'value'
-				
 				node = {}
 				node['id'] = id
 				node['children'] = C.deque()
-				lite_node = {}
-				lite_node['i'] = id
-				lite_node['c'] = C.deque()
-				if isLeaf:
-					lite_node['v'] = nPoints
 		
 				if cur == None:
 					self.tree_root = node
-					self.lite_tree_root = lite_node
 
 				node['r'] = r
 				node['phi'] = phi
@@ -108,6 +143,7 @@ class IPCATree(object):
 				node['mse'] = mse
 				node['center'] = center
 				node['indices'] = pts
+				node['npoints'] = nPoints
 				node['sigma2'] = sigma*sigma
 
 				# if previously read node is not empty. 
@@ -118,7 +154,6 @@ class IPCATree(object):
 					if not isLeaf:
 						# put just-read node in the deque to be visited later
 						nodes.append(node)
-						lite_nodes.append(lite_node)
 			
 					# if children array of cur (previously read) is full
 					# (I think an alternative to this if not dealing with a binary tree
@@ -126,17 +161,13 @@ class IPCATree(object):
 					#   whether cur is the parent of node)
 					if len(cur['children']) == 2:
 						cur = nodes.popleft()
-						lite_cur = lite_nodes.popleft()
 			
 					# fill up cur's children list
 					node['parent_id'] = cur['id']
 					cur['children'].append(node)
-					# lite_node['p'] = lite_cur['i']
-					lite_cur['c'].append(lite_node)
 			
 				else:
 					cur = node
-					lite_cur = lite_node
 		
 				# Keep a copy arranged by ID, too (relying on sequential IDs)
 				self.nodes_by_id.append(node)
@@ -151,7 +182,6 @@ class IPCATree(object):
 			f.close()
 			
 		self.post_process_nodes(self.tree_root)
-		self.post_process_nodes(self.lite_tree_root, 'c', 's')
 
 		# Since nodes now have scale (depth) info attached, can make nice 
 		# reference map (lists of lists) indexed first by scale
@@ -161,6 +191,8 @@ class IPCATree(object):
 		# root node first two PCA directions
 		# Using Sam's notation for now on matrices / arrays
 		self.V = self.nodes_by_id[0]['phi'][:2,:]
+		
+		self.data_loaded = True
 
 	# --------------------
 	def post_process_nodes(self, root_node, child_key='children', scale_key='scale'):
@@ -209,6 +241,7 @@ class IPCATree(object):
 
 	# --------------------
 	def collect_nodes_by_scale(self, nodes_by_id, scale_key='scale'):
+		"""Returns nodes_by_scale"""
 		
 		if len(nodes_by_id) == 0 or scale_key not in nodes_by_id[0]:
 			return None
@@ -227,7 +260,58 @@ class IPCATree(object):
 		return nodes_by_scale
 	
 	# --------------------
+	def post_process_mean_labels(self):
+		"""Modifies self.nodes_by_id in place finding mean label value"""
+		
+		for node in self.nodes_by_id:
+			indices = node['indices']
+			node['label'] = N.mean(self.labels[indices])
+	
+	# --------------------
+	def RegenerateLiteTree(self, children_key='c', parent_id_key='p', key_dict = {'id':'i', 
+																					'npoints':'v',
+																					'scale':'s',
+																					'label':'l'}
+																					):
+		"""Keeping full tree as true record of data, and regenerate new lite tree
+		when needed, like after labels update. Children and parent keys required,
+		so they're not in the key string map (originals assumed to be 'children' and 'parent_id')"""
+		
+		# NOTE: Cheating a bit by relying on nodes_by_id being in breadth-first order so
+		#   children's parents already exist as the array is being populated.
+		#   If this becomes a problem, need to build by traversing tree.
+		
+		# This is only for helping fill in children. Not keeping it around.
+		lite_nodes_by_id = []
+		
+		for node in self.nodes_by_id:
+			lite_node = {}
+			if 'children' in node:
+				lite_node[children_key] = []
+			lite_nodes_by_id.append(lite_node)
+			
+			if 'parent_id' in node:
+				parent_id = node['parent_id']
+				lite_node[parent_id_key] = parent_id
+				lite_nodes_by_id[parent_id][children_key].append(lite_node)
+			else:
+				# This assignment of root node keeps whole lite tree
+				self.lite_tree_root = lite_node
+			
+			for k,v in key_dict.items():
+				lite_node[v] = node[k]
+
+	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):
+		
+				# Lite node key names are minimized to reduce transferred JSON size
+				# 'i' = 'id'
+				# 'c' = 'children'
+				# 'v' = 'value'
+				# 's' = 'scale'
+				# 'l' = 'label'
+		if not self.lite_tree_root:
+			self.RegenerateLiteTree()
 		
 		if pretty:
 			return json.dumps(self.lite_tree_root, indent=2)
@@ -258,10 +342,13 @@ if __name__ == "__main__":
 	# from tkFileDialog import askopenfilename
 	# data_file = askopenfilename()
 	data_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
+	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
 
 	# DataSource loads .ipca file and can generate data from it for other views
 	tree = IPCATree(data_file)
+	tree.SetLabelFileName(label_file)
+	tree.LoadLabelData()
 	
-	# print tree.GetLiteTreeJSON()
+	print tree.GetLiteTreeJSON()
 
 		

@@ -11,9 +11,15 @@ path {
   fill-rule: evenodd;
 }
 
+p {
+	font-family: sans-serif;
+	font-size: 80%;
+}
+
     </style>
   </head>
   <body>
+    <p id="nodeinfo">id = , scale = </p>
     <div id="chart"></div>
     <script type="text/javascript">
 
@@ -22,11 +28,15 @@ var w = 960,
     r = Math.min(w, h) / 2,
     x = d3.scale.linear().range([0, 2 * Math.PI]),
     y = d3.scale.sqrt().range([0, r]),
-    color = d3.scale.category20c();
+    color = d3.scale.category20c(),
+    cLabelScale = d3.scale.linear()
+									.domain([0.0, 0.5, 1.0])
+									.range(["#CA0020", "#EEEEEE", "#0571B0"]);
 
 var vis = d3.select("#chart").append("svg")
     .attr("width", w)
     .attr("height", h)
+    .on("mouseout", function() {d3.select("#nodeinfo").text("id = , scale = ")})
   .append("g")
     .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")");
 
@@ -46,18 +56,25 @@ var arc = d3.svg.arc()
     .innerRadius(function(d) { return Math.max(0, y(d.y)); })
     .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
-d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function(json) {
+// d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treedatafacade.php", function(json) {
+d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
   var path = vis.selectAll("path")
       .data(partition(json))
     .enter().append("path")
       .attr("d", arc)
-      .style("fill", function(d) { return color(Math.round(d.i/2)); })
-      .on("click", click);
+      .style("fill", function(d) { return cLabelScale(d.l); })
+      .on("click", click) 
+      .on("mouseover", hover);
 
   function click(d) {
     path.transition()
       .duration(750)
       .attrTween("d", arcTween(d));
+  }
+  
+  function hover(d) {
+    d3.select("#nodeinfo")
+    	.text("id = " + d.i + ", scale = " + d.s);
   }
 });
 
