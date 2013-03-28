@@ -157,8 +157,8 @@ class IPCATree(object):
 			
 					# if children array of cur (previously read) is full
 					# (I think an alternative to this if not dealing with a binary tree
-					#   would be to keep track of everyone's parent node ID and check here 
-					#   whether cur is the parent of node)
+					#		would be to keep track of everyone's parent node ID and check here 
+					#		whether cur is the parent of node)
 					if len(cur['children']) == 2:
 						cur = nodes.popleft()
 			
@@ -190,7 +190,10 @@ class IPCATree(object):
 		# Now that data is loaded, default projection basis is
 		# root node first two PCA directions
 		# Using Sam's notation for now on matrices / arrays
-		self.V = self.nodes_by_id[0]['phi'][:2,:]
+		self.V = self.nodes_by_id[0]['phi'][:2,:].T
+		
+		# HACK: Using node 0 center as data center...
+		self.data_center = self.tree_root['center']
 		
 		self.data_loaded = True
 
@@ -204,9 +207,9 @@ class IPCATree(object):
 		# MODE = 'depth_first'
 
 		# Iterative traversal
-		#   Note: for Python deque, 
-		#	      extendleft / appendleft --> [0, 1, 2] <-- extend / append
-		#				               popleft <--             --> pop
+		#		Note: for Python deque, 
+		#				extendleft / appendleft --> [0, 1, 2] <-- extend / append
+		#											 popleft <--						 --> pop
 
 		nodes = C.deque()
 		scales = C.deque()
@@ -268,6 +271,44 @@ class IPCATree(object):
 			node['label'] = N.mean(self.labels[indices])
 	
 	# --------------------
+	def calculate_node_ellipse(self, node_id):
+		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse"""
+		
+		node = self.nodes_by_id[node_id]
+		
+		# Compute projection of this node's covariance matrix
+		A = node['phi'].T
+		sigma = N.matrix(N.diag(node['sigma']))
+		center = node['center']
+		
+		A = A * N.sqrt(sigma)
+
+		C1 = self.V.T * A
+		
+		C = C1 * C1.T
+
+		# ALT METHOD for transforming the unit circle according to projected covariance
+		# Compute svd in projected space to find rx, ry and rotation for ellipse in D3 vis
+		U, S, V = N.linalg.svd(C)
+
+		# Project mean
+		xm = N.dot(self.V.T, center)
+		xrm = N.dot(self.V.T, self.data_center)	# NOTE: using node[0] center as data center...
+		xm = N.squeeze(N.asarray(xm - xrm))
+		
+		# Calculate scalings (not needed because it's in sigma
+		# N.squeeze(N.asarray(N.sum(N.square(a),1)))
+		
+		# Calculate angles
+		phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
+		# t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
+		
+		result_list = N.round((xm[0], xm[1], S[0], S[1], phi_deg), 2).tolist()
+		result_list.append(node['id'])
+		
+		return result_list
+	
+	# --------------------
 	def RegenerateLiteTree(self, children_key='c', parent_id_key='p', key_dict = {'id':'i', 
 																					'npoints':'v',
 																					'scale':'s',
@@ -278,8 +319,8 @@ class IPCATree(object):
 		so they're not in the key string map (originals assumed to be 'children' and 'parent_id')"""
 		
 		# NOTE: Cheating a bit by relying on nodes_by_id being in breadth-first order so
-		#   children's parents already exist as the array is being populated.
-		#   If this becomes a problem, need to build by traversing tree.
+		#		children's parents already exist as the array is being populated.
+		#		If this becomes a problem, need to build by traversing tree.
 		
 		# This is only for helping fill in children. Not keeping it around.
 		lite_nodes_by_id = []
@@ -292,7 +333,8 @@ class IPCATree(object):
 			
 			if 'parent_id' in node:
 				parent_id = node['parent_id']
-				lite_node[parent_id_key] = parent_id
+				# NOTE: Not copying parent id to lite tree for now!
+				# lite_node[parent_id_key] = parent_id
 				lite_nodes_by_id[parent_id][children_key].append(lite_node)
 			else:
 				# This assignment of root node keeps whole lite tree
@@ -301,6 +343,35 @@ class IPCATree(object):
 			for k,v in key_dict.items():
 				lite_node[v] = node[k]
 
+	# --------------------
+	def GetMaxID(self):
+	
+		if self.data_loaded:
+			return len(self.nodes_by_id)-1
+
+	# --------------------
+	def GetScaleEllipsesJSON(self, id = None):
+		"""Take in _node ID_ and get out all ellipses for that nodes's scale in tree"""
+	
+		if (id is not None) and self.data_loaded and id >= 0 and id < len(self.nodes_by_id):
+			
+			scale = self.nodes_by_id[id]['scale']
+			
+			ellipse_params = []
+			labels = []
+			# Always include node 0 for now
+			if scale != 0:
+				ellipse_params.append(self.calculate_node_ellipse(0))
+				labels.append(self.nodes_by_id[0]['label'])
+			for node in self.nodes_by_scale[scale]:
+				ellipse_params.append(self.calculate_node_ellipse(node['id']))
+				labels.append(node['label'])
+			
+			round_labels = N.round(labels, 2).tolist()
+			return_obj = {'data':ellipse_params, 'labels':round_labels}
+			
+			return json.dumps(return_obj)
+		
 	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):
 		
@@ -341,7 +412,7 @@ if __name__ == "__main__":
 
 	# from tkFileDialog import askopenfilename
 	# data_file = askopenfilename()
-	data_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
+	data_file = '/Users/emonson/Programming/Sam/test/mnist12_d2.ipca'
 	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
 
 	# DataSource loads .ipca file and can generate data from it for other views
@@ -349,6 +420,6 @@ if __name__ == "__main__":
 	tree.SetLabelFileName(label_file)
 	tree.LoadLabelData()
 	
-	print tree.GetLiteTreeJSON()
+	# print tree.GetLiteTreeJSON()
 
 		
