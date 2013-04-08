@@ -3,11 +3,13 @@ from ipca_tree import IPCATree
 
 class HelloWorld:
 	
+	_cp_config = {'tools.gzip.on': True}
+	
 	def __init__(self):
 		
 		# self.tree = IPCATree('../test/orig2-copy2.ipca')
-		# self.tree = IPCATree('../test/mnist12_d2.ipca')
 		self.tree = IPCATree('../test/mnist12.ipca')
+		# self.tree = IPCATree('../test/mnist12_d2.ipca')
 		self.tree.SetLabelFileName('../test/mnist12_labels.data.hdr')
 		self.tree.LoadLabelData()
 		self.maxID = self.tree.GetMaxID()
@@ -16,6 +18,7 @@ class HelloWorld:
 		
 		return self.tree.GetLiteTreeJSON()
 		
+	@cherrypy.tools.gzip()
 	def scaleellipses(self, id=None, basis=None):
 		
 		if id is not None:
@@ -31,10 +34,12 @@ class HelloWorld:
 		
 	index.exposed = True
 	scaleellipses.exposed = True
+	scaleellipses._cp_config = {'tools.gzip.on': True}
 
 cherrypy.config.update({
+		'tools.gzip.on' : True,
 		'server.socket_port': 9000, 
-		'server.socket_host':'127.0.0.1'
-		# 'server.socket_host':'152.3.61.80'
+		# 'server.socket_host':'127.0.0.1'
+		'server.socket_host':'152.3.61.80'
 		})
 cherrypy.quickstart(HelloWorld())

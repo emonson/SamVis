@@ -35,7 +35,7 @@
 			var h = 500;
 			var padding = 30;
 			var selectColor = "gold";
-			var node_id = 300;
+			var node_id = 1200;
 			var basis_id = 0;
 			
 			//Create SVG element
@@ -83,8 +83,9 @@
 			var colordata = [];
 			var filldata = [];
 
-			d3.json("http://localhost/~emonson/Sam/treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
+			d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 			
+					console.log(json);
 					dataset = json.data;
 					colordata = json.labels;
 					for(var i=0; i < colordata.length; i++) {
@@ -149,7 +150,7 @@
 							    .attr("stroke", selectColor);
 							basis_id = that.__data__[5];
 
-			d3.json("http://localhost/~emonson/Sam/treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
+			d3.json("http://emo2.trinity.duke.edu/~emonson/Sam/treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 			
 							dataset = json.data;
 										
