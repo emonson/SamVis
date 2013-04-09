@@ -357,8 +357,8 @@ class IPCATree(object):
 			return len(self.nodes_by_id)-1
 
 	# --------------------
-	def GetScaleEllipsesJSON(self, id = None):
-		"""Take in _node ID_ and get out all ellipses for that nodes's scale in tree"""
+	def GetScaleEllipses(self, id = None):
+		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
 	
 		if (id is not None) and self.data_loaded and id >= 0 and id < len(self.nodes_by_id):
 			
@@ -377,7 +377,13 @@ class IPCATree(object):
 			round_labels = N.round(labels, 2).tolist()
 			return_obj = {'data':ellipse_params, 'labels':round_labels}
 			
-			return json.dumps(return_obj)
+			return return_obj
+		
+	# --------------------
+	def GetScaleEllipsesJSON(self, id = None):
+		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
+	
+		return json.dumps(self.GetScaleEllipses(id))
 		
 	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):

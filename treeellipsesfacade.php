@@ -13,6 +13,7 @@ $opts = array(
 $context = stream_context_create($opts);
 $data = file_get_contents("http://emo2.trinity.duke.edu:9000/scaleellipses?id=" . $id . "&basis=" . $basis, FALSE, $context);
 // print_r(file_get_contents("http://localhost:9000/scaleellipses?id=" . $id . "&basis=" . $basis));
+header("Content-type: application/json");
 header("Content-encoding: gzip");
 print_r($data);
 ?>
