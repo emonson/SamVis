@@ -1,0 +1,26 @@
+
+.ell {
+	fill: gray;
+	stroke-width: 2;
+}
+.axis path,
+.axis line {
+	fill: none;
+	stroke: black;
+	shape-rendering: crispEdges;
+}
+
+.axis text {
+	font-family: sans-serif;
+	font-size: 11px;
+}
+
+rect {
+	stroke: #fff;
+}
+
+p {
+	font-family: sans-serif;
+	font-size: 80%;
+}
+

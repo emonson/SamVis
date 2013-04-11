@@ -4,6 +4,7 @@ import collections as C
 import pprint
 import json
 import os
+import io
 
 class IPCATree(object):
 	
@@ -20,15 +21,17 @@ class IPCATree(object):
 		# Otherwise, call SetFileName('file.ipca') and LoadData() separately
 		
 		if filename:
-			try:
-				self.SetFileName(filename)
-			except:
-				print "Problem setting filename"
-			
-			try:
-				self.LoadData()
-			except:
-				print "Problem loading data"
+# 			try:
+# 				self.SetFileName(filename)
+# 			except:
+# 				print "Problem setting filename"
+# 			
+# 			try:
+# 				self.LoadData()
+# 			except:
+# 				print "Problem loading data"
+			self.SetFileName(filename)
+			self.LoadData()
 
 	# --------------------
 	def SetFileName(self, filename):
@@ -78,8 +81,7 @@ class IPCATree(object):
 		f.close()
 		
 		fb = open(os.path.splitext(self.label_file)[0], 'rb')
-		data = fb.read(n_elements*n_bytes)
-		self.labels = N.array(struct.unpack("i"*n_elements, data))
+		self.labels = N.fromfile(fb, dtype=N.dtype('i' + str(n_bytes)), count=n_elements)
 		fb.close()
 		
 		# If the data is already loaded, compute mean labels
@@ -99,11 +101,20 @@ class IPCATree(object):
 
 		print 'Trying to load data set from .ipca file... ', self.data_file
 
-		f = open(self.data_file, 'rb')
+		f = io.open(self.data_file, 'rb', buffering=65536)
 
 		# Tree header
-		r_header = f.read(8 + 4 + 4 + 4)
-		(epsilon, d, m, minPoints) = struct.unpack("dIIi", r_header)
+# 		r_header = f.read(8 + 4 + 4 + 4)
+# 		(epsilon, d, m, minPoints) = struct.unpack("dIIi", r_header)
+		dt = N.dtype([('epsilon', N.dtype('d8')), 
+									('d', N.dtype('I4')), 
+									('m', N.dtype('I4')), 
+									('minPoints', N.dtype('i4'))])
+		header = N.frombuffer(f.read(8+4+4+4), dtype=dt, count=1)
+		epsilon = header['epsilon']
+		d = header['d']
+		m = header['m']
+		minPoints = header['minPoints']
 
 		self.tree_root = None
 		self.nodes_by_id = []
@@ -112,74 +123,77 @@ class IPCATree(object):
 
 		id = 0
 
-		try:
+# 		try:
+		r_nPhi = f.read(4)
+		while r_nPhi:
+			nPhi = int(N.frombuffer(r_nPhi, N.dtype('i4'), count=1))
+			
+			phi = N.matrix(N.frombuffer(f.read(8*nPhi*m), N.dtype('d8'), count=nPhi*m).reshape(nPhi,m))
+			sigma = N.frombuffer(f.read(8*nPhi), N.dtype('d8'), count=nPhi)
+			center = N.frombuffer(f.read(8*m), N.dtype('d8'), count=m)
+			mse = N.frombuffer(f.read(8*(d+1)), N.dtype('d8'), count=(d+1))
+			dir = N.frombuffer(f.read(8*m), N.dtype('d8'), count=m)
+			
+			a = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1)[0])
+			nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1)[0])
+			
+			pts = N.frombuffer(f.read(4*nPoints), N.dtype('i4'), count=nPoints)
+			
+			r = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1)[0])
+			isLeaf = bool(N.frombuffer(f.read(1), N.dtype('?1'), count=1)[0])
+	
+			node = {}
+			node['id'] = id
+			node['children'] = C.deque()
+	
+			if cur == None:
+				self.tree_root = node
+
+			node['r'] = r
+			node['phi'] = phi
+			node['sigma'] = sigma
+			node['dir'] = dir
+			node['a'] = a
+			node['mse'] = mse
+			node['center'] = center
+			node['indices'] = pts
+			node['npoints'] = nPoints
+			node['sigma2'] = sigma*sigma
+
+			# if previously read node is not empty. 
+			# i.e. if node != root
+			if cur != None:
+	
+				# if just-read node is not a leaf
+				if not isLeaf:
+					# put just-read node in the deque to be visited later
+					nodes.append(node)
+		
+				# if children array of cur (previously read) is full
+				# (I think an alternative to this if not dealing with a binary tree
+				#		would be to keep track of everyone's parent node ID and check here 
+				#		whether cur is the parent of node)
+				if len(cur['children']) == 2:
+					cur = nodes.popleft()
+		
+				# fill up cur's children list
+				node['parent_id'] = cur['id']
+				cur['children'].append(node)
+		
+			else:
+				cur = node
+	
+			# Keep a copy arranged by ID, too (relying on sequential IDs)
+			self.nodes_by_id.append(node)
+			
 			r_nPhi = f.read(4)
-			while r_nPhi:
-				(nPhi,) = struct.unpack("i", r_nPhi)
-				phi = N.matrix(N.array(struct.unpack("d"*nPhi*m, f.read(8*nPhi*m))).reshape((nPhi,m)))
-				sigma = N.array(struct.unpack("d"*nPhi, f.read(8*nPhi)))
-				center = N.array(struct.unpack("d"*m, f.read(8*m)))
-				mse = N.array(struct.unpack("d"*(d+1), f.read(8*(d+1))))
-				dir = N.array(struct.unpack("d"*m, f.read(8*m)))
-				(a,) = struct.unpack("d", f.read(8))
-				(nPoints,) = struct.unpack("i", f.read(4))
-				pts = N.array(struct.unpack("i"*nPoints, f.read(4*nPoints)))
-				(r,) = struct.unpack("d", f.read(8))
-				(isLeaf,) = struct.unpack("?", f.read(1))
+			id = id + 1
 		
+# 		except:
+# 			raise IOError, "Can't load data from file %s" % (self.data_file,)
 		
-				node = {}
-				node['id'] = id
-				node['children'] = C.deque()
-		
-				if cur == None:
-					self.tree_root = node
-
-				node['r'] = r
-				node['phi'] = phi
-				node['sigma'] = sigma
-				node['dir'] = dir
-				node['a'] = a
-				node['mse'] = mse
-				node['center'] = center
-				node['indices'] = pts
-				node['npoints'] = nPoints
-				node['sigma2'] = sigma*sigma
-
-				# if previously read node is not empty. 
-				# i.e. if node != root
-				if cur != None:
-		
-					# if just-read node is not a leaf
-					if not isLeaf:
-						# put just-read node in the deque to be visited later
-						nodes.append(node)
-			
-					# if children array of cur (previously read) is full
-					# (I think an alternative to this if not dealing with a binary tree
-					#		would be to keep track of everyone's parent node ID and check here 
-					#		whether cur is the parent of node)
-					if len(cur['children']) == 2:
-						cur = nodes.popleft()
-			
-					# fill up cur's children list
-					node['parent_id'] = cur['id']
-					cur['children'].append(node)
-			
-				else:
-					cur = node
-		
-				# Keep a copy arranged by ID, too (relying on sequential IDs)
-				self.nodes_by_id.append(node)
-				
-				r_nPhi = f.read(4)
-				id = id + 1
-		
-		except:
-			raise IOError, "Can't load data from file %s" % (self.data_file,)
-		
-		finally:
-			f.close()
+# 		finally:
+		f.close()
 			
 		self.post_process_nodes(self.tree_root)
 
@@ -425,13 +439,16 @@ if __name__ == "__main__":
 
 	# from tkFileDialog import askopenfilename
 	# data_file = askopenfilename()
-	data_file = '/Users/emonson/Programming/Sam/test/mnist12_d2.ipca'
+# 	data_file = '/Users/emonson/Programming/Sam/test/orig2-copy2.ipca'
+# 	label_file = '/Users/emonson/Programming/Sam/test/labels02.data.hdr'
+	data_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
 	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
 
 	# DataSource loads .ipca file and can generate data from it for other views
 	tree = IPCATree(data_file)
 	tree.SetLabelFileName(label_file)
 	tree.LoadLabelData()
+	tree.GetScaleEllipsesJSON(900)
 	
 	# print tree.GetLiteTreeJSON()
 

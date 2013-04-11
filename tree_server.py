@@ -8,9 +8,11 @@ class HelloWorld:
 	def __init__(self):
 		
 		# self.tree = IPCATree('../test/orig2-copy2.ipca')
+		# self.tree.SetLabelFileName('../test/labels02.data.hdr')
 		self.tree = IPCATree('../test/mnist12.ipca')
 		# self.tree = IPCATree('../test/mnist12_d2.ipca')
 		self.tree.SetLabelFileName('../test/mnist12_labels.data.hdr')
+		
 		self.tree.LoadLabelData()
 		self.maxID = self.tree.GetMaxID()
 		
