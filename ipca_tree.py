@@ -104,8 +104,6 @@ class IPCATree(object):
 		f = io.open(self.data_file, 'rb', buffering=65536)
 
 		# Tree header
-# 		r_header = f.read(8 + 4 + 4 + 4)
-# 		(epsilon, d, m, minPoints) = struct.unpack("dIIi", r_header)
 		dt = N.dtype([('epsilon', N.dtype('d8')), 
 									('d', N.dtype('I4')), 
 									('m', N.dtype('I4')), 
