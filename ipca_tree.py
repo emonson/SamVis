@@ -134,13 +134,13 @@ class IPCATree(object):
 			mse = N.frombuffer(f.read(8*(d+1)), N.dtype('d8'), count=(d+1))
 			dir = N.frombuffer(f.read(8*m), N.dtype('d8'), count=m)
 			
-			a = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1)[0])
-			nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1)[0])
+			a = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1))
+			nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
 			
 			pts = N.frombuffer(f.read(4*nPoints), N.dtype('i4'), count=nPoints)
 			
-			r = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1)[0])
-			isLeaf = bool(N.frombuffer(f.read(1), N.dtype('?1'), count=1)[0])
+			r = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1))
+			isLeaf = bool(N.frombuffer(f.read(1), N.dtype('?1'), count=1))
 	
 			node = {}
 			node['id'] = id
