@@ -1,11 +1,12 @@
-var site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/"
+// var site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/"
+var site_root = "http://localhost/~emonson/Sam/"
 
-//Width and height
+//Width and height of ellipse plot
 var w_el = 400;
 var h_el = 400;
 var padding = 30;
 var selectColor = "gold";
-var node_id = 50;
+var node_id = 500;
 var basis_id = 0;
 
 // Arrays to hold ellipse data pulled from JSON
@@ -19,7 +20,7 @@ var w_ice = 500,
 		y_ice = d3.scale.linear().range([0, h_ice]),
 		color = d3.scale.category20c();
 
-
+// Icicle view tree layout calculation function
 var partition_ice = d3.layout.partition()
 		.children(function(d){ return d.c ? d.c : null;})
 		.value(function(d){return d.v ? d.v : null;});
@@ -47,7 +48,7 @@ var cScale = d3.scale.linear()
 						.range(["#CA0020", "#999999", "#0571B0"]);
 
 // ============
-// ellipse graph
+// Ellipse graph
 
 // Create ellipse graph SVG element
 var svg = d3.select("#graph")
@@ -67,58 +68,40 @@ var yAxis = d3.svg.axis()
 					.orient("left")
 					.ticks(5);
 
+//Create X axis
+svg.append("g")
+	.attr("class", "x axis")
+	.attr("transform", "translate(0," + (h_el - padding) + ")")
+	.call(xAxis);
+
+//Create Y axis
+svg.append("g")
+	.attr("class", "y axis")
+	.attr("transform", "translate(" + padding + ",0)")
+	.call(yAxis);
+
+// Icicle view SVG element
+var vis = d3.select("#tree").append("svg:svg")
+		.attr("width", w_ice)
+		.attr("height", h_ice)
+		.on("mouseout", function() {d3.select("#nodeinfo").text("id = , scale = ")});
+
 var scalars_name = 'labels';
 
-// TODO: This is not a smart way to do it because with asynchronous function, could
-//   move on and set up other vis elements before get this scalardata back!!!
-d3.json(site_root + "treescalarsfacade.php?name=" + scalars_name, function(json) {
+// Function for grabbing scalars from the server
+var updateScalars = function(s_name) {
+	d3.json(site_root + "treescalarsfacade.php?name=" + s_name, function(json) {
 	
-	scalardata = json;
+		scalardata = json;
 	
-});
-
-// Grab initial ellipses
-d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
-
-	dataset = json;
-
-	//Update scale domains
-	var xRange = d3.extent(dataset, function(d) { return d[0]; })
-	var yRange = d3.extent(dataset, function(d) { return d[1]; })
-	xScale.domain(xRange);
-	yScale.domain(yRange);
-	xrScale.domain([0, xRange[1]-xRange[0]]);
-	yrScale.domain([0, yRange[1]-yRange[0]]);
-
-	//Create circles
-	svg.selectAll("ellipse")
-			.data(dataset)
-		.enter()
-			.append("ellipse")
-			.attr("id", function(d) {return "e_" + d[5];})
-			.attr("stroke", function(d,i){return cScale(scalardata[d[5]]);})
-			.attr("fill-opacity", function(d,i){return 0.1;})
-			.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
-			.attr("rx", function(d) { return xrScale(d[2]); })
-			.attr("ry", function(d) { return yrScale(d[3]); });
-
-	//Create X axis
-	svg.append("g")
-		.attr("class", "x axis")
-		.attr("transform", "translate(0," + (h_el - padding) + ")")
-		.call(xAxis);
-
-	//Create Y axis
-	svg.append("g")
-		.attr("class", "y axis")
-		.attr("transform", "translate(" + padding + ",0)")
-		.call(yAxis);
-
-	d3.selectAll("ellipse")
-		.on("click", clickfctn)
-		.on("dblclick", dblclickfctn);
-			
-}); // JSON function end
+		// Update colors in both visualizations when this returns
+		svg.selectAll("ellipse")
+				.attr("stroke", function(d,i){return cScale(scalardata[d[5]]);});
+	
+		vis.selectAll("rect")
+				.attr("fill", function(d) { return cScale(scalardata[d.i]); });
+	});
+};
 
 var updateAxes = function() {
 		
@@ -135,7 +118,38 @@ var updateAxes = function() {
 		.call(yAxis);
 };
 
-var updateEllipses = function( basis_id, selectFunction ) {
+// Grab initial ellipses
+var init = function() {
+	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
+
+		dataset = json;
+
+		//Update scale domains
+		var xRange = d3.extent(dataset, function(d) { return d[0]; })
+		var yRange = d3.extent(dataset, function(d) { return d[1]; })
+		xScale.domain(xRange);
+		yScale.domain(yRange);
+		xrScale.domain([0, xRange[1]-xRange[0]]);
+		yrScale.domain([0, yRange[1]-yRange[0]]);
+
+		//Create initial ellipses
+		svg.selectAll("ellipse")
+				.data(dataset)
+			.enter()
+				.append("ellipse")
+				.attr("id", function(d) {return "e_" + d[5];})
+				.attr("stroke", function(d,i){return cScale(scalardata[d[5]]);})
+				.attr("fill-opacity", function(d,i){return 0.1;})
+				.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
+				.attr("rx", function(d) { return xrScale(d[2]); })
+				.attr("ry", function(d) { return yrScale(d[3]); })
+				.on("click", clickfctn)
+				.on("dblclick", dblclickfctn);
+			
+	}); // JSON function end
+};
+
+var updateEllipses = function( ) {
 
 	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 
@@ -157,21 +171,40 @@ var updateEllipses = function( basis_id, selectFunction ) {
 			.classed("r_selected", true);
 
 		//Update all circles
-		svg.selectAll("ellipse")
-				.data(dataset)
-				.classed("el_selected", function(d){return selectFunction(d,this);})
-			.transition()
+		var els = svg.selectAll("ellipse")
+				.data(dataset, function(d){return d[5];});
+		
+		els.transition()
 				.duration(500)		
 				.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
-				.attr("stroke", function(d,i){return selectFunction(d,this) ? selectColor : cScale(scalardata[d[5]]);})
 				.attr("rx", function(d) { return xrScale(d[2]); })
 				.attr("ry", function(d) { return yrScale(d[3]); });
 
+		
+		els.enter()
+				.append("ellipse")
+				.attr("id", function(d) {return "e_" + d[5];})
+				.attr("stroke", function(d,i){return d[5] == node_id ? selectColor : cScale(scalardata[d[5]]);})
+				.attr("fill-opacity", function(d,i){return 0.1;})
+				.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
+				.classed("el_selected", function(d){return d[5] == node_id;})
+				.attr("rx", function(d) { return xrScale(d[2]); })
+				.attr("ry", function(d) { return yrScale(d[3]); })
+				.on("click", clickfctn)
+				.on("dblclick", dblclickfctn);
+		
+		els.exit()
+				.remove();
+		
 		updateAxes();
 
 	});
 };
 
+// Do initial scalars retrieval
+updateScalars(scalars_name);
+
+updateEllipses();
 
 // Ellipse click function (update projection basis)
 var clickfctn = function() {
@@ -182,9 +215,7 @@ var clickfctn = function() {
 			
 	basis_id = that.__data__[5];
 
-	var f = function(d, self) { return that === self; };
-	
-	updateEllipses(basis_id, f);
+	updateEllipses();
 
 };
 
@@ -200,9 +231,7 @@ var dblclickfctn = function() {
 			
 	basis_id = 0;
 
-	var f = function(d) { return d[5] == 0; };
-	
-	updateEllipses(basis_id, f);
+	updateEllipses();
 
 		
 };
@@ -211,11 +240,6 @@ var dblclickfctn = function() {
 
 // ============
 // Icicle view
-
-var vis = d3.select("#tree").append("svg:svg")
-		.attr("width", w_ice)
-		.attr("height", h_ice)
-		.on("mouseout", function() {d3.select("#nodeinfo").text("id = , scale = ")});
 
 // JSON object member keys have simplified names to keep
 // file and transfer size down.
@@ -272,6 +296,9 @@ d3.json(site_root + "treedatafacade.php", function(json) {
 				.classed('r_selected', true);
 				
 		updateRect(d.i);
+		
+		node_id = d.i;
+		updateEllipses();
 				
 	}
 

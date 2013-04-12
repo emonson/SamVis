@@ -104,9 +104,9 @@ class IPCATree(object):
 		f = io.open(self.data_file, 'rb', buffering=65536)
 
 		# Tree header
-		dt = N.dtype([('epsilon', N.dtype('d8')), 
-									('d', N.dtype('I4')), 
-									('m', N.dtype('I4')), 
+		dt = N.dtype([('epsilon', N.dtype('f8')), 
+									('d', N.dtype('u4')), 
+									('m', N.dtype('u4')), 
 									('minPoints', N.dtype('i4'))])
 		header = N.frombuffer(f.read(8+4+4+4), dtype=dt, count=1)
 		epsilon = header['epsilon']
@@ -126,19 +126,19 @@ class IPCATree(object):
 		while r_nPhi:
 			nPhi = int(N.frombuffer(r_nPhi, N.dtype('i4'), count=1))
 			
-			phi = N.matrix(N.frombuffer(f.read(8*nPhi*m), N.dtype('d8'), count=nPhi*m).reshape(nPhi,m))
-			sigma = N.frombuffer(f.read(8*nPhi), N.dtype('d8'), count=nPhi)
-			center = N.frombuffer(f.read(8*m), N.dtype('d8'), count=m)
-			mse = N.frombuffer(f.read(8*(d+1)), N.dtype('d8'), count=(d+1))
-			dir = N.frombuffer(f.read(8*m), N.dtype('d8'), count=m)
+			phi = N.matrix(N.frombuffer(f.read(8*nPhi*m), N.dtype('f8'), count=nPhi*m).reshape(nPhi,m))
+			sigma = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nPhi)
+			center = N.frombuffer(f.read(8*m), N.dtype('f8'), count=m)
+			mse = N.frombuffer(f.read(8*(d+1)), N.dtype('f8'), count=(d+1))
+			dir = N.frombuffer(f.read(8*m), N.dtype('f8'), count=m)
 			
-			a = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1))
+			a = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
 			nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
 			
 			pts = N.frombuffer(f.read(4*nPoints), N.dtype('i4'), count=nPoints)
 			
-			r = float(N.frombuffer(f.read(8), N.dtype('d8'), count=1))
-			isLeaf = bool(N.frombuffer(f.read(1), N.dtype('?1'), count=1))
+			r = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
+			isLeaf = bool(N.frombuffer(f.read(1), N.dtype('b1'), count=1))
 	
 			node = {}
 			node['id'] = id
