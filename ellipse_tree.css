@@ -1,8 +1,9 @@
 
-.ell {
+ellipse {
 	fill: gray;
 	stroke-width: 2;
 }
+
 .axis path,
 .axis line {
 	fill: none;
@@ -17,6 +18,12 @@
 
 rect {
 	stroke: #fff;
+	stroke-width: 1;
+}
+
+rect.r_selected {
+	stroke: gold;
+	stroke-width: 3;
 }
 
 p {
