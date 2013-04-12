@@ -10,18 +10,14 @@ var basis_id = 0;
 
 // Arrays to hold ellipse data pulled from JSON
 var dataset = [];
-var colordata = [];
-var filldata = [];
+var scalardata = [];
 
 // Icicle view variables
 var w_ice = 500,
 		h_ice = 300,
 		x_ice = d3.scale.linear().range([0, w_ice]),
 		y_ice = d3.scale.linear().range([0, h_ice]),
-		color = d3.scale.category20c(),
-		cLabelScale = d3.scale.linear()
-									.domain([0.0, 0.5, 1.0])
-									.range(["#CA0020", "#EEEEEE", "#0571B0"]);
+		color = d3.scale.category20c();
 
 
 var partition_ice = d3.layout.partition()
@@ -71,16 +67,20 @@ var yAxis = d3.svg.axis()
 					.orient("left")
 					.ticks(5);
 
-// TODO: Here need to request initial scalars to color by (labels to start)
+var scalars_name = 'labels';
 
+// TODO: This is not a smart way to do it because with asynchronous function, could
+//   move on and set up other vis elements before get this scalardata back!!!
+d3.json(site_root + "treescalarsfacade.php?name=" + scalars_name, function(json) {
+	
+	scalardata = json;
+	
+});
+
+// Grab initial ellipses
 d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 
-	dataset = json.data;
-
-	colordata = json.labels;
-	for(var i=0; i < colordata.length; i++) {
-		filldata.push(0.1);
-	}
+	dataset = json;
 
 	//Update scale domains
 	var xRange = d3.extent(dataset, function(d) { return d[0]; })
@@ -96,8 +96,8 @@ d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_i
 		.enter()
 			.append("ellipse")
 			.attr("id", function(d) {return "e_" + d[5];})
-			.attr("stroke", function(d,i){return cScale(colordata[i]);})
-			.attr("fill-opacity", function(d,i){return filldata[i];})
+			.attr("stroke", function(d,i){return cScale(scalardata[d[5]]);})
+			.attr("fill-opacity", function(d,i){return 0.1;})
 			.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
 			.attr("rx", function(d) { return xrScale(d[2]); })
 			.attr("ry", function(d) { return yrScale(d[3]); });
@@ -139,7 +139,7 @@ var updateEllipses = function( basis_id, selectFunction ) {
 
 	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 
-		dataset = json.data;
+		dataset = json;
 
 		//Update scale domains
 		var xRange = d3.extent(dataset, function(d) { return d[0]; })
@@ -163,7 +163,7 @@ var updateEllipses = function( basis_id, selectFunction ) {
 			.transition()
 				.duration(500)		
 				.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
-				.attr("stroke", function(d,i){return selectFunction(d,this) ? selectColor : cScale(colordata[i]);})
+				.attr("stroke", function(d,i){return selectFunction(d,this) ? selectColor : cScale(scalardata[d[5]]);})
 				.attr("rx", function(d) { return xrScale(d[2]); })
 				.attr("ry", function(d) { return yrScale(d[3]); });
 
@@ -186,14 +186,13 @@ var clickfctn = function() {
 	
 	updateEllipses(basis_id, f);
 
-}; // close clickfunction
+};
 
 // Ellipse double-click function (reset projection basis)
 var dblclickfctn = function() {
 				
-	// TODO: this part of recoloring previous ellipse is broken...
 	d3.select('.el_selected')
-		.attr("stroke", function(d) {return colordata[d[5]];})
+		.attr("stroke", function(d) {return scalardata[d[5]];})
 		.classed('el_selected', false);
 		
 	d3.select('#el_0')
@@ -206,7 +205,7 @@ var dblclickfctn = function() {
 	updateEllipses(basis_id, f);
 
 		
-}; // close clickfunction
+};
 
 
 
@@ -234,7 +233,7 @@ d3.json(site_root + "treedatafacade.php", function(json) {
 			.attr("y", function(d) { return y_ice(d.y); })
 			.attr("width", function(d) { return x_ice(d.dx); })
 			.attr("height", function(d) { return y_ice(d.dy); })
-			.attr("fill", function(d) { return cLabelScale(d.l); })
+			.attr("fill", function(d) { return cScale(scalardata[d.i]); })
 			.on("click", rect_click)
 			.on("dblclick", rect_dblclick)
 			.on("mouseover", hover);
@@ -243,7 +242,7 @@ d3.json(site_root + "treedatafacade.php", function(json) {
 		
 		// TODO: colordata only valid for current scale!!??
 		d3.select(".el_selected")
-			.attr("stroke", function(d) {console.log(d); return colordata[d[5]];})
+			.attr("stroke", function(d) {return cScale(scalardata[d[5]]);})
 			.classed("el_selected", false);
 
 		d3.select("#e_" + sel_id)

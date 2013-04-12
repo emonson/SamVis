@@ -323,8 +323,7 @@ class IPCATree(object):
 	# --------------------
 	def RegenerateLiteTree(self, children_key='c', parent_id_key='p', key_dict = {'id':'i', 
 																					'npoints':'v',
-																					'scale':'s',
-																					'label':'l'}
+																					'scale':'s'}
 																					):
 		"""Keeping full tree as true record of data, and regenerate new lite tree
 		when needed, like after labels update. Children and parent keys required,
@@ -377,25 +376,30 @@ class IPCATree(object):
 			scale = self.nodes_by_id[id]['scale']
 			
 			ellipse_params = []
-			labels = []
 			# Always include node 0 for now
 			if scale != 0:
 				ellipse_params.append(self.calculate_node_ellipse(0))
-				labels.append(self.nodes_by_id[0]['label'])
 			for node in self.nodes_by_scale[scale]:
 				ellipse_params.append(self.calculate_node_ellipse(node['id']))
-				labels.append(node['label'])
-			
-			round_labels = N.round(labels, 2).tolist()
-			return_obj = {'data':ellipse_params, 'labels':round_labels}
-			
-			return return_obj
+						
+			return ellipse_params
 		
 	# --------------------
 	def GetScaleEllipsesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
 		return json.dumps(self.GetScaleEllipses(id))
+		
+	# --------------------
+	def GetScalarsByNameJSON(self, name = None):
+		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
+		
+		if name:
+			if name == 'labels':
+				labels = []
+				for node in self.nodes_by_id:
+					labels.append(node['label'])
+				return json.dumps(N.round(N.array(labels), 2).tolist())
 		
 	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):

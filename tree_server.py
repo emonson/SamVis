@@ -21,6 +21,12 @@ class HelloWorld:
 		
 		return self.tree.GetLiteTreeJSON()
 		
+	@cherrypy.tools.gzip()
+	def scalars(self, name=None):
+		
+		if name:
+			return self.tree.GetScalarsByNameJSON(name)
+		
 	# cherrypy wouldn't also gzip json generated with json_out()...
 	# @cherrypy.tools.json_out()
 	@cherrypy.tools.gzip()
@@ -43,6 +49,7 @@ class HelloWorld:
 		
 	index.exposed = True
 	scaleellipses.exposed = True
+	scalars.exposed = True
 	# scaleellipses._cp_config = {'tools.gzip.on': True}
 
 cherrypy.config.update({
