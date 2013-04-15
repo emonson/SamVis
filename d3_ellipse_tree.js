@@ -118,37 +118,6 @@ var updateAxes = function() {
 		.call(yAxis);
 };
 
-// Grab initial ellipses
-var init = function() {
-	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
-
-		dataset = json;
-
-		//Update scale domains
-		var xRange = d3.extent(dataset, function(d) { return d[0]; })
-		var yRange = d3.extent(dataset, function(d) { return d[1]; })
-		xScale.domain(xRange);
-		yScale.domain(yRange);
-		xrScale.domain([0, xRange[1]-xRange[0]]);
-		yrScale.domain([0, yRange[1]-yRange[0]]);
-
-		//Create initial ellipses
-		svg.selectAll("ellipse")
-				.data(dataset)
-			.enter()
-				.append("ellipse")
-				.attr("id", function(d) {return "e_" + d[5];})
-				.attr("stroke", function(d,i){return cScale(scalardata[d[5]]);})
-				.attr("fill-opacity", function(d,i){return 0.1;})
-				.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
-				.attr("rx", function(d) { return xrScale(d[2]); })
-				.attr("ry", function(d) { return yrScale(d[3]); })
-				.on("click", clickfctn)
-				.on("dblclick", dblclickfctn);
-			
-	}); // JSON function end
-};
-
 var updateEllipses = function( ) {
 
 	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
@@ -201,11 +170,6 @@ var updateEllipses = function( ) {
 	});
 };
 
-// Do initial scalars retrieval
-updateScalars(scalars_name);
-
-updateEllipses();
-
 // Ellipse click function (update projection basis)
 var clickfctn = function() {
 				
@@ -232,7 +196,6 @@ var dblclickfctn = function() {
 	basis_id = 0;
 
 	updateEllipses();
-
 		
 };
 
@@ -247,72 +210,109 @@ var dblclickfctn = function() {
 // d.v = d.value (number of leaf members / node)
 // d.i = d.id
 
-d3.json(site_root + "treedatafacade.php", function(json) {
-// d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
-	var rect = vis.selectAll("rect")
-			.data(partition_ice(json))
-		.enter().append("svg:rect")
-			.attr("id", function(d) {return "r_" + d.i;})
-			.attr("x", function(d) { return x_ice(d.x); })
-			.attr("y", function(d) { return y_ice(d.y); })
-			.attr("width", function(d) { return x_ice(d.dx); })
-			.attr("height", function(d) { return y_ice(d.dy); })
-			.attr("fill", function(d) { return cScale(scalardata[d.i]); })
-			.on("click", rect_click)
-			.on("dblclick", rect_dblclick)
-			.on("mouseover", hover);
-
-	function updateRect(sel_id) {
+var zoomRect = function(sel_id) {
 		
-		// TODO: colordata only valid for current scale!!??
-		d3.select(".el_selected")
-			.attr("stroke", function(d) {return cScale(scalardata[d[5]]);})
-			.classed("el_selected", false);
-
-		d3.select("#e_" + sel_id)
-			.attr("stroke", selectColor)
-			.classed("el_selected", true);
-
-		rect.transition()
+	// Change icicle zoom
+	vis.selectAll("rect")
+		.transition()
 			.duration(750)
 			.attr("x", function(d) { return x_ice(d.x); })
 			.attr("y", function(d) { return y_ice(d.y); })
 			.attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
 			.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); });
 
-	}
-	
-	function rect_click(d) {
+};
 
+var highlightEllipse = function(sel_id) {
+
+	// Unhighlight previously selected ellipse
+	d3.select(".el_selected")
+		.attr("stroke", function(d) {return cScale(scalardata[d[5]]);})
+		.classed("el_selected", false);
+
+	// Highlight ellipse corresponding to current rect selection
+	d3.select("#e_" + sel_id)
+		.attr("stroke", selectColor)
+		.classed("el_selected", true);
+
+};
+
+var rect_click = function(d) {
+	
+	if (node_id != d.i) {
 		if (d3.event && d3.event.altKey) {
 			x_ice.domain([d.x, d.x + d.dx]);
 			y_ice.domain([d.y, 1]).range([d.y ? 20 : 0, h_ice]);
+			
+			// Only update zoom if alt has been selected
+			zoomRect(d.i);
 		}
+	
+		node_id = d.i;
+
+		// TODO: Move to highlightRect function...
 		
+		// Unhighlight previously selected icicle rectangle
 		d3.select(".r_selected")
 			.classed("r_selected", false);
 		
+		// Highlight currently clicked rectangle
 		d3.select(this)
-				.classed('r_selected', true);
-				
-		updateRect(d.i);
+			.classed('r_selected', true);			
 		
-		node_id = d.i;
+		highlightEllipse(node_id);
+	
+		// Only transition ellipses if new rect has been selected
 		updateEllipses();
-				
 	}
+			
+};
 
-	function rect_dblclick(d) {
-		
-		// Reset scales to original domain and y range
-		x_ice.domain([0, 1]);
-		y_ice.domain([0, 1]).range([0, h_ice]);
-		
-		updateRect(0);
-	}
+var rect_dblclick = function(d) {
+	
+	// Reset scales to original domain and y range
+	x_ice.domain([0, 1]);
+	y_ice.domain([0, 1]).range([0, h_ice]);
+	
+	zoomRect(0);
+	
+};
 
-	function hover(d) {
-		d3.select("#nodeinfo")
-			.text("id = " + d.i + ", scale = " + d.s);
-	}
-});
+var rect_hover = function(d) {
+
+	d3.select("#nodeinfo")
+		.text("id = " + d.i + ", scale = " + d.s);
+		
+};
+
+var init_icicle_view = function() {
+	
+	d3.json(site_root + "treedatafacade.php", function(json) {
+	// d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
+		var rect = vis.selectAll("rect")
+				.data(partition_ice(json))
+			.enter().append("svg:rect")
+				.attr("id", function(d) {return "r_" + d.i;})
+				.attr("x", function(d) { return x_ice(d.x); })
+				.attr("y", function(d) { return y_ice(d.y); })
+				.attr("width", function(d) { return x_ice(d.dx); })
+				.attr("height", function(d) { return y_ice(d.dy); })
+				.attr("fill", function(d) { return cScale(scalardata[d.i]); })
+				.on("click", rect_click)
+				.on("dblclick", rect_dblclick)
+				.on("mouseover", rect_hover);
+
+	});
+	
+};
+
+// MAIN
+
+// Do initial scalars retrieval
+updateScalars(scalars_name);
+
+// Grab the initial ellipses
+updateEllipses();
+
+// Initialize icicle view
+init_icicle_view();
