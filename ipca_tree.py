@@ -294,9 +294,7 @@ class IPCATree(object):
 		center = node['center']
 		
 		A = A * N.sqrt(sigma)
-
 		C1 = self.V.T * A
-		
 		C = C1 * C1.T
 
 		# ALT METHOD for transforming the unit circle according to projected covariance
@@ -315,7 +313,9 @@ class IPCATree(object):
 		phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
 		# t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
 		
-		result_list = N.round((xm[0], xm[1], S[0], S[1], phi_deg), 2).tolist()
+		# How many sigma ellipses cover
+		s_mult = 2.0
+		result_list = N.round((xm[0], xm[1], s_mult*S[0], s_mult*S[1], phi_deg), 2).tolist()
 		result_list.append(node['id'])
 		
 		return result_list

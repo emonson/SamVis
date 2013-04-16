@@ -1,60 +1,30 @@
 // var site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/"
 var site_root = "http://localhost/~emonson/Sam/"
 
-//Width and height of ellipse plot
-var w_el = 400;
-var h_el = 400;
-var padding = 30;
-var selectColor = "gold";
-var node_id = 500;
-var basis_id = 0;
-
-// Arrays to hold ellipse data pulled from JSON
-var dataset = [];
+// Arrays to hold all nodes scalar data
 var scalardata = [];
-
-// Icicle view variables
-var w_ice = 500,
-		h_ice = 300,
-		x_ice = d3.scale.linear().range([0, w_ice]),
-		y_ice = d3.scale.linear().range([0, h_ice]),
-		color = d3.scale.category20c();
-
-// Icicle view tree layout calculation function
-var partition_ice = d3.layout.partition()
-		.children(function(d){ return d.c ? d.c : null;})
-		.value(function(d){return d.v ? d.v : null;});
-
-// Create ellipse graph scale functions with placeholder domains
-var xScale = d3.scale.linear()
-					 .domain([0, 1])
-					 .range([padding, w_el - padding * 2]);
-
-var yScale = d3.scale.linear()
-					 .domain([0, 1])
-					 .range([h_el - padding, padding]);
-
-// NOTE: May not be right with rotation if unequal XY domains
-var xrScale = d3.scale.linear()
-					 .domain([0, 1])
-					 .range([0, w_el]);
-
-var yrScale = d3.scale.linear()
-						.domain([0, 1])
-						.range([0, h_el]);
-
+var scalars_name = 'labels';
+var selectColor = "gold";
 var cScale = d3.scale.linear()
 						.domain([0.0, 0.5, 1.0])
 						.range(["#CA0020", "#999999", "#0571B0"]);
 
-// ============
-// Ellipse graph
+// - - - - - - - - - - - - - - - -
+// Ellipse plot variables
+var w_el = 400;
+var h_el = 400;
+var padding = 30;
+// Initial selection. node_id sets the scale for now...
+var node_id = 50;
+var basis_id = 0;
 
-// Create ellipse graph SVG element
-var svg = d3.select("#graph")
-			.append("svg")
-			.attr("width", w_el)
-			.attr("height", h_el);
+// Ellipse plot scale functions with placeholder domains
+var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding * 2]);
+var yScale = d3.scale.linear().domain([0, 1]).range([h_el - padding, padding]);
+
+// NOTE: May not be right with rotation if unequal XY domains
+var xrScale = d3.scale.linear().domain([0, 1]).range([0, w_el]);
+var yrScale = d3.scale.linear().domain([0, 1]).range([0, h_el]);
 
 // Define X axis
 var xAxis = d3.svg.axis()
@@ -68,17 +38,38 @@ var yAxis = d3.svg.axis()
 					.orient("left")
 					.ticks(5);
 
-//Create X axis
+// Ellipse plot SVG element
+var svg = d3.select("#graph")
+			.append("svg")
+			.attr("width", w_el)
+			.attr("height", h_el);
+
+// Ellipse plot axes
 svg.append("g")
 	.attr("class", "x axis")
 	.attr("transform", "translate(0," + (h_el - padding) + ")")
 	.call(xAxis);
-
-//Create Y axis
 svg.append("g")
 	.attr("class", "y axis")
 	.attr("transform", "translate(" + padding + ",0)")
 	.call(yAxis);
+
+// - - - - - - - - - - - - - - - -
+// Icicle view variables
+var w_ice = 500;
+var h_ice = 300;
+var x_ice = d3.scale.linear().range([0, w_ice]);
+var y_ice = d3.scale.linear().range([0, h_ice]);
+var color = d3.scale.category20c();
+
+// Icicle view tree layout calculation function
+// JSON object member keys have simplified names to keep file and transfer size down.
+// d.c = d.children
+// d.v = d.value (number of leaf members / node)
+// d.i = d.id
+var partition_ice = d3.layout.partition()
+		.children(function(d){ return d.c ? d.c : null;})
+		.value(function(d){return d.v ? d.v : null;});
 
 // Icicle view SVG element
 var vis = d3.select("#tree").append("svg:svg")
@@ -86,10 +77,11 @@ var vis = d3.select("#tree").append("svg:svg")
 		.attr("height", h_ice)
 		.on("mouseout", function() {d3.select("#nodeinfo").text("id = , scale = ")});
 
-var scalars_name = 'labels';
 
-// Function for grabbing scalars from the server
-var updateScalars = function(s_name) {
+// - - - - - - - - - - - - - - - -
+// Utility functions
+
+var getScalarsFromServer = function(s_name) {
 	d3.json(site_root + "treescalarsfacade.php?name=" + s_name, function(json) {
 	
 		scalardata = json;
@@ -118,26 +110,19 @@ var updateAxes = function() {
 		.call(yAxis);
 };
 
-var updateEllipses = function( ) {
+var updateEllipses = function() {
 
 	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 
-		dataset = json;
-
 		//Update scale domains
+		dataset = json;
+		// TODO: This should be data extent, not ellipse center extent...
 		var xRange = d3.extent(dataset, function(d) { return d[0]; })
 		var yRange = d3.extent(dataset, function(d) { return d[1]; })
 		xScale.domain(xRange);
 		yScale.domain(yRange);
 		xrScale.domain([0, xRange[1]-xRange[0]]);
 		yrScale.domain([0, yRange[1]-yRange[0]]);
-
-		// Update selected rectangle in icicle plot
-		d3.select(".r_selected")
-			.classed("r_selected", false);
-		
-		d3.select("#r_" + basis_id)
-			.classed("r_selected", true);
 
 		//Update all circles
 		var els = svg.selectAll("ellipse")
@@ -166,7 +151,6 @@ var updateEllipses = function( ) {
 				.remove();
 		
 		updateAxes();
-
 	});
 };
 
@@ -178,39 +162,33 @@ var clickfctn = function() {
 			.attr("stroke", selectColor);
 			
 	basis_id = that.__data__[5];
-
+	
+	// HACK: If select scale 0 ellipse, only want to reproject, not change scale...
+	if (basis_id == 0) {
+		highlightEllipse(0);
+		highlightRect(0);
+	}
+	else {
+		node_id = basis_id;
+		highlightEllipse(node_id);
+		highlightRect(node_id);
+	}
 	updateEllipses();
-
 };
 
 // Ellipse double-click function (reset projection basis)
 var dblclickfctn = function() {
 				
-	d3.select('.el_selected')
-		.attr("stroke", function(d) {return scalardata[d[5]];})
-		.classed('el_selected', false);
-		
-	d3.select('#el_0')
-		.attr("stroke", selectColor);
-			
 	basis_id = 0;
-
+	highlightEllipse(0);
+	highlightRect(0);
 	updateEllipses();
-		
 };
-
-
 
 // ============
 // Icicle view
 
-// JSON object member keys have simplified names to keep
-// file and transfer size down.
-// d.c = d.children
-// d.v = d.value (number of leaf members / node)
-// d.i = d.id
-
-var zoomRect = function(sel_id) {
+var zoomIcicleView = function(sel_id) {
 		
 	// Change icicle zoom
 	vis.selectAll("rect")
@@ -220,7 +198,6 @@ var zoomRect = function(sel_id) {
 			.attr("y", function(d) { return y_ice(d.y); })
 			.attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
 			.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); });
-
 };
 
 var highlightEllipse = function(sel_id) {
@@ -234,38 +211,40 @@ var highlightEllipse = function(sel_id) {
 	d3.select("#e_" + sel_id)
 		.attr("stroke", selectColor)
 		.classed("el_selected", true);
+};
 
+var highlightRect = function(sel_id) {
+
+	// Unhighlight previously selected icicle rectangle
+	d3.select(".r_selected")
+		.classed("r_selected", false);
+
+	// Highlight currently clicked rectangle
+	d3.select("#r_" + sel_id)
+		.classed('r_selected', true);			
 };
 
 var rect_click = function(d) {
 	
-	if (node_id != d.i) {
-		if (d3.event && d3.event.altKey) {
-			x_ice.domain([d.x, d.x + d.dx]);
-			y_ice.domain([d.y, 1]).range([d.y ? 20 : 0, h_ice]);
-			
-			// Only update zoom if alt has been selected
-			zoomRect(d.i);
-		}
-	
-		node_id = d.i;
-
-		// TODO: Move to highlightRect function...
+	// Only update icicle zoom if alt has been selected
+	if (d3.event && d3.event.altKey) {
+		x_ice.domain([d.x, d.x + d.dx]);
+		y_ice.domain([d.y, 1]).range([d.y ? 20 : 0, h_ice]);
 		
-		// Unhighlight previously selected icicle rectangle
-		d3.select(".r_selected")
-			.classed("r_selected", false);
-		
-		// Highlight currently clicked rectangle
-		d3.select(this)
-			.classed('r_selected', true);			
-		
-		highlightEllipse(node_id);
-	
-		// Only transition ellipses if new rect has been selected
-		updateEllipses();
+		zoomIcicleView(d.i);
 	}
-			
+	
+	// Only transition ellipses if new rect has been selected
+	if (node_id != d.i) {
+		node_id = d.i;
+		highlightRect(node_id);
+		highlightEllipse(node_id);
+		
+		// HACK: Until fix scatterplot data extents, not letting update on scale 0
+		if (node_id != 0) {
+			updateEllipses();
+		}
+	}
 };
 
 var rect_dblclick = function(d) {
@@ -274,15 +253,13 @@ var rect_dblclick = function(d) {
 	x_ice.domain([0, 1]);
 	y_ice.domain([0, 1]).range([0, h_ice]);
 	
-	zoomRect(0);
-	
+	zoomIcicleView(0);
 };
 
 var rect_hover = function(d) {
 
 	d3.select("#nodeinfo")
 		.text("id = " + d.i + ", scale = " + d.s);
-		
 };
 
 var init_icicle_view = function() {
@@ -293,6 +270,7 @@ var init_icicle_view = function() {
 				.data(partition_ice(json))
 			.enter().append("svg:rect")
 				.attr("id", function(d) {return "r_" + d.i;})
+				.classed("r_selected", function(d){return d.i == node_id;})
 				.attr("x", function(d) { return x_ice(d.x); })
 				.attr("y", function(d) { return y_ice(d.y); })
 				.attr("width", function(d) { return x_ice(d.dx); })
@@ -301,15 +279,14 @@ var init_icicle_view = function() {
 				.on("click", rect_click)
 				.on("dblclick", rect_dblclick)
 				.on("mouseover", rect_hover);
-
 	});
-	
 };
 
+// ===============
 // MAIN
 
 // Do initial scalars retrieval
-updateScalars(scalars_name);
+getScalarsFromServer(scalars_name);
 
 // Grab the initial ellipses
 updateEllipses();
