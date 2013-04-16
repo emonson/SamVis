@@ -115,7 +115,9 @@ var updateEllipses = function() {
 	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 
 		//Update scale domains
-		dataset = json;
+		dataset = json.data;
+		bounds = json.bounds;
+		// console.log([bounds[0][0],bounds[0][1],bounds[1][0],bounds[1][1]]);
 		// TODO: This should be data extent, not ellipse center extent...
 		var xRange = d3.extent(dataset, function(d) { return d[0]; })
 		var yRange = d3.extent(dataset, function(d) { return d[1]; })

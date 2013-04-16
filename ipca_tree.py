@@ -10,40 +10,34 @@ class IPCATree(object):
 	
 	def __init__(self, filename = None):
 
-		self.data_loaded = False
-		self.data_file = None
+		self.tree_data_loaded = False
+		self.tree_data_file = None
 		self.label_file = None
+		self.label_data_loaded = False	# not used...
 		self.labels = None
+		self.orig_data_file = None
+		self.orig_data_loaded = False
+		self.orig_data = None
+		self.orig_data_min = None
+		self.orig_data_max = None
 		self.lite_tree_root = None
 		self.nodes_by_id = None
 
 		# Built so it will automatically load a valid ipca file if given in constructor
-		# Otherwise, call SetFileName('file.ipca') and LoadData() separately
+		# Otherwise, call SetTreeFileName('file.ipca') and LoadTreeData() separately
 		
 		if filename:
 # 			try:
-# 				self.SetFileName(filename)
+# 				self.SetTreeFileName(filename)
 # 			except:
 # 				print "Problem setting filename"
 # 			
 # 			try:
-# 				self.LoadData()
+# 				self.LoadTreeData()
 # 			except:
 # 				print "Problem loading data"
-			self.SetFileName(filename)
-			self.LoadData()
-
-	# --------------------
-	def SetFileName(self, filename):
-		"""Set file name manually for IPCA file. Can also do this in constructor."""
-
-		if filename and type(filename) == str:
-			self.data_file = os.path.abspath(filename)
-		else:
-			raise IOError, "filename needs to be a non-empty string"
-
-		if not os.path.isfile(self.data_file):
-			raise IOError, "input file does not exist"
+			self.SetTreeFileName(filename)
+			self.LoadTreeData()
 
 	# --------------------
 	def SetLabelFileName(self, filename):
@@ -86,22 +80,34 @@ class IPCATree(object):
 		
 		# If the data is already loaded, compute mean labels
 		# TODO: Really need to do something more robust for data/label loading order...
-		if self.data_loaded and self.nodes_by_id:
+		if self.tree_data_loaded and self.nodes_by_id:
 			self.post_process_mean_labels()
 		
 	# --------------------
-	def LoadData(self):
+	def SetTreeFileName(self, filename):
+		"""Set file name manually for IPCA file. Can also do this in constructor."""
+
+		if filename and type(filename) == str:
+			self.tree_data_file = os.path.abspath(filename)
+		else:
+			raise IOError, "filename needs to be a non-empty string"
+
+		if not os.path.isfile(self.tree_data_file):
+			raise IOError, "input file does not exist"
+
+	# --------------------
+	def LoadTreeData(self):
 		"""Routine that does the actual data loading and some format conversion.
 		If a valid file name is given in the constructor, then this routine is called
 		automatically. If you haven't given a file name in the constructor then you'll
-		have to call SetFileName() before calling this."""
+		have to call SetTreeFileName() before calling this."""
 
-		if not self.data_file:
-			raise IOError, "No data file: Use SetFileName('file.ipca') before LoadData()"
+		if not self.tree_data_file:
+			raise IOError, "No data file: Use SetTreeFileName('file.ipca') before LoadTreeData()"
 
-		print 'Trying to load data set from .ipca file... ', self.data_file
+		print 'Trying to load data set from .ipca file... ', self.tree_data_file
 
-		f = io.open(self.data_file, 'rb', buffering=65536)
+		f = io.open(self.tree_data_file, 'rb', buffering=65536)
 
 		# Tree header
 		dt = N.dtype([('epsilon', N.dtype('f8')), 
@@ -188,7 +194,7 @@ class IPCATree(object):
 			id = id + 1
 		
 # 		except:
-# 			raise IOError, "Can't load data from file %s" % (self.data_file,)
+# 			raise IOError, "Can't load data from file %s" % (self.tree_data_file,)
 		
 # 		finally:
 		f.close()
@@ -207,7 +213,85 @@ class IPCATree(object):
 		# HACK: Using node 0 center as data center...
 		self.data_center = self.tree_root['center']
 		
-		self.data_loaded = True
+		self.tree_data_loaded = True
+
+	# --------------------
+	def SetOriginalDataFileName(self, filename):
+		"""Set file name for original data file."""
+
+		if filename and type(filename) == str:
+			self.orig_data_file = os.path.abspath(filename)
+		else:
+			raise IOError, "filename needs to be a non-empty string"
+
+		if not os.path.isfile(self.orig_data_file):
+			raise IOError, "input file does not exist"
+
+	# --------------------
+	def LoadOriginalData(self):
+		"""Routine that load the original (image) data as a m_dims x n_indiv numpy
+		array. For now this is just used to get the bounds in each dimension."""
+
+		if not self.orig_data_file:
+			raise IOError, "No data file: Use SetTreeFileName('file.ipca') before LoadTreeData()"
+
+		print 'Trying to load data set from .data file... ', self.orig_data_file
+
+		f = open(self.orig_data_file, 'r')
+
+		vectype = f.readline().strip()
+		if vectype != 'DenseMatrix':
+			raise IOError, "Data file needs to be a DenseMatrix"
+
+		size = f.readline().strip().split()
+		if size[0] != 'Size:' or size[2] != 'x':
+			raise IOError, "Problem reading data matrix size"
+		m = int(size[1])
+		n = int(size[3])
+
+		elsize = f.readline().strip().split()
+		if elsize[0] != 'ElementSize:':
+			raise IOError, "Problem reading data matrix element size"
+		n_bytes = int(elsize[1])
+
+		rowmaj = f.readline().strip().split()
+		if rowmaj[0] != 'RowMajor:':
+			raise IOError, "Problem reading data matrix row major order"
+		row_major = int(rowmaj[1])
+
+		datafile = f.readline().strip().split()
+		if datafile[0] != 'DataFile:':
+			raise IOError, "Problem reading data matrix file name"
+		data_file = os.path.abspath(os.path.join(os.path.dirname(self.orig_data_file),datafile[1]))
+
+		f.close()
+
+		fd = open(data_file, 'rb')
+		# self.orig_data = N.fromstring(fd.read(8*m*n), dtype=N.dtype('d8'), count=m*n).reshape(m,n)
+		self.orig_data = N.fromfile(fd, dtype=N.dtype('d8'), count=m*n).reshape(m,n)
+		fd.close()
+		
+		# Real data center
+		self.data_center = self.orig_data.mean(axis=1)
+
+		# For now just calculate min and max here after centering data
+		m = self.orig_data.shape[0]
+		self.orig_data = self.orig_data - self.data_center.reshape(m,1)
+		orig_min = N.matrix(self.orig_data.min(axis=1))
+		orig_max = N.matrix(self.orig_data.max(axis=1))
+		# Results in m x 2 matrix
+		self.orig_data_bounds = N.concatenate((orig_min, orig_max), axis=0).T
+		print 'orig bounds', self.orig_data_bounds.shape
+		
+		self.orig_data_loaded = True
+	
+	# --------------------
+	def UnloadOriginalData(self):
+		"""Delete original data if don't need it any more"""
+		
+		self.orig_data = None
+		self.orig_data_loaded = False
+
 
 	# --------------------
 	def post_process_nodes(self, root_node, child_key='children', scale_key='scale'):
@@ -321,6 +405,23 @@ class IPCATree(object):
 		return result_list
 	
 	# --------------------
+	def project_data_bounds(self):
+		"""Need to set basis_id first -- just uses self.V projection basis
+		NOT WORKING !!!"""
+		
+		C = self.V.T * self.orig_data
+		Cmin = C.min(axis=1)
+		Cmax = C.max(axis=1)
+		# Project mean
+		xm = N.dot(self.V.T, self.data_center)
+		# print C
+		# print xm
+		# print Cmin
+		# print Cmax
+
+		return N.concatenate((Cmin,Cmax),axis=1)
+	
+	# --------------------
 	def RegenerateLiteTree(self, children_key='c', parent_id_key='p', key_dict = {'id':'i', 
 																					'npoints':'v',
 																					'scale':'s'}
@@ -357,21 +458,21 @@ class IPCATree(object):
 	# --------------------
 	def SetBasisID(self, id):
 	
-		if (id is not None) and self.data_loaded and id >= 0 and id < len(self.nodes_by_id):
+		if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
 			
 			self.V = self.nodes_by_id[id]['phi'][:2,:].T
 
 	# --------------------
 	def GetMaxID(self):
 	
-		if self.data_loaded:
+		if self.tree_data_loaded:
 			return len(self.nodes_by_id)-1
 
 	# --------------------
 	def GetScaleEllipses(self, id = None):
 		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
 	
-		if (id is not None) and self.data_loaded and id >= 0 and id < len(self.nodes_by_id):
+		if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
 			
 			scale = self.nodes_by_id[id]['scale']
 			
@@ -381,8 +482,12 @@ class IPCATree(object):
 				ellipse_params.append(self.calculate_node_ellipse(0))
 			for node in self.nodes_by_scale[scale]:
 				ellipse_params.append(self.calculate_node_ellipse(node['id']))
-						
-			return ellipse_params
+			
+			# TODO: BOUNDS NOT WORKING!
+			bounds = self.project_data_bounds().getA().tolist()
+			return_obj = {'data':ellipse_params, 'bounds':bounds}
+
+			return return_obj
 		
 	# --------------------
 	def GetScaleEllipsesJSON(self, id = None):
@@ -443,13 +548,16 @@ if __name__ == "__main__":
 	# data_file = askopenfilename()
 # 	data_file = '/Users/emonson/Programming/Sam/test/orig2-copy2.ipca'
 # 	label_file = '/Users/emonson/Programming/Sam/test/labels02.data.hdr'
-	data_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
+	tree_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
 	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
+	data_file = '/Users/emonson/Programming/Sam/test/mnist12.data.hdr'
 
 	# DataSource loads .ipca file and can generate data from it for other views
-	tree = IPCATree(data_file)
+	tree = IPCATree(tree_file)
 	tree.SetLabelFileName(label_file)
 	tree.LoadLabelData()
+	tree.SetOriginalDataFileName(data_file)
+	tree.LoadOriginalData()
 	tree.GetScaleEllipsesJSON(900)
 	
 	# print tree.GetLiteTreeJSON()
