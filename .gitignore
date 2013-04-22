@@ -1,3 +1,4 @@
 # Ignore all python binary files
 *.pyc
 
+.DS_Store
