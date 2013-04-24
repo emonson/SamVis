@@ -210,7 +210,7 @@ class IPCATree(object):
 		# Using Sam's notation for now on matrices / arrays
 		self.V = self.nodes_by_id[0]['phi'][:2,:].T
 		
-		# HACK: Using node 0 center as data center...
+		# Using node 0 center as data center
 		self.data_center = self.tree_root['center']
 		
 		self.tree_data_loaded = True
@@ -387,7 +387,7 @@ class IPCATree(object):
 
 		# Project mean
 		xm = N.dot(self.V.T, center)
-		xrm = N.dot(self.V.T, self.data_center)	# NOTE: using node[0] center as data center...
+		xrm = N.dot(self.V.T, self.data_center)
 		xm = N.squeeze(N.asarray(xm - xrm))
 		
 		# Calculate scalings (not needed because it's in sigma
@@ -420,6 +420,18 @@ class IPCATree(object):
 		# print Cmax
 
 		return N.concatenate((Cmin,Cmax),axis=1)
+	
+	# --------------------
+	def calculate_ellipse_bounds(self, e_params):
+		"""Rough calculation of ellipse bounds by centers +/- max radius for each"""
+		
+		# Ellipse params is a list of tuples (X, Y, RX, RY, Phi, i)
+		params_array = N.array(e_params)
+		for ee in e_params:
+			pass
+			# TODO...
+			
+		return bounds
 	
 	# --------------------
 	def RegenerateLiteTree(self, children_key='c', parent_id_key='p', key_dict = {'id':'i', 
@@ -484,7 +496,7 @@ class IPCATree(object):
 				ellipse_params.append(self.calculate_node_ellipse(node['id']))
 			
 			# TODO: BOUNDS NOT WORKING!
-			bounds = self.project_data_bounds().getA().tolist()
+			bounds = self.calculate_ellipse_bounds(ellipse_params).tolist()
 			return_obj = {'data':ellipse_params, 'bounds':bounds}
 
 			return return_obj
@@ -550,14 +562,14 @@ if __name__ == "__main__":
 # 	label_file = '/Users/emonson/Programming/Sam/test/labels02.data.hdr'
 	tree_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
 	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
-	data_file = '/Users/emonson/Programming/Sam/test/mnist12.data.hdr'
+	# data_file = '/Users/emonson/Programming/Sam/test/mnist12.data.hdr'
 
 	# DataSource loads .ipca file and can generate data from it for other views
 	tree = IPCATree(tree_file)
 	tree.SetLabelFileName(label_file)
 	tree.LoadLabelData()
-	tree.SetOriginalDataFileName(data_file)
-	tree.LoadOriginalData()
+	# tree.SetOriginalDataFileName(data_file)
+	# tree.LoadOriginalData()
 	tree.GetScaleEllipsesJSON(900)
 	
 	# print tree.GetLiteTreeJSON()

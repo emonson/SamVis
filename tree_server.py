@@ -12,10 +12,10 @@ class HelloWorld:
 		self.tree = IPCATree('../test/mnist12.ipca')
 		# self.tree = IPCATree('../test/mnist12_d2.ipca')
 		self.tree.SetLabelFileName('../test/mnist12_labels.data.hdr')
-		self.tree.SetOriginalDataFileName('../test/mnist12.data.hdr')
+		# self.tree.SetOriginalDataFileName('../test/mnist12.data.hdr')
 		
 		self.tree.LoadLabelData()
-		self.tree.LoadOriginalData()
+		# self.tree.LoadOriginalData()
 		
 		self.maxID = self.tree.GetMaxID()
 		
