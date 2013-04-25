@@ -2,8 +2,8 @@
 $id = $_GET['id'];
 $basis = $_GET['basis'];
 
-// $server = "http://emo2.trinity.duke.edu:9000";
-$server = "http://localhost:9000";
+$server = "http://emo2.trinity.duke.edu:9000";
+// $server = "http://localhost:9000";
 
 // create a stream context
 $opts = array(

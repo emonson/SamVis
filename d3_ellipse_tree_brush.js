@@ -264,6 +264,33 @@ var rect_hover = function(d) {
 		.text("id = " + d.i + ", scale = " + d.s);
 };
 
+var brush = d3.svg.brush()
+	.x(x_ice)
+	.y(y_ice)
+	.on("brush", brushmove)
+	.on("brushend", brushend);
+
+var thereIsNoOverlap = function(a,b) {
+	// [[ax1,ay1],[ax2,ay2]] = a
+	// [[bx1,by1],[bx2,by2]] = b
+	// return((ax2<bx1) or (ax1>bx2) or (ay2<by1) or (ay1>by2))
+	return ((a[1][0] < b[0][0]) | (a[0][0] > b[1][0]) | (a[1][1] < b[0][1]) | (a[0][1] > b[1][1]));
+};
+
+// Highlight the selected circles.
+function brushmove(p) {
+	var e = brush.extent();
+	d3.selectAll("rect").classed("hidden", function(d) {
+		dd = [[d.x, d.y], [d.x + d.dx, d.y + d.dy]];
+		return thereIsNoOverlap(dd,e);
+	});
+}
+
+// If the brush is empty, select all circles.
+function brushend() {
+	if (brush.empty()) d3.selectAll("rect").classed("hidden", false);
+}
+
 var init_icicle_view = function() {
 	
 	d3.json(site_root + "treedatafacade.php", function(json) {
@@ -281,6 +308,14 @@ var init_icicle_view = function() {
 				.on("click", rect_click)
 				.on("dblclick", rect_dblclick)
 				.on("mouseover", rect_hover);
+		
+		vis.append("g")
+			.attr("class", "brush")
+			.call(brush);
+		
+		// NOTE: Remove brush with d3.selectAll(".brush").remove()
+		// https://groups.google.com/forum/?fromgroups=#!topic/d3-js/YnjYAV3wcpU
+		
 	});
 };
 

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: IPCA ellipses and tree view with brushing</title>
+
+		<link rel="stylesheet" href="ellipse_tree.css" media="screen">
+		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+
+	</head>
+	<body>
+	
+		<p>Click on an ellipse to choose use that node as the projection basis</p>
+		<p>Double-click to reset to scale 0 basis</p>
+	
+    <div id="graph"></div>
+
+    <p>Draw a rectangle on the icicle view to highlight and brush nodes</p>
+    
+    <p id="nodeinfo">id = , scale = </p>
+    
+    <div id="tree"></div>
+
+		<script type="text/javascript" src="d3_ellipse_tree_brush.js"></script>
+
+	</body>
+</html>
