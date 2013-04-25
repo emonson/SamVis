@@ -405,33 +405,21 @@ class IPCATree(object):
 		return result_list
 	
 	# --------------------
-	def project_data_bounds(self):
-		"""Need to set basis_id first -- just uses self.V projection basis
-		NOT WORKING !!!"""
-		
-		C = self.V.T * self.orig_data
-		Cmin = C.min(axis=1)
-		Cmax = C.max(axis=1)
-		# Project mean
-		xm = N.dot(self.V.T, self.data_center)
-		# print C
-		# print xm
-		# print Cmin
-		# print Cmax
-
-		return N.concatenate((Cmin,Cmax),axis=1)
-	
-	# --------------------
 	def calculate_ellipse_bounds(self, e_params):
 		"""Rough calculation of ellipse bounds by centers +/- max radius for each"""
 		
 		# Ellipse params is a list of tuples (X, Y, RX, RY, Phi, i)
 		params_array = N.array(e_params)
-		for ee in e_params:
-			pass
-			# TODO...
-			
-		return bounds
+		X = params_array[:,0]
+		Y = params_array[:,1]
+		
+		maxR = N.max(params_array[:,2:4], axis=1)
+		minX = N.min(X-maxR)
+		maxX = N.max(X+maxR)
+		minY = N.min(Y-maxR)
+		maxY = N.max(Y+maxR)
+		
+		return [(minX, maxX), (minY, maxY)]
 	
 	# --------------------
 	def RegenerateLiteTree(self, children_key='c', parent_id_key='p', key_dict = {'id':'i', 
@@ -495,8 +483,7 @@ class IPCATree(object):
 			for node in self.nodes_by_scale[scale]:
 				ellipse_params.append(self.calculate_node_ellipse(node['id']))
 			
-			# TODO: BOUNDS NOT WORKING!
-			bounds = self.calculate_ellipse_bounds(ellipse_params).tolist()
+			bounds = self.calculate_ellipse_bounds(ellipse_params)
 			return_obj = {'data':ellipse_params, 'bounds':bounds}
 
 			return return_obj

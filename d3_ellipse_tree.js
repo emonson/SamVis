@@ -13,18 +13,17 @@ var cScale = d3.scale.linear()
 // Ellipse plot variables
 var w_el = 400;
 var h_el = 400;
-var padding = 30;
+var padding = 40;
 // Initial selection. node_id sets the scale for now...
 var node_id = 50;
 var basis_id = 0;
 
 // Ellipse plot scale functions with placeholder domains
-var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding * 2]);
+var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding]);
 var yScale = d3.scale.linear().domain([0, 1]).range([h_el - padding, padding]);
 
-// NOTE: May not be right with rotation if unequal XY domains
-var xrScale = d3.scale.linear().domain([0, 1]).range([0, w_el]);
-var yrScale = d3.scale.linear().domain([0, 1]).range([0, h_el]);
+var xrScale = d3.scale.linear().domain([0, 1]).range([0, w_el - padding * 2]);
+var yrScale = d3.scale.linear().domain([0, 1]).range([0, h_el - padding * 2]);
 
 // Define X axis
 var xAxis = d3.svg.axis()
@@ -114,17 +113,15 @@ var updateEllipses = function() {
 
 	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 
-		//Update scale domains
+		// Update scale domains
+		// data = [[X, Y, RX, RY, Phi, i], ...]
 		dataset = json.data;
+		// bounds = [[Xmin, Xmax], [Ymin, Ymax]]
 		bounds = json.bounds;
-		// console.log([bounds[0][0],bounds[0][1],bounds[1][0],bounds[1][1]]);
-		// TODO: This should be data extent, not ellipse center extent...
-		var xRange = d3.extent(dataset, function(d) { return d[0]; })
-		var yRange = d3.extent(dataset, function(d) { return d[1]; })
-		xScale.domain(xRange);
-		yScale.domain(yRange);
-		xrScale.domain([0, xRange[1]-xRange[0]]);
-		yrScale.domain([0, yRange[1]-yRange[0]]);
+		xScale.domain(bounds[0]);
+		yScale.domain(bounds[1]);
+		xrScale.domain([0, bounds[0][1]-bounds[0][0]]);
+		yrScale.domain([0, bounds[1][1]-bounds[1][0]]);
 
 		//Update all circles
 		var els = svg.selectAll("ellipse")
@@ -163,19 +160,15 @@ var clickfctn = function() {
 	d3.select(this)
 			.attr("stroke", selectColor);
 			
-	basis_id = that.__data__[5];
+	node_id = that.__data__[5];
+	highlightEllipse(node_id);
+	highlightRect(node_id);
 	
-	// HACK: If select scale 0 ellipse, only want to reproject, not change scale...
-	if (basis_id == 0) {
-		highlightEllipse(0);
-		highlightRect(0);
+	// Only change projection basis if pressing alt
+	if (d3.event && d3.event.altKey) {
+		basis_id = node_id;
+		updateEllipses();
 	}
-	else {
-		node_id = basis_id;
-		highlightEllipse(node_id);
-		highlightRect(node_id);
-	}
-	updateEllipses();
 };
 
 // Ellipse double-click function (reset projection basis)
@@ -227,6 +220,13 @@ var highlightRect = function(sel_id) {
 };
 
 var rect_click = function(d) {
+	
+	// NOTE: If click on a different scale rectangle while scatterplot is
+	//   projected into a non-scale-0 basis, change to that different scale
+	//   representation in the scatterplot, but basis projected into is now not
+	//   one that is present in the ellipses on the plot...
+	
+	// TODO: Make separate colors for highlight and projection basis...
 	
 	// Only update icicle zoom if alt has been selected
 	if (d3.event && d3.event.altKey) {
