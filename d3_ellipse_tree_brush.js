@@ -60,6 +60,7 @@ var h_ice = 300;
 var x_ice = d3.scale.linear().range([0, w_ice]);
 var y_ice = d3.scale.linear().range([0, h_ice]);
 var color = d3.scale.category20c();
+var brush_on = false;
 
 // Icicle view tree layout calculation function
 // JSON object member keys have simplified names to keep file and transfer size down.
@@ -291,6 +292,19 @@ function brushend() {
 	if (brush.empty()) d3.selectAll("rect").classed("hidden", false);
 }
 
+function setIceInstructionsToBrush() {
+		d3.select("#ice_instructions")
+			.text("Brush Mode: Draw a rectangle on the icicle view to highlight and brush nodes");
+		brush_on = true;
+}
+
+function setIceInstructionsToSelect() {
+		d3.select("#ice_instructions")
+			.text("Click-Select Mode: Click on a node to change ellipse plot scale. \
+						 Alt-click to zoom in on a node's subtree. \
+						 Double-click to reset zoom.");
+}
+
 var init_icicle_view = function() {
 	
 	d3.json(site_root + "treedatafacade.php", function(json) {
@@ -309,13 +323,37 @@ var init_icicle_view = function() {
 				.on("dblclick", rect_dblclick)
 				.on("mouseover", rect_hover);
 		
-		vis.append("g")
-			.attr("class", "brush")
-			.call(brush);
-		
-		// NOTE: Remove brush with d3.selectAll(".brush").remove()
-		// https://groups.google.com/forum/?fromgroups=#!topic/d3-js/YnjYAV3wcpU
-		
+		if (brush_on) { 
+			setIceInstructionsToBrush();
+		}
+		else {
+			setIceInstructionsToSelect();
+		}
+
+		// Toggle icicle brushing
+		d3.select("body")
+			.on("keydown", function() {
+				if (d3.event && String.fromCharCode(d3.event.keyCode) == "B") {
+					if (brush_on) {
+						// Turn off brush
+						// NOTE: Not calling brush.empty() so keep brush shape for now...
+						d3.selectAll(".brush").remove();
+						// Restore colormap to icicle rectangles
+						d3.selectAll("rect").classed("hidden", false);
+						setIceInstructionsToSelect();
+						brush_on = false;
+					}
+					else {
+						// Add brushing to icicle view
+						// NOTE: If a brush already exists, colors won't reset around brush until moved
+						vis.append("g")
+							.attr("class", "brush")
+							.call(brush);
+						setIceInstructionsToBrush();
+						brush_on = true;
+					}
+				}
+			});
 	});
 };
 
