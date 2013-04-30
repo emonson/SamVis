@@ -18,6 +18,7 @@ class HelloWorld:
 		# self.tree.LoadOriginalData()
 		
 		self.maxID = self.tree.GetMaxID()
+		self.basis_id = None
 		
 	@cherrypy.tools.gzip()
 	def index(self):
@@ -44,11 +45,13 @@ class HelloWorld:
 			
 			if basis is not None:
 				basis_id = int(basis)
-				self.tree.SetBasisID(basis_id)
-				print "id", node_id, "basis_id", basis_id
+				if self.basis_id != basis_id:
+					self.basis_id = basis_id
+					self.tree.SetBasisID_ReprojectAll(basis_id)
+					print "id", node_id, "basis_id", basis_id
 		
 			# seems you can also just return the dictionary
-			return self.tree.GetScaleEllipsesJSON(node_id)
+			return self.tree.GetScaleEllipses_NoProjectionJSON(node_id)
 		
 	index.exposed = True
 	scaleellipses.exposed = True

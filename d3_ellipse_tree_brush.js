@@ -4,6 +4,10 @@ var site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/"
 // Arrays to hold all nodes scalar data
 var scalardata = [];
 var scalars_name = 'labels';
+// Convenience tree data structures -- may not always need these...
+var scales_by_id = [];
+var ids_by_scale = {};
+
 var selectColor = "gold";
 var cScale = d3.scale.linear()
 						.domain([0.0, 0.5, 1.0])
@@ -309,8 +313,21 @@ var init_icicle_view = function() {
 	
 	d3.json(site_root + "treedatafacade.php", function(json) {
 	// d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
+		
+		// Before building tree, compile convenience data structures
+		var ice_partition = partition_ice(json);
+		for (var ii = 0; ii < ice_partition.length; ii++) {
+			var scale = ice_partition[ii].s
+			scales_by_id.push(scale);
+			if (!ids_by_scale.hasOwnProperty(scale)) {
+				ids_by_scale[scale] = [];
+			}
+			ids_by_scale[scale].push(ii);
+		}
+		
+		// Build tree
 		var rect = vis.selectAll("rect")
-				.data(partition_ice(json))
+				.data(ice_partition)
 			.enter().append("svg:rect")
 				.attr("id", function(d) {return "r_" + d.i;})
 				.classed("r_selected", function(d){return d.i == node_id;})

@@ -22,6 +22,8 @@ class IPCATree(object):
 		self.orig_data_max = None
 		self.lite_tree_root = None
 		self.nodes_by_id = None
+		self.all_ellipse_params = None
+		self.basis_id = None
 
 		# Built so it will automatically load a valid ipca file if given in constructor
 		# Otherwise, call SetTreeFileName('file.ipca') and LoadTreeData() separately
@@ -205,16 +207,17 @@ class IPCATree(object):
 		# reference map (lists of lists) indexed first by scale
 		self.nodes_by_scale = self.collect_nodes_by_scale(self.nodes_by_id)
 		
-		# Now that data is loaded, default projection basis is
-		# root node first two PCA directions
-		# Using Sam's notation for now on matrices / arrays
-		self.V = self.nodes_by_id[0]['phi'][:2,:].T
-		
 		# Using node 0 center as data center
 		self.data_center = self.tree_root['center']
 		
 		self.tree_data_loaded = True
 
+		# Now that data is loaded, default projection basis is
+		# root node first two PCA directions
+		# Using Sam's notation for now on matrices / arrays
+		# self.V = self.nodes_by_id[0]['phi'][:2,:].T
+		self.SetBasisID_ReprojectAll(0)
+		
 	# --------------------
 	def SetOriginalDataFileName(self, filename):
 		"""Set file name for original data file."""
@@ -463,6 +466,19 @@ class IPCATree(object):
 			self.V = self.nodes_by_id[id]['phi'][:2,:].T
 
 	# --------------------
+	def SetBasisID_ReprojectAll(self, id):
+	
+		if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+			
+			if id != self.basis_id:
+				self.basis_id = id
+				self.V = self.nodes_by_id[id]['phi'][:2,:].T
+				
+				self.all_ellipse_params = []
+				for node in self.nodes_by_id:
+					self.all_ellipse_params.append(self.calculate_node_ellipse(node['id']))
+
+	# --------------------
 	def GetMaxID(self):
 	
 		if self.tree_data_loaded:
@@ -489,14 +505,41 @@ class IPCATree(object):
 			return return_obj
 		
 	# --------------------
+	def GetScaleEllipses_NoProjection(self, id = None):
+		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
+	
+		if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+			
+			scale = self.nodes_by_id[id]['scale']
+			
+			ellipse_params = []
+			# Always include node 0 for now
+			if scale != 0:
+				ellipse_params.append(self.all_ellipse_params[0])
+			for node in self.nodes_by_scale[scale]:
+				ellipse_params.append(self.all_ellipse_params[node['id']])
+			
+			bounds = self.calculate_ellipse_bounds(ellipse_params)
+			return_obj = {'data':ellipse_params, 'bounds':bounds}
+
+			return return_obj
+		
+	# --------------------
 	def GetScaleEllipsesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
 		return json.dumps(self.GetScaleEllipses(id))
 		
 	# --------------------
-	def GetScalarsByNameJSON(self, name = None):
+	def GetScaleEllipses_NoProjectionJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
+	
+		return json.dumps(self.GetScaleEllipses_NoProjection(id))
+		
+	# --------------------
+	# --------------------
+	def GetScalarsByNameJSON(self, name = None):
+		"""Take in scalar "name" and get out JSON of scalars for all nodes by id"""
 		
 		if name:
 			if name == 'labels':
