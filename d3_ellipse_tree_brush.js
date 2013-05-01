@@ -7,6 +7,9 @@ var scalars_name = 'labels';
 // Convenience tree data structures -- may not always need these...
 var scales_by_id = [];
 var ids_by_scale = {};
+var visible_ellipse_ids = [];
+var all_ellipse_data = [];
+var all_ellipse_bounds = [];
 
 var selectColor = "gold";
 var cScale = d3.scale.linear()
@@ -114,23 +117,39 @@ var updateAxes = function() {
 		.call(yAxis);
 };
 
-var updateEllipses = function() {
+// Get all projected ellipses from the server for now rather than just the displayed ones
+var getReprojectedEllipsesFromServer = function() {
 
-	d3.json(site_root + "treeellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
+	d3.json(site_root + "treeallellipsesfacade.php?id=" + node_id + "&basis=" + basis_id, function(json) {
 
+		// NOTE: Domains and bounds are being set to _all_ ellipses...
+		
 		// Update scale domains
 		// data = [[X, Y, RX, RY, Phi, i], ...]
-		dataset = json.data;
+		all_ellipse_data = json.data;
 		// bounds = [[Xmin, Xmax], [Ymin, Ymax]]
-		bounds = json.bounds;
-		xScale.domain(bounds[0]);
-		yScale.domain(bounds[1]);
-		xrScale.domain([0, bounds[0][1]-bounds[0][0]]);
-		yrScale.domain([0, bounds[1][1]-bounds[1][0]]);
+		all_ellipse_bounds = json.bounds;
+		xScale.domain(all_ellipse_bounds[0]);
+		yScale.domain(all_ellipse_bounds[1]);
+		xrScale.domain([0, all_ellipse_bounds[0][1]-all_ellipse_bounds[0][0]]);
+		yrScale.domain([0, all_ellipse_bounds[1][1]-all_ellipse_bounds[1][0]]);
 
-		//Update all circles
+		// NOTE: Updating ellipses here - may not always be the right thing to do...
+		updateEllipses();
+	});
+};
+
+var updateEllipses = function() {
+
+		// Regenerate visible ellipse data from list of ids
+		var visible_ellipse_data = [];
+		for (var ii = 0; ii < visible_ellipse_ids.length; ii++) {
+			visible_ellipse_data.push(all_ellipse_data[visible_ellipse_ids[ii]]);
+		}
+		
+		// Update the ellipses
 		var els = svg.selectAll("ellipse")
-				.data(dataset, function(d){return d[5];});
+				.data(visible_ellipse_data, function(d){return d[5];});
 		
 		els.transition()
 				.duration(500)		
@@ -155,7 +174,6 @@ var updateEllipses = function() {
 				.remove();
 		
 		updateAxes();
-	});
 };
 
 // Ellipse click function (update projection basis)
@@ -172,7 +190,7 @@ var clickfctn = function() {
 	// Only change projection basis if pressing alt
 	if (d3.event && d3.event.altKey) {
 		basis_id = node_id;
-		updateEllipses();
+		getReprojectedEllipsesFromServer();
 	}
 };
 
@@ -182,7 +200,7 @@ var dblclickfctn = function() {
 	basis_id = 0;
 	highlightEllipse(0);
 	highlightRect(0);
-	updateEllipses();
+	getReprojectedEllipsesFromServer();
 };
 
 // ============
@@ -247,10 +265,11 @@ var rect_click = function(d) {
 		highlightRect(node_id);
 		highlightEllipse(node_id);
 		
-		// HACK: Until fix scatterplot data extents, not letting update on scale 0
-		if (node_id != 0) {
-			updateEllipses();
-		}
+		// TODO: Need to check if different scale, and then update ellipses
+		// TODO: Need to update the visible_ellipse_ids array with ones from proper scale
+		// Making a copy of the array with concat(), slice() would also work...
+		visible_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
+		updateEllipses();
 	}
 };
 
@@ -285,10 +304,23 @@ var thereIsNoOverlap = function(a,b) {
 // Highlight the selected circles.
 function brushmove(p) {
 	var e = brush.extent();
+	var no_overlap = true;
+	// Saving all scale nodes and 0 from selection mode
+	visible_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
 	d3.selectAll("rect").classed("hidden", function(d) {
 		dd = [[d.x, d.y], [d.x + d.dx, d.y + d.dy]];
-		return thereIsNoOverlap(dd,e);
+		no_overlap = thereIsNoOverlap(dd,e);
+		// Update global visible_ellipse_ids array
+		// NOTE: There are some rect elements that aren't tree nodes, trying to filter...
+		if(!no_overlap && d.hasOwnProperty('i')) {
+			// Make sure item not already in list from selection or 0 node
+			if (visible_ellipse_ids.indexOf(d.i) < 0) {
+				visible_ellipse_ids.push(d.i);
+			}
+		}
+		return no_overlap;
 	});
+	updateEllipses();
 }
 
 // If the brush is empty, select all circles.
@@ -314,15 +346,20 @@ var init_icicle_view = function() {
 	d3.json(site_root + "treedatafacade.php", function(json) {
 	// d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
 		
+		// TODO: Don't need to send 's' as an attribute, partition function calculates
+		//   attribute 'depth'...
+		
 		// Before building tree, compile convenience data structures
 		var ice_partition = partition_ice(json);
+		scales_by_id = new Array(ice_partition.length);
 		for (var ii = 0; ii < ice_partition.length; ii++) {
-			var scale = ice_partition[ii].s
-			scales_by_id.push(scale);
+			var node = ice_partition[ii];
+			var scale = node.s
+			scales_by_id[node.i] = scale;
 			if (!ids_by_scale.hasOwnProperty(scale)) {
 				ids_by_scale[scale] = [];
 			}
-			ids_by_scale[scale].push(ii);
+			ids_by_scale[scale].push(node.i);
 		}
 		
 		// Build tree
@@ -358,6 +395,8 @@ var init_icicle_view = function() {
 						// Restore colormap to icicle rectangles
 						d3.selectAll("rect").classed("hidden", false);
 						setIceInstructionsToSelect();
+						visible_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
+						updateEllipses();
 						brush_on = false;
 					}
 					else {
@@ -380,8 +419,9 @@ var init_icicle_view = function() {
 // Do initial scalars retrieval
 getScalarsFromServer(scalars_name);
 
-// Grab the initial ellipses
-updateEllipses();
-
 // Initialize icicle view
+// NOTE: This is where scales_by_id and ids_by_scale get created
 init_icicle_view();
+
+// Grab the initial ellipses
+getReprojectedEllipsesFromServer();

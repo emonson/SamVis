@@ -525,6 +525,17 @@ class IPCATree(object):
 			return return_obj
 		
 	# --------------------
+	def GetAllEllipses_NoProjection(self):
+		"""Return dict of all ellipses in tree"""
+	
+		if self.tree_data_loaded:
+			
+			bounds = self.calculate_ellipse_bounds(self.all_ellipse_params)
+			return_obj = {'data':self.all_ellipse_params, 'bounds':bounds}
+
+			return return_obj
+		
+	# --------------------
 	def GetScaleEllipsesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
@@ -535,6 +546,12 @@ class IPCATree(object):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
 		return json.dumps(self.GetScaleEllipses_NoProjection(id))
+		
+	# --------------------
+	def GetAllEllipses_NoProjectionJSON(self):
+		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
+	
+		return json.dumps(self.GetAllEllipses_NoProjection())
 		
 	# --------------------
 	# --------------------
