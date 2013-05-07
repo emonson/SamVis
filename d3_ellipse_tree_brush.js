@@ -8,10 +8,12 @@ var scalars_name = 'labels';
 var scales_by_id = [];
 var ids_by_scale = {};
 var visible_ellipse_ids = [];
+var background_ellipse_ids = [];
 var all_ellipse_data = [];
 var all_ellipse_bounds = [];
 
 var selectColor = "gold";
+var ellipseStrokeWidth = 2;
 var cScale = d3.scale.linear()
 						.domain([0.0, 0.5, 1.0])
 						.range(["#CA0020", "#999999", "#0571B0"]);
@@ -141,12 +143,20 @@ var getReprojectedEllipsesFromServer = function() {
 
 var updateEllipses = function() {
 
-		// Regenerate visible ellipse data from list of ids
+		// Regenerate visible ellipse data from two lists of ids
+		// For now tag on extra flag identifying class of ellipse (background, visible)
 		var visible_ellipse_data = [];
-		for (var ii = 0; ii < visible_ellipse_ids.length; ii++) {
-			visible_ellipse_data.push(all_ellipse_data[visible_ellipse_ids[ii]]);
+		for (var ii = 0; ii < background_ellipse_ids.length; ii++) {
+			var tmp_data = all_ellipse_data[background_ellipse_ids[ii]].slice();
+			tmp_data.push('background');
+			visible_ellipse_data.push(tmp_data);
 		}
-		
+		for (var ii = 0; ii < visible_ellipse_ids.length; ii++) {
+			var tmp_data = all_ellipse_data[visible_ellipse_ids[ii]].slice();
+			tmp_data.push('visible');
+			visible_ellipse_data.push(tmp_data);
+		}
+
 		// Update the ellipses
 		var els = svg.selectAll("ellipse")
 				.data(visible_ellipse_data, function(d){return d[5];});
@@ -154,6 +164,13 @@ var updateEllipses = function() {
 		els.transition()
 				.duration(500)		
 				.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
+				.attr("stroke", function(d,i){return d[5] == node_id ? selectColor : cScale(scalardata[d[5]]);})
+				.attr("stroke-width", function(d) {
+						// Selected overrides background
+						if (d[5] == node_id) { return ellipseStrokeWidth; }
+						if (d[6] == 'background') {return 0;}
+						else {return ellipseStrokeWidth;}
+				 })
 				.attr("rx", function(d) { return xrScale(d[2]); })
 				.attr("ry", function(d) { return yrScale(d[3]); });
 
@@ -161,10 +178,14 @@ var updateEllipses = function() {
 		els.enter()
 				.append("ellipse")
 				.attr("id", function(d) {return "e_" + d[5];})
-				.attr("stroke", function(d,i){return d[5] == node_id ? selectColor : cScale(scalardata[d[5]]);})
-				.attr("fill-opacity", function(d,i){return 0.1;})
+				.attr("stroke", function(d) {return d[5] == node_id ? selectColor : cScale(scalardata[d[5]]);})
+				.attr("stroke-width", function(d) {
+						// Selected overrides background
+						if (d[5] == node_id) { return ellipseStrokeWidth; }
+						if (d[6] == 'background') {return 0;}
+						else {return ellipseStrokeWidth;}
+				 })
 				.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
-				.classed("el_selected", function(d){return d[5] == node_id;})
 				.attr("rx", function(d) { return xrScale(d[2]); })
 				.attr("ry", function(d) { return yrScale(d[3]); })
 				.on("click", clickfctn)
@@ -198,8 +219,8 @@ var clickfctn = function() {
 var dblclickfctn = function() {
 				
 	basis_id = 0;
-	highlightEllipse(0);
-	highlightRect(0);
+// 	highlightEllipse(0);
+// 	highlightRect(0);
 	getReprojectedEllipsesFromServer();
 };
 
@@ -222,12 +243,14 @@ var highlightEllipse = function(sel_id) {
 
 	// Unhighlight previously selected ellipse
 	d3.select(".el_selected")
-		.attr("stroke", function(d) {return cScale(scalardata[d[5]]);})
+		.attr("stroke", function(d,i){return cScale(scalardata[d[5]]);})
+		.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : ellipseStrokeWidth;})
 		.classed("el_selected", false);
 
 	// Highlight ellipse corresponding to current rect selection
 	d3.select("#e_" + sel_id)
-		.attr("stroke", selectColor)
+		.attr("stroke", function(d,i){return selectColor;})
+		.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : ellipseStrokeWidth;})
 		.classed("el_selected", true);
 };
 
@@ -261,15 +284,16 @@ var rect_click = function(d) {
 	
 	// Only transition ellipses if new rect has been selected
 	if (node_id != d.i) {
+		var new_scale = scales_by_id[node_id] == scales_by_id[d.i] ? false : true;
 		node_id = d.i;
 		highlightRect(node_id);
-		highlightEllipse(node_id);
 		
-		// TODO: Need to check if different scale, and then update ellipses
-		// TODO: Need to update the visible_ellipse_ids array with ones from proper scale
 		// Making a copy of the array with concat(), slice() would also work...
-		visible_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
-		updateEllipses();
+		if (new_scale) {
+			visible_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
+			updateEllipses();
+		}
+		highlightEllipse(node_id);
 	}
 };
 
@@ -301,12 +325,15 @@ var thereIsNoOverlap = function(a,b) {
 	return ((a[1][0] < b[0][0]) | (a[0][0] > b[1][0]) | (a[1][1] < b[0][1]) | (a[0][1] > b[1][1]));
 };
 
-// Highlight the selected circles.
+// Brushing: Gray out non-brushed rectangles and generate list of ellipse ids to show
 function brushmove(p) {
+
 	var e = brush.extent();
 	var no_overlap = true;
 	// Saving all scale nodes and 0 from selection mode
-	visible_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
+	background_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
+	visible_ellipse_ids = [];
+	
 	d3.selectAll("rect").classed("hidden", function(d) {
 		dd = [[d.x, d.y], [d.x + d.dx, d.y + d.dy]];
 		no_overlap = thereIsNoOverlap(dd,e);
@@ -395,6 +422,7 @@ var init_icicle_view = function() {
 						// Restore colormap to icicle rectangles
 						d3.selectAll("rect").classed("hidden", false);
 						setIceInstructionsToSelect();
+						background_ellipse_ids = [];
 						visible_ellipse_ids = [0].concat(ids_by_scale[scales_by_id[node_id]]);
 						updateEllipses();
 						brush_on = false;
@@ -402,6 +430,7 @@ var init_icicle_view = function() {
 					else {
 						// Add brushing to icicle view
 						// NOTE: If a brush already exists, colors won't reset around brush until moved
+						// TODO: Do a pass through movebrush routine after switching...
 						vis.append("g")
 							.attr("class", "brush")
 							.call(brush);

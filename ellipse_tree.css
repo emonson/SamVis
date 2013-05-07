@@ -1,7 +1,11 @@
 
 ellipse {
 	fill: gray;
-	stroke-width: 2;
+	fill-opacity: 0.1;
+}
+
+ellipse.background {
+	stroke-width: 0;
 }
 
 .axis path,
