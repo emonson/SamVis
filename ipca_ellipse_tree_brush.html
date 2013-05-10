@@ -10,19 +10,28 @@
 	</head>
 	<body>
 	
-		<p>Click on an ellipse to choose use that node as the projection basis</p>
-		<p>Double-click to reset to scale 0 basis</p>
+	<div id="container">
+		<div id="left_panel">
+		
+			<p>Press b to toggle icicle view brushing on and off</p>
+			<p id="nodeinfo">id = , scale = </p>
+		
+			<div id="tree"></div>
+			
+			<p id="ice_instructions"></p>
+		</div>
+
+		<div id="right_panel">
+		
+			<p>Click on an ellipse to choose use that node as the projection basis</p>
+			<p>Double-click to reset to scale 0 basis</p>
+			
+			<div id="graph"></div>
+			
+		</div>
+	</div>
 	
-    <div id="graph"></div>
-
-    <p>Press b to toggle icicle view brushing on and off</p>
-    <p id="ice_instructions"></p>
-    
-    <p id="nodeinfo">id = , scale = </p>
-    
-    <div id="tree"></div>
-
-		<script type="text/javascript" src="d3_ellipse_tree_brush.js"></script>
+	<script type="text/javascript" src="d3_ellipse_tree_brush.js"></script>
 
 	</body>
 </html>
