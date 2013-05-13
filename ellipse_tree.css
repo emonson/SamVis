@@ -30,7 +30,11 @@ p {
 
 ellipse {
 	fill: gray;
-	fill-opacity: 0.1;
+	fill-opacity: 0;
+}
+
+ellipse:hover {
+	fill-opacity: 0.2;
 }
 
 .axis path,
