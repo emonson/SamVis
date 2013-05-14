@@ -4,6 +4,7 @@
 	width:950px;
 	margin:0 auto;
 	background:#fff;
+	/* border: 1px solid #333; */
 }
 
 #left_panel {
@@ -22,11 +23,28 @@
 	clear: both;
 }
 
+#ellipse_center_image {
+	float: left;
+	margin: 5px;
+	border: 1px solid #ccc;
+}
+
+#ellipse_basis1_image {
+	float: left;
+	margin: 5px;
+	border: 1px solid #ccc;
+}
+
+#ellipse_basis2_image {
+	float: left;
+	margin: 5px;
+	border: 1px solid #ccc;
+}
+
 p {
 	font-family: sans-serif;
 	font-size: 80%;
 }
-
 
 ellipse {
 	fill: gray;
@@ -34,7 +52,7 @@ ellipse {
 }
 
 ellipse:hover {
-	fill-opacity: 0.2;
+	fill-opacity: 0.1;
 }
 
 .axis path,

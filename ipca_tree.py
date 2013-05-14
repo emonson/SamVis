@@ -536,6 +536,25 @@ class IPCATree(object):
 			return return_obj
 		
 	# --------------------
+	def GetEllipseCenterAndFirstTwoBases(self, id = None):
+		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
+	
+		if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+			
+			# WARNING: TODO: REMOVE MAGIC NUMBERS!!
+			c1 = 28
+			c2 = 28
+			
+			center = self.nodes_by_id[id]['center'].reshape(c1,c2).tolist()
+			basis1 = self.nodes_by_id[id]['phi'][0,:].reshape(c1,c2).tolist()
+			basis2 = self.nodes_by_id[id]['phi'][1,:].reshape(c1,c2).tolist()
+			return_obj = {'center':center, 'center_range':(N.min(center), N.max(center)),
+			              'basis1':basis1, 'basis1_range':(N.min(basis1), N.max(basis1)),
+			              'basis2':basis2, 'basis2_range':(N.min(basis2), N.max(basis2))}
+
+			return return_obj
+		
+	# --------------------
 	def GetScaleEllipsesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
@@ -552,6 +571,12 @@ class IPCATree(object):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
 		return json.dumps(self.GetAllEllipses_NoProjection())
+		
+	# --------------------
+	def GetEllipseCenterAndFirstTwoBasesJSON(self, id = None):
+		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
+	
+		return json.dumps(self.GetEllipseCenterAndFirstTwoBases(id))
 		
 	# --------------------
 	# --------------------

@@ -69,10 +69,23 @@ class HelloWorld:
 		# seems you can also just return the dictionary
 		return self.tree.GetAllEllipses_NoProjectionJSON()
 		
+	@cherrypy.tools.gzip()
+	def ellipsebasis(self, id=None):
+		# browser was having trouble accepting gzipped json with application/json type
+		# cherrypy.response.headers['Content-Type'] = "application/json"
+		# cherrypy.response.headers['Content-Encoding'] = "gzip"
+		
+		if id is not None:
+			node_id = int(id)
+	
+			# seems you can also just return the dictionary
+			return self.tree.GetEllipseCenterAndFirstTwoBasesJSON(node_id)
+		
 	index.exposed = True
 	scaleellipses.exposed = True
 	scalars.exposed = True
 	allellipses.exposed = True
+	ellipsebasis.exposed = True
 	# scaleellipses._cp_config = {'tools.gzip.on': True}
 
 cherrypy.config.update({
