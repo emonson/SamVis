@@ -2,10 +2,16 @@ import struct
 import numpy as N
 import collections as C
 import pprint
-import json
+import simplejson
 import os
 import io
 
+# http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
+class PrettyPrecision2SciFloat(float):
+	def __repr__(self):
+		return '%.2g' % self
+
+# --------------------
 class IPCATree(object):
 	
 	def __init__(self, filename = None):
@@ -536,6 +542,18 @@ class IPCATree(object):
 			return return_obj
 		
 	# --------------------
+	# http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
+	def pretty_sci_floats(self, obj):
+	
+		if isinstance(obj, float):
+			return PrettyPrecision2SciFloat(obj)
+		elif isinstance(obj, dict):
+			return dict((k, self.pretty_sci_floats(v)) for k, v in obj.items())
+		elif isinstance(obj, (list, tuple)):
+			return map(self.pretty_sci_floats, obj)             
+		return obj
+
+	# --------------------
 	def GetEllipseCenterAndFirstTwoBases(self, id = None):
 		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
 	
@@ -544,7 +562,7 @@ class IPCATree(object):
 			# WARNING: TODO: REMOVE MAGIC NUMBERS!!
 			c1 = 28
 			c2 = 28
-			
+						
 			center = self.nodes_by_id[id]['center'].reshape(c1,c2).tolist()
 			basis1 = self.nodes_by_id[id]['phi'][0,:].reshape(c1,c2).tolist()
 			basis2 = self.nodes_by_id[id]['phi'][1,:].reshape(c1,c2).tolist()
@@ -558,25 +576,26 @@ class IPCATree(object):
 	def GetScaleEllipsesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
-		return json.dumps(self.GetScaleEllipses(id))
+		return simplejson.dumps(self.GetScaleEllipses(id))
 		
 	# --------------------
 	def GetScaleEllipses_NoProjectionJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
-		return json.dumps(self.GetScaleEllipses_NoProjection(id))
+		return simplejson.dumps(self.GetScaleEllipses_NoProjection(id))
 		
 	# --------------------
 	def GetAllEllipses_NoProjectionJSON(self):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
-		return json.dumps(self.GetAllEllipses_NoProjection())
+		return simplejson.dumps(self.GetAllEllipses_NoProjection())
 		
 	# --------------------
 	def GetEllipseCenterAndFirstTwoBasesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
-	
-		return json.dumps(self.GetEllipseCenterAndFirstTwoBases(id))
+		print simplejson.dumps(self.GetEllipseCenterAndFirstTwoBases(id))
+		print simplejson.dumps(self.pretty_sci_floats(self.GetEllipseCenterAndFirstTwoBases(id)))
+		return simplejson.dumps(self.pretty_sci_floats(self.GetEllipseCenterAndFirstTwoBases(id)))
 		
 	# --------------------
 	# --------------------
@@ -588,7 +607,7 @@ class IPCATree(object):
 				labels = []
 				for node in self.nodes_by_id:
 					labels.append(node['label'])
-				return json.dumps(N.round(N.array(labels), 2).tolist())
+				return simplejson.dumps(N.round(N.array(labels), 2).tolist())
 		
 	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):
@@ -603,9 +622,9 @@ class IPCATree(object):
 			self.RegenerateLiteTree()
 		
 		if pretty:
-			return json.dumps(self.lite_tree_root, indent=2)
+			return simplejson.dumps(self.lite_tree_root, indent=2)
 		else:
-			return json.dumps(self.lite_tree_root)
+			return simplejson.dumps(self.lite_tree_root)
 	
 	# --------------------
 	def WriteLiteTreeJSON(self, filename, pretty = False):
