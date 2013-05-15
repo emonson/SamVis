@@ -71,9 +71,6 @@ class HelloWorld:
 		
 	@cherrypy.tools.gzip()
 	def ellipsebasis(self, id=None):
-		# browser was having trouble accepting gzipped json with application/json type
-		# cherrypy.response.headers['Content-Type'] = "application/json"
-		# cherrypy.response.headers['Content-Encoding'] = "gzip"
 		
 		if id is not None:
 			node_id = int(id)
@@ -81,11 +78,27 @@ class HelloWorld:
 			# seems you can also just return the dictionary
 			return self.tree.GetEllipseCenterAndFirstTwoBasesJSON(node_id)
 		
+	@cherrypy.tools.gzip()
+	def contextellipses(self, id=None, bkgdscale='0'):
+		# Specify a node_id that has been selected and supply a background scale.
+		# Projection will be done into node's parent space, so that gives nice view of
+		# the current node, plus the node itself and it and it's siblings children will be returned.
+	  
+		if id is not None:
+			# parameters come in and get parsed out as strings
+			node_id = int(id)	
+			bkgd_scale = int(bkgdscale)
+	
+			# seems you can also just return the dictionary
+			print 'context', node_id, bkgd_scale
+			return self.tree.GetContextEllipsesJSON(node_id, bkgd_scale)
+		
 	index.exposed = True
 	scaleellipses.exposed = True
 	scalars.exposed = True
 	allellipses.exposed = True
 	ellipsebasis.exposed = True
+	contextellipses.exposed = True
 	# scaleellipses._cp_config = {'tools.gzip.on': True}
 
 cherrypy.config.update({

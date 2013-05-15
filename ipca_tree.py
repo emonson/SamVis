@@ -511,6 +511,57 @@ class IPCATree(object):
 			return return_obj
 		
 	# --------------------
+	def GetScaleEllipsesJSON(self, id = None):
+	
+		return simplejson.dumps(self.GetScaleEllipses(id))
+		
+	# --------------------
+	def GetContextEllipses(self, id = None, bkgd_scale = None):
+		"""Take in node_id and scale for background ellipses for vis context.
+		   Project into parent scale basis, and return ellipses for parent, self, sibling and
+		   self and sibling's children, as well as background scale ellipses."""
+
+		if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+			if (bkgd_scale is not None) and (bkgd_scale < len(self.nodes_by_scale)):
+			
+				ellipse_params = []
+				bkgd_ellipse_params = []
+				
+				selected_node = self.nodes_by_id[id]
+				
+				# If this is not the root node
+				if 'parent_id' in selected_node:
+					# Project into parent space
+					parent_id = selected_node['parent_id']
+				else:
+					parent_id = 0
+				
+				# NOTE: In principle, might not want to go down two scales if choosing root node...
+				self.SetBasisID(parent_id)
+				ellipse_params.append(self.calculate_node_ellipse(parent_id))
+
+				parent_node = self.nodes_by_id[parent_id]
+				# also get children
+				for node in parent_node['children']:
+					ellipse_params.append(self.calculate_node_ellipse(node['id']))
+					# and children of children
+					if 'children' in node:
+						for child_node in node['children']:
+							ellipse_params.append(self.calculate_node_ellipse(child_node['id']))
+				
+				for node in self.nodes_by_scale[bkgd_scale]:
+					bkgd_ellipse_params.append(self.calculate_node_ellipse(node['id']))
+				bounds = self.calculate_ellipse_bounds(ellipse_params + bkgd_ellipse_params)
+				return_obj = {'foreground':ellipse_params, 'background':bkgd_ellipse_params, 'bounds':bounds}
+
+				return return_obj
+		
+	# --------------------
+	def GetContextEllipsesJSON(self, id = None, bkgd_scale = None):
+	
+		return simplejson.dumps(self.GetContextEllipses(id, bkgd_scale))
+		
+	# --------------------
 	def GetScaleEllipses_NoProjection(self, id = None):
 		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
 	
@@ -573,12 +624,6 @@ class IPCATree(object):
 			return return_obj
 		
 	# --------------------
-	def GetScaleEllipsesJSON(self, id = None):
-		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
-	
-		return simplejson.dumps(self.GetScaleEllipses(id))
-		
-	# --------------------
 	def GetScaleEllipses_NoProjectionJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
@@ -593,8 +638,7 @@ class IPCATree(object):
 	# --------------------
 	def GetEllipseCenterAndFirstTwoBasesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
-		print simplejson.dumps(self.GetEllipseCenterAndFirstTwoBases(id))
-		print simplejson.dumps(self.pretty_sci_floats(self.GetEllipseCenterAndFirstTwoBases(id)))
+
 		return simplejson.dumps(self.pretty_sci_floats(self.GetEllipseCenterAndFirstTwoBases(id)))
 		
 	# --------------------
