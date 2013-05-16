@@ -243,6 +243,9 @@ var getContextEllipsesFromServer = function() {
 
 	d3.json(data_proxy_root + "contextellipses?id=" + node_id + "&bkgdscale=" + bkgd_scale, function(json) {
 
+		// Flag for keeping track of whether this is the first selection
+		var first_selection = (foreground_ellipse_data.length == 0);
+		
 		// Update scale domains
 		// data = [[X, Y, RX, RY, Phi, i], ...]
 		foreground_ellipse_data = json.foreground;
@@ -256,7 +259,12 @@ var getContextEllipsesFromServer = function() {
 		yrScale.domain([0, ellipse_bounds[1][1]-ellipse_bounds[1][0]]);
 
 		// Updating ellipses
-		updateEllipses();
+		if (first_selection) {
+			updateEllipses(150);
+		}
+		else {
+			updateEllipses(750);
+		}
 	});
 };
 
@@ -267,10 +275,33 @@ var setEllipseStrokeColor = function(d,i) {
 };
 
 var setEllipseStrokeWidth = function(d,i) {
+	
+	// Calculate wrt current selection scale
+	var main_selection_scale = scales_by_id[node_id];
+	var this_scale = scales_by_id[d[5]];
+	var width = ellipseStrokeWidth;
+	if (this_scale > main_selection_scale) { width = width / 2.0; }
+	if (this_scale < main_selection_scale) { width = width * 1.5; }
+	
 	// Selected ellipse coloring (stroke) overrides background (no stroke)
-	if (d[5] == node_id) { return ellipseStrokeWidth; }
+	if (d[5] == node_id) { return width; }
 	if (d[6] == 'background') {return 0;}
-	else {return ellipseStrokeWidth;}
+	else {return width;}
+};
+
+var setEllipseStrokeOpacity = function(d,i) {
+	
+	// Calculate wrt current selection scale
+	var main_selection_scale = scales_by_id[node_id];
+	var this_scale = scales_by_id[d[5]];
+	var op = 1.0;
+	if (this_scale > main_selection_scale) { op = 0.75; }
+	if (this_scale < main_selection_scale) { op = 0.5; }
+	
+	// Selected ellipse coloring (stroke) overrides background (no stroke)
+	if (d[5] == node_id) { return op; }
+	if (d[6] == 'background') {return 0;}
+	else {return op;}
 };
 
 var updateEllipses = function(trans_dur) {
@@ -291,13 +322,14 @@ var updateEllipses = function(trans_dur) {
 		tmp_data.push('foreground');
 		visible_ellipse_data.push(tmp_data);
 	}
-
+	
 	// Update the ellipses
+	// data = [[X, Y, RX, RY, Phi, i], ...]
 	var els = svg.selectAll("ellipse")
 			.data(visible_ellipse_data, function(d){return d[5];});
 	
 	els.transition()
-			.duration(trans_dur)		
+		.duration(trans_dur)		
 			.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
 			.attr("stroke", setEllipseStrokeColor )
 			.attr("stroke-width", setEllipseStrokeWidth )
@@ -305,18 +337,28 @@ var updateEllipses = function(trans_dur) {
 			.attr("ry", function(d) { return yrScale(d[3]); });
 	
 	els.enter()
-			.append("ellipse")
-			.attr("id", function(d) {return "e_" + d[5];})
-			.attr("stroke", setEllipseStrokeColor )
-			.attr("stroke-width", setEllipseStrokeWidth )
+		.append("ellipse")
 			.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
 			.attr("rx", function(d) { return xrScale(d[2]); })
 			.attr("ry", function(d) { return yrScale(d[3]); })
-			.on("click", clickfctn)
-			.on("mouseover", hoverfctn);
+			.attr("stroke-opacity", 0.0)
+			.attr("fill-opacity", 0)
+				.on("click", clickfctn)
+				.on("mouseover", hoverfctn)
+		.transition()
+		.delay(trans_dur/2.0)
+		.duration(trans_dur)
+			.attr("id", function(d) {return "e_" + d[5];})
+			.attr("stroke", setEllipseStrokeColor )
+			.attr("stroke-width", setEllipseStrokeWidth )
+			.attr("stroke-opacity", setEllipseStrokeOpacity )
+			.attr("fill-opacity", 0.1)
+			.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
+			.attr("rx", function(d) { return xrScale(d[2]); })
+			.attr("ry", function(d) { return yrScale(d[3]); });
 	
 	els.exit()
-			.remove();
+		.remove();
 	
 	updateAxes();
 };
@@ -397,20 +439,21 @@ var rect_click = function(d) {
 	//   one that is present in the ellipses on the plot...
 		
 	// Only update icicle zoom if alt has been selected
-	if (d3.event && d3.event.shiftKey) {
+	if (d3.event && d3.event.altKey) {
 		x_ice.domain([d.x, d.x + d.dx]);
 		y_ice.domain([d.y, 1]).range([d.y ? 20 : 0, h_ice]);
 		
 		zoomIcicleView(d.i);
 	}
+	else {
+		var new_scale = scales_by_id[node_id] == scales_by_id[d.i] ? false : true;
+		node_id = d.i;
+		highlightSelectedRect(node_id);
 	
-	var new_scale = scales_by_id[node_id] == scales_by_id[d.i] ? false : true;
-	node_id = d.i;
-	highlightSelectedRect(node_id);
-	
-	highlightSelectedEllipse(node_id);
-	getBasisImagesFromServer(node_id);
-	getContextEllipsesFromServer();
+		highlightSelectedEllipse(node_id);
+		getBasisImagesFromServer(node_id);
+		getContextEllipsesFromServer();
+	}
 };
 
 var rect_dblclick = function(d) {

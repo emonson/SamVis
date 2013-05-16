@@ -297,6 +297,7 @@ var updateEllipses = function(trans_dur) {
 			.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
 			.attr("stroke", setEllipseStrokeColor )
 			.attr("stroke-width", setEllipseStrokeWidth )
+			.attr("fill-opacity", 0.1)
 			.attr("rx", function(d) { return xrScale(d[2]); })
 			.attr("ry", function(d) { return yrScale(d[3]); });
 	
@@ -305,6 +306,7 @@ var updateEllipses = function(trans_dur) {
 			.attr("id", function(d) {return "e_" + d[5];})
 			.attr("stroke", setEllipseStrokeColor )
 			.attr("stroke-width", setEllipseStrokeWidth )
+			.attr("fill-opacity", 0.1)
 			.attr("transform", function(d){return "translate(" + xScale(d[0]) + "," + yScale(d[1]) + ")  rotate(" + d[4] + ")";})
 			.attr("rx", function(d) { return xrScale(d[2]); })
 			.attr("ry", function(d) { return yrScale(d[3]); })
