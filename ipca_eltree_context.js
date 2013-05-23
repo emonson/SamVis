@@ -27,7 +27,7 @@ var basisColor = "black";
 var ellipseStrokeWidth = 2;
 var cScale = d3.scale.linear()
 						.domain([0.0, 0.5, 1.0])
-						.range(["#CA0020", "#999999", "#0571B0"]);
+						.range(["#0571B0", "#999999", "#CA0020"]);
 
 // - - - - - - - - - - - - - - - -
 // Ellipse plot variables
@@ -520,3 +520,9 @@ getScalarsFromServer(scalars_name);
 // Initialize icicle view
 // NOTE: This is where scales_by_id and ids_by_scale get created
 init_icicle_view();
+
+		highlightSelectedRect(17);
+	
+		highlightSelectedEllipse(17);
+		getBasisImagesFromServer(17);
+		getContextEllipsesFromServer();
