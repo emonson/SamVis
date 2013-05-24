@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+   <head>
+
+      <!-- include AutobahnJS .. that's all you need -->
+      <!-- <script src="http://autobahn.s3.amazonaws.com/js/autobahn.min.js"></script> -->
+      <script src="autobahn.min.js"></script>
+
+      <script>
+         // WAMP session object
+         var sess = null;
+         var ellog = null;
+         var count = 0;
+
+         window.onload = function() {
+
+						ellog = document.getElementById('log');
+						
+            var wsuri;
+            if (window.location.protocol === "file:") {
+               wsuri = "ws://localhost:9000";
+            } else {
+               wsuri = "ws://" + window.location.hostname + ":9000";
+            }
+
+            // connect to WAMP server
+            ab.connect(wsuri,
+
+               // WAMP session was established
+               function (session) {
+
+                  sess = session;
+
+                  console.log("Connected to " + wsuri);
+                  testAdd();
+                  testSub();
+               },
+
+               // WAMP session is gone
+               function (code, reason) {
+
+                  sess = null;
+
+                  if (code == ab.CONNECTION_UNSUPPORTED) {
+                     window.location = "http://autobahn.ws/unsupportedbrowser";
+                  } else {
+                     console.log(reason);
+                  }
+               }
+            );
+         };
+
+         function testAdd() {
+
+            // Call a remote procedure
+            //
+            log('sending Add');
+            sess.call("http://example.com/simple/calc#add", 23, count++).then(
+               function (res) {
+                  // RPC returned successfully
+                  log("RPC Add result: " + res);
+               },
+               function (error) {
+                  // An error occured:
+                  //    error.uri      : The URI of the error
+                  //    error.desc     :  Human readable, for developers and logging
+                  //    error.details  :  Any error details (optional)
+                  log("RPC error: " + error.desc);
+               }
+            );
+          };
+
+         function testSub() {
+
+            // Call a remote procedure, and a 2nd one with the result of the first
+            //
+            log('sending Sub');
+            sess.call("http://example.com/simple/calc#sub", 15, 5).then(
+               function (res) {
+                        log("RPC Sub result: " + res);
+               },
+               function (error) {
+                  log("RPC error: " + error.desc);
+               }
+            );
+         };
+
+         function log(m) {
+            ellog.innerHTML += m + '\n';
+            ellog.scrollTop = ellog.scrollHeight;
+         };
+      </script>
+   </head>
+   <body>
+      <h1>RPCs with AutobahnJS - Example 1</h1>
+      <noscript>
+         <span style="color: #f00; font-weight: bold;">
+            You need to turn on JavaScript.
+         </span>
+      </noscript>
+      <p onclick='testAdd();'>
+         Click this text to send Add command to server
+      </p>
+      <pre id="log" style="height: 20em; overflow-y: scroll; background-color: #ffc;"></pre>
+   </body>
+ </html>
