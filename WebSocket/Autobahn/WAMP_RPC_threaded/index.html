@@ -5,16 +5,105 @@
       <!-- include AutobahnJS .. that's all you need -->
       <!-- <script src="http://autobahn.s3.amazonaws.com/js/autobahn.min.js"></script> -->
       <script src="autobahn.min.js"></script>
+      <script src="jquery-2.0.1.min.js"></script>
+      <script src="jquery.tinypubsub.js"></script>
 
       <script>
          // WAMP session object
          var sess = null;
-         var ellog = null;
          var count = 0;
+         var ellog = null;
+         
+         // ------------------
+         // LOGGER
+         (function(){
+         	
+         	logger = { version: '0.0.1' };
+         	
+         	logger.create_res_log = function( m ) {
+         		return function (res) {
+         			console.log( m + ' returned ' + res );
+         		};
+         	};
+         	
+         	logger.create_res_html_log = function( el, m ) {
+         		return function (res) {
+         			el.innerHTML += m + ' returned ' + res + '\n';
+         			el.scrollTop = el.scrollHeight;
+         		};
+         	};
+         	
+         	logger.create_err_log = function( m ) {
+         		return function (err) {
+							//    error.uri      : The URI of the error
+							//    error.desc     :  Human readable, for developers and logging
+							//    error.details  :  Any error details (optional)
+         			console.log( m + ' returned with ERROR: ' + err.desc );
+         		};
+         	};
+         	
+         	logger.create_err_html_log = function( el, m ) {
+         		return function (err) {
+							//    error.uri      : The URI of the error
+							//    error.desc     :  Human readable, for developers and logging
+							//    error.details  :  Any error details (optional)
+         			el.innerHTML += m + ' returned with ERROR: ' + err.desc + '\n';
+         			el.scrollTop = el.scrollHeight;
+         		};
+         	};
+         	
+         })();
+         
+         // ------------------
+         // TESTER
+         (function(){
+         	
+         	tester = { version: '0.0.2' };
+         	
+					tester.add = function(e) {
 
+						// Call a remote procedure
+						//
+						$.publish("/calc/sent", "Add");
+						e.data.session.call("http://example.com/simple/calc#add", e.data.a, e.data.b++).then(
+							 function (res) {
+									// RPC returned successfully
+									// log("RPC Add result: " + res);
+									$.publish("/calc/add", res);
+							 },
+							 function (error) {
+									// An error occured:
+									//    error.uri      : The URI of the error
+									//    error.desc     :  Human readable, for developers and logging
+									//    error.details  :  Any error details (optional)
+									// log("RPC error: " + error.desc);
+									$.publish("/calc/error", error);
+							 }
+						);
+					};
+
+					tester.sub = function(e) {
+
+						// Call a remote procedure, and a 2nd one with the result of the first
+						//
+						$.publish("/calc/sent", "Sub");
+						e.data.session.call("http://example.com/simple/calc#sub", e.data.a, e.data.b).then(
+							 function (res) {
+									 // log("RPC Sub result: " + res);
+									 $.publish("/calc/sub", res);
+							 },
+							 function (error) {
+									 // log("RPC error: " + error.desc);
+									 $.publish("/calc/error", err);
+							 }
+						);
+					};
+					
+         })();
+
+         // ------------------
+         // ONLOAD MAIN
          window.onload = function() {
-
-						ellog = document.getElementById('log');
 						
             var wsuri;
             if (window.location.protocol === "file:") {
@@ -30,16 +119,34 @@
                function (session) {
 
                   sess = session;
+                  ellog = document.getElementById('log');
 
                   console.log("Connected to " + wsuri);
-                  testAdd();
-                  testSub();
+                  
+                  // Subscribe logger handlers to calculation results
+                  $.subscribe("/calc", logger.create_res_log("A calculation"));
+                  $.subscribe("/calc/add", logger.create_res_log("Add calculation"));
+                  $.subscribe("/calc/sub", logger.create_res_log("Sub calculation"));
+                  $.subscribe("/calc/error", logger.create_err_log("A calculation"));
+                  
+                  $.subscribe("/calc/add", logger.create_res_html_log( ellog, "Add calculation" ));
+                  $.subscribe("/calc/sent", logger.create_res_html_log( ellog, "Calc sent" ));
+                  
+                  $("#add_el").on("click", {session: sess, a:23, b:count}, tester.add );
+                  $("#sub_el").on("click", {session: sess, a:15, b:5}, tester.sub );
                },
 
                // WAMP session is gone
                function (code, reason) {
 
                   sess = null;
+                  
+                  // Unsubscribe all callbacks
+                  $.unsubscribe("/calc");
+                  $.unsubscribe("/calc/add");
+                  $.unsubscribe("/calc/sub");
+                  $.unsubscribe("/calc/error");
+                  $.unsubscribe("/calc/sent");
 
                   if (code == ab.CONNECTION_UNSUPPORTED) {
                      window.location = "http://autobahn.ws/unsupportedbrowser";
@@ -49,46 +156,7 @@
                }
             );
          };
-
-         function testAdd() {
-
-            // Call a remote procedure
-            //
-            log('sending Add');
-            sess.call("http://example.com/simple/calc#add", 23, count++).then(
-               function (res) {
-                  // RPC returned successfully
-                  log("RPC Add result: " + res);
-               },
-               function (error) {
-                  // An error occured:
-                  //    error.uri      : The URI of the error
-                  //    error.desc     :  Human readable, for developers and logging
-                  //    error.details  :  Any error details (optional)
-                  log("RPC error: " + error.desc);
-               }
-            );
-          };
-
-         function testSub() {
-
-            // Call a remote procedure, and a 2nd one with the result of the first
-            //
-            log('sending Sub');
-            sess.call("http://example.com/simple/calc#sub", 15, 5).then(
-               function (res) {
-                        log("RPC Sub result: " + res);
-               },
-               function (error) {
-                  log("RPC error: " + error.desc);
-               }
-            );
-         };
-
-         function log(m) {
-            ellog.innerHTML += m + '\n';
-            ellog.scrollTop = ellog.scrollHeight;
-         };
+					
       </script>
    </head>
    <body>
@@ -98,8 +166,8 @@
             You need to turn on JavaScript.
          </span>
       </noscript>
-      <p onclick='testAdd();'>
-         Click this text to send Add command to server
+      <p>
+         Click this text to send <span id="add_el">(Add)</span> or <span id="sub_el">(Sub)</span> command to server
       </p>
       <pre id="log" style="height: 20em; overflow-y: scroll; background-color: #ffc;"></pre>
    </body>
