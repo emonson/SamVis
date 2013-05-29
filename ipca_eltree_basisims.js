@@ -27,14 +27,15 @@ var cScale = d3.scale.linear()
 						.domain([0.0, 0.5, 1.0])
 						.range(["#0571B0", "#999999", "#CA0020"]);
 
+// Node and basis selections
+var node_id = 0;
+var basis_id = 0;
+
 // - - - - - - - - - - - - - - - -
 // Ellipse plot variables
 var w_el = 400;
 var h_el = 400;
 var padding = 40;
-// Initial selection. node_id sets the scale for now...
-var node_id = 0;
-var basis_id = 0;
 
 // Ellipse plot scale functions with placeholder domains
 var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding]);
