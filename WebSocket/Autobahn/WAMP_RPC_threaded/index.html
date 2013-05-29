@@ -11,7 +11,7 @@
       <script>
          // WAMP session object
          var sess = null;
-         var count = 0;
+         var count = {val:0};
          var ellog = null;
          
          // ------------------
@@ -59,7 +59,7 @@
          // ------------------
          // TESTER
          // Internally relies on jQuery with tiny pub/sub plugin...
-         var TESTER = (function($){
+         var TESTER = (function($,c){
          	
 						var tester = { version: '0.0.2' };
 					
@@ -67,7 +67,7 @@
 
 							// Call a remote procedure for Add. This one contains a delay on the server
 							// requires event data to be passed with session and two numbers: e.g. { session:sess, a:1, b:3 }
-							console.log("** testing: " + count);
+							console.log("** testing: " + c.val++);
 							$.publish("/calc/sent", "Add");
 							e.data.session.call("http://example.com/simple/calc#add", e.data.a, e.data.b++).then(
 								 function (res) {
@@ -105,7 +105,7 @@
 					
 						return tester;
 					
-         }(jQuery));
+         }(jQuery,count));
 
          // ------------------
          // ONLOAD MAIN
@@ -138,7 +138,7 @@
                   $.subscribe("/calc/add", LOGGER.create_res_html_log( ellog, "Add calculation" ));
                   $.subscribe("/calc/sent", LOGGER.create_res_html_log( ellog, "Calc sent" ));
                   
-                  $("#add_el").on("click", {session: sess, a:23, b:count}, TESTER.add );
+                  $("#add_el").on("click", {session: sess, a:23, b:count.val}, TESTER.add );
                   $("#sub_el").on("click", {session: sess, a:15, b:5}, TESTER.sub );
                   $("#test_el").on("click", testCallbackVariables );
                },
@@ -164,7 +164,7 @@
             );
             
             function testCallbackVariables() {
-            	console.log(count);
+            	console.log(count.val++);
             }
          };
 					
