@@ -3,6 +3,27 @@
 
 window.onload = function() {
 
+	$.subscribe("/scalars/updated", ELPLOT.updateScalarData);
+	$.subscribe("/scalars/updated", ICICLE.updateScalarData);
+	
+	$.subscribe("/icicle/rect_click", BASIS_IMS.getBasisImagesFromServer);
+	$.subscribe("/icicle/rect_click", ELPLOT.highlightSelectedEllipse);
+	$.subscribe("/icicle/rect_click", ELPLOT.getContextEllipsesFromServer);
+	$.subscribe("/icicle/rect_click", ICICLE.highlightSelectedRect);
+	
+	$.subscribe("/icicle/rect_hover", BASIS_IMS.getBasisImagesFromServer);
+	$.subscribe("/icicle/mouseout", BASIS_IMS.getBasisImagesFromServer);
+	
+	$.subscribe("/elplot/ellipse_click", ELPLOT.getContextEllipsesFromServer);
+	$.subscribe("/elplot/ellipse_click", ELPLOT.highlightSelectedEllipse);
+	$.subscribe("/elplot/ellipse_click", ICICLE.highlightSelectedRect);
+	$.subscribe("/elplot/ellipse_click", BASIS_IMS.getBasisImagesFromServer);
+
+	$.subscribe("/elplot/ellipse_hover", BASIS_IMS.getBasisImagesFromServer);
+	$.subscribe("/elplot/mouseout", BASIS_IMS.getBasisImagesFromServer);
+
+	$.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
+	
 	// Do initial scalars retrieval
 	UTILITIES.getScalarsFromServer(globals.scalars_name);
 

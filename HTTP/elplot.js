@@ -1,7 +1,7 @@
 // --------------------------
 // Ellipse plot variables
 
-var ELPLOT = (function(d3, g, B){
+var ELPLOT = (function(d3, $, g){
 
 	var el = { version: '0.0.1' };
 
@@ -34,7 +34,7 @@ var ELPLOT = (function(d3, g, B){
 				.attr("width", w_el)
 				.attr("height", h_el)
 				.on("mouseout", function() {
-					B.getBasisImagesFromServer(globals.node_id);
+					$.publish("/elplot/mouseout", g.node_id);
 				});
 
 	// Ellipse plot axes
@@ -64,21 +64,21 @@ var ELPLOT = (function(d3, g, B){
 
 	var setEllipseStrokeColor = function(d,i) {
 		// Selected overrides basis
-		if (d[5] == globals.node_id) { return globals.selectColor; }
-		else { return globals.cScale(globals.scalardata[d[5]]);}
+		if (d[5] == g.node_id) { return g.selectColor; }
+		else { return g.cScale(g.scalardata[d[5]]);}
 	};
 
 	var setEllipseStrokeWidth = function(d,i) {
 	
 		// Calculate wrt current selection scale
-		var main_selection_scale = globals.scales_by_id[globals.node_id];
-		var this_scale = globals.scales_by_id[d[5]];
-		var width = globals.ellipseStrokeWidth;
+		var main_selection_scale = g.scales_by_id[g.node_id];
+		var this_scale = g.scales_by_id[d[5]];
+		var width = g.ellipseStrokeWidth;
 		if (this_scale > main_selection_scale) { width = width / 2.0; }
 		if (this_scale < main_selection_scale) { width = width * 1.5; }
 	
 		// Selected ellipse coloring (stroke) overrides background (no stroke)
-		if (d[5] == globals.node_id) { return width; }
+		if (d[5] == g.node_id) { return width; }
 		if (d[6] == 'background') {return 0;}
 		else {return width;}
 	};
@@ -86,20 +86,20 @@ var ELPLOT = (function(d3, g, B){
 	var setEllipseStrokeOpacity = function(d,i) {
 	
 		// Calculate wrt current selection scale
-		var main_selection_scale = globals.scales_by_id[globals.node_id];
-		var this_scale = globals.scales_by_id[d[5]];
+		var main_selection_scale = g.scales_by_id[g.node_id];
+		var this_scale = g.scales_by_id[d[5]];
 		var op = 1.0;
 		if (this_scale > main_selection_scale) { op = 0.75; }
 		if (this_scale < main_selection_scale) { op = 0.5; }
 	
 		// Selected ellipse coloring (stroke) overrides background (no stroke)
-		if (d[5] == globals.node_id) { return op; }
+		if (d[5] == g.node_id) { return op; }
 		if (d[6] == 'background') {return 0;}
 		else {return op;}
 	};
 
 	var hoverfctn = function(d) {
-		B.getBasisImagesFromServer(d[5]);
+		$.publish("/elplot/ellipse_hover", d[5]);
 	};
 
 	// Ellipse click function (update projection basis)
@@ -109,20 +109,16 @@ var ELPLOT = (function(d3, g, B){
 
 		// Only change projection basis if pressing alt
 		if (d3.event && d3.event.altKey) {
-			globals.node_id = that.__data__[5];
+			g.node_id = that.__data__[5];
 			el.getContextEllipsesFromServer();
 		}
 	
 		else {
 			d3.select(this)
-					.attr("stroke", globals.selectColor);
+					.attr("stroke", g.selectColor);
 			
-			globals.node_id = that.__data__[5];
-			el.highlightSelectedEllipse(globals.node_id);
-			// TODO: global...
-			ICICLE.highlightSelectedRect(globals.node_id);
-			B.getBasisImagesFromServer(globals.node_id);
-			el.getContextEllipsesFromServer();
+			g.node_id = that.__data__[5];
+			$.publish("/elplot/ellipse_click", that.__data__[5]);
 		}
 	};
 	
@@ -142,13 +138,13 @@ var ELPLOT = (function(d3, g, B){
 		// Regenerate visible ellipse data from two lists of ids
 		// For now tag on extra flag identifying class of ellipse (background, visible)
 		var visible_ellipse_data = [];
-		for (var ii = 0; ii < globals.background_ellipse_data.length; ii++) {
-			var tmp_data = globals.background_ellipse_data[ii].slice();
+		for (var ii = 0; ii < g.background_ellipse_data.length; ii++) {
+			var tmp_data = g.background_ellipse_data[ii].slice();
 			tmp_data.push('background');
 			visible_ellipse_data.push(tmp_data);
 		}
-		for (var ii = 0; ii < globals.foreground_ellipse_data.length; ii++) {
-			var tmp_data = globals.foreground_ellipse_data[ii].slice();
+		for (var ii = 0; ii < g.foreground_ellipse_data.length; ii++) {
+			var tmp_data = g.foreground_ellipse_data[ii].slice();
 			tmp_data.push('foreground');
 			visible_ellipse_data.push(tmp_data);
 		}
@@ -196,29 +192,29 @@ var ELPLOT = (function(d3, g, B){
 	// Get all projected ellipses from the server for now rather than just the displayed ones
 	el.getContextEllipsesFromServer = function() {
 
-		d3.json(globals.data_proxy_root + "contextellipses?id=" + globals.node_id + "&bkgdscale=" + globals.bkgd_scale, function(json) {
+		d3.json(g.data_proxy_root + "contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
 
 			// Flag for keeping track of whether this is the first selection
-			var first_selection = (globals.foreground_ellipse_data.length == 0);
+			var first_selection = (g.foreground_ellipse_data.length == 0);
 		
 			// Update scale domains
 			// data = [[X, Y, RX, RY, Phi, i], ...]
-			globals.foreground_ellipse_data = json.foreground;
-			globals.background_ellipse_data = json.background;
+			g.foreground_ellipse_data = json.foreground;
+			g.background_ellipse_data = json.background;
 			// bounds = [[Xmin, Xmax], [Ymin, Ymax]]
-			globals.ellipse_bounds = json.bounds;
+			g.ellipse_bounds = json.bounds;
 		
-			xScale.domain(globals.ellipse_bounds[0]);
-			yScale.domain(globals.ellipse_bounds[1]);
-			xrScale.domain([0, globals.ellipse_bounds[0][1]-globals.ellipse_bounds[0][0]]);
-			yrScale.domain([0, globals.ellipse_bounds[1][1]-globals.ellipse_bounds[1][0]]);
+			xScale.domain(g.ellipse_bounds[0]);
+			yScale.domain(g.ellipse_bounds[1]);
+			xrScale.domain([0, g.ellipse_bounds[0][1]-g.ellipse_bounds[0][0]]);
+			yrScale.domain([0, g.ellipse_bounds[1][1]-g.ellipse_bounds[1][0]]);
 
 			// Updating ellipses
 			if (first_selection) {
-				el.updateEllipses(150);
+				$.publish("/ellipses/updated", 150);
 			}
 			else {
-				el.updateEllipses(750);
+				$.publish("/ellipses/updated", 750);
 			}
 		});
 	};
@@ -227,20 +223,20 @@ var ELPLOT = (function(d3, g, B){
 
 		// Unhighlight previously selected ellipse
 		d3.select(".el_selected")
-			.attr("stroke", function(d,i){return globals.cScale(globals.scalardata[d[5]]);})
-			.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : globals.ellipseStrokeWidth;})
+			.attr("stroke", function(d,i){return g.cScale(g.scalardata[d[5]]);})
+			.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : g.ellipseStrokeWidth;})
 			.classed("el_selected", false);
 
 		// Highlight ellipse corresponding to current rect selection
 		d3.select("#e_" + sel_id)
-			.attr("stroke", function(d,i){return globals.selectColor;})
-			.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : globals.ellipseStrokeWidth;})
+			.attr("stroke", function(d,i){return g.selectColor;})
+			.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : g.ellipseStrokeWidth;})
 			.classed("el_selected", true);
 	};
 
 	return el;
 
-}(d3, globals, BASIS_IMS));
+}(d3, jQuery, globals));
 
 // END ELPLOT
 // --------------------------

@@ -1,7 +1,7 @@
 // ============
 // Icicle view
 
-var ICICLE = (function(d3, g, B, E){
+var ICICLE = (function(d3, $, g){
 
 	var ic = { version: '0.0.1' };
 
@@ -30,7 +30,7 @@ var ICICLE = (function(d3, g, B, E){
 			.attr("height", h_ice)
 			.on("mouseout", function() {
 					d3.select("#nodeinfo").text("id = , scale = ");
-					B.getBasisImagesFromServer(globals.node_id);
+					$.publish("/icicle/mouseout", g.node_id);
 				});
 
 	var zoomIcicleView = function(sel_id) {
@@ -60,13 +60,9 @@ var ICICLE = (function(d3, g, B, E){
 			zoomIcicleView(d.i);
 		}
 		else {
-			var new_scale = globals.scales_by_id[globals.node_id] == globals.scales_by_id[d.i] ? false : true;
-			globals.node_id = d.i;
-			ic.highlightSelectedRect(globals.node_id);
-	
-			E.highlightSelectedEllipse(globals.node_id);
-			B.getBasisImagesFromServer(globals.node_id);
-			E.getContextEllipsesFromServer();
+			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
+			g.node_id = d.i;
+			$.publish("/icicle/rect_click", d.i);
 		}
 	};
 
@@ -83,7 +79,7 @@ var ICICLE = (function(d3, g, B, E){
 
 		d3.select("#nodeinfo")
 			.text("id = " + d.i + ", scale = " + d.s);
-		B.getBasisImagesFromServer(d.i);
+		$.publish("/icicle/rect_hover", d.i);
 	};
 
 	ic.updateScalarData = function() {
@@ -105,7 +101,7 @@ var ICICLE = (function(d3, g, B, E){
 	ic.init_icicle_view = function() {
 	
 		// d3.json(site_root + "treedatafacade.php", function(json) {
-		d3.json(globals.data_proxy_root + "index", function(json) {
+		d3.json(g.data_proxy_root + "index", function(json) {
 		// d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
 		
 			// TODO: Don't need to send 's' as an attribute, partition function calculates
@@ -113,15 +109,15 @@ var ICICLE = (function(d3, g, B, E){
 		
 			// Before building tree, compile convenience data structures
 			var ice_partition = partition_ice(json);
-			globals.scales_by_id = new Array(ice_partition.length);
+			g.scales_by_id = new Array(ice_partition.length);
 			for (var ii = 0; ii < ice_partition.length; ii++) {
 				var node = ice_partition[ii];
 				var scale = node.s
-				globals.scales_by_id[node.i] = scale;
-				if (!globals.ids_by_scale.hasOwnProperty(scale)) {
-					globals.ids_by_scale[scale] = [];
+				g.scales_by_id[node.i] = scale;
+				if (!g.ids_by_scale.hasOwnProperty(scale)) {
+					g.ids_by_scale[scale] = [];
 				}
-				globals.ids_by_scale[scale].push(node.i);
+				g.ids_by_scale[scale].push(node.i);
 			}
 		
 			// Build tree
@@ -129,12 +125,11 @@ var ICICLE = (function(d3, g, B, E){
 					.data(ice_partition)
 				.enter().append("svg:rect")
 					.attr("id", function(d) {return "r_" + d.i;})
-					// .classed("r_selected", function(d){return d.i == node_id;})
 					.attr("x", function(d) { return x_ice(d.x); })
 					.attr("y", function(d) { return y_ice(d.y); })
 					.attr("width", function(d) { return x_ice(d.dx); })
 					.attr("height", function(d) { return y_ice(d.dy); })
-					.attr("fill", function(d) { return globals.cScale(globals.scalardata[d.i]); })
+					.attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); })
 					.on("click", rect_click)
 					.on("dblclick", rect_dblclick)
 					.on("mouseover", rect_hover);
@@ -143,7 +138,7 @@ var ICICLE = (function(d3, g, B, E){
 
 	return ic;
 
-}(d3, globals, BASIS_IMS, ELPLOT));
+}(d3, jQuery, globals));
 
 // END ICICLE FUNCTIONS
 // --------------------------

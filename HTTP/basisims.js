@@ -1,7 +1,7 @@
 // --------------------------
 // Basis Images
 
-var BASIS_IMS = (function(d3, g){
+var BASIS_IMS = (function(d3, $, g){
 
 	var bi = { version: '0.0.1' };
 
@@ -104,7 +104,7 @@ var BASIS_IMS = (function(d3, g){
 
 	return bi;
 
-}(d3, globals));
+}(d3, jQuery, globals));
 
 // END BASIS IMAGES
 // --------------------

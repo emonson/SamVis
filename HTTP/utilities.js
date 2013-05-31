@@ -1,7 +1,7 @@
 // --------------------------
 // Utility functions
 
-var UTILITIES = (function(d3, g, I, E){
+var UTILITIES = (function(d3, $, g){
 
 	var ut = { version: '0.0.1' };
 
@@ -10,14 +10,15 @@ var UTILITIES = (function(d3, g, I, E){
 		d3.json(g.data_proxy_root + "scalars?name=" + s_name, function(json) {
 	
 			g.scalardata = json;
-			E.updateScalarData();
-			I.updateScalarData();
+// 			E.updateScalarData();
+// 			I.updateScalarData();
+			$.publish("/scalars/updated");
 		});
 	};
 
 	return ut;
 
-}(d3, globals, ICICLE, ELPLOT));
+}(d3, jQuery, globals));
 
 // END UTILITY FUNCTIONS
 // --------------------------
