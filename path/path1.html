@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+
+	<div id="svgpath"></div>
+	
+<script src="http://mbostock.github.com/d3/d3.js?2.7.2"></script>
+<script>
+
+	var x_scale, y_scale;
+	var divElem2 = d3.select("#svgpath");
+	var dataset = [];
+	
+		svgcanvas2 = divElem2.append("svg:svg")
+				.attr("width", 200)
+				.attr("height", 200)
+
+	d3.csv('path_short.csv', function(data) {
+		
+		dataset = data;
+		console.log(data);
+		
+		x_scale = d3.scale.linear()
+					.domain(d3.extent(data, function(d){return parseFloat(d.x);}))
+					.range([0,200]);
+					
+		y_scale = d3.scale.linear()
+					.domain(d3.extent(data, function(d){return parseFloat(d.y);}))
+					.range([0,200]);
+
+		// Specify the function for generating path data             
+		var lineFunction = d3.svg.line()
+										.x(function(d){return parseFloat(x_scale(d.x));})
+										.y(function(d){return parseFloat(y_scale(d.y));})
+										.interpolate("linear")
+										.defined(function(d,i){ return (i%4)!=0; }); 
+
+		// Creating path using data in pathinfo and path data generator
+		// d3line.
+		svgcanvas2.append("svg:path")
+				.attr("d", lineFunction(dataset))
+				.style("stroke-width", 2)
+				.style("stroke", "steelblue")
+				.style("fill", "none");
+
+  });
+
+</script>
+</body>
+</html>
