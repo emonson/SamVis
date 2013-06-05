@@ -15,22 +15,23 @@
 				.attr("width", 600)
 				.attr("height", 600)
 
-	d3.csv('data/path_detailed.csv', function(data) {
+	d3.json('http://emo2.trinity.duke.edu/remote/allpathcoords', function(data) {
 		
+    // DEBUG
 		dataset = data;
 		
 		x_scale = d3.scale.linear()
-					.domain(d3.extent(data, function(d){return parseFloat(d.x);}))
+					.domain(d3.extent(data, function(d){return d[0];}))
 					.range([0,600]);
 					
 		y_scale = d3.scale.linear()
-					.domain(d3.extent(data, function(d){return parseFloat(d.y);}))
+					.domain(d3.extent(data, function(d){return d[1];}))
 					.range([0,600]);
 
 		// Specify the function for generating path data             
 		var lineFunction = d3.svg.line()
-										.x(function(d){return parseFloat(x_scale(d.x));})
-										.y(function(d){return parseFloat(y_scale(d.y));})
+										.x(function(d){return x_scale(d[0]);})
+										.y(function(d){return y_scale(d[1]);})
 										.interpolate("linear")
 										.defined(function(d,i){ return (i%10)!=0; }); 
 

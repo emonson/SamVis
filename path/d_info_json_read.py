@@ -1,4 +1,6 @@
 # Saved from Matlab with JSONlab
+# NOTE: JSONlab writes out its 1D arrays in Matlab's column-major ordering, like FORTRAN
+#   which necessitates an order='F' on reshape for numpy
 
 # load('d_info.mat')
 # savejson('',d_info,'ArrayToStruct',1,'ArrayIndent',0,'FileName','d_info.json','ForceRootName',0);
@@ -26,7 +28,7 @@ def fill_dict_with_arrays(obj):
 	c = {}
 	for k,v in obj.items():
 		if isinstance(v, dict):
-			c[k] = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'])
+			c[k] = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F')
 		else:
 			c[k] = v
 	return c
@@ -58,7 +60,7 @@ def load_netpoints(filename):
 
 	if os.path.exists(filename):
 		d = simplejson.loads(open(filename).read())
-		data = N.array(d['_ArrayData_']).reshape(d['_ArraySize_'])
+		data = N.array(d['_ArrayData_']).reshape(d['_ArraySize_'], order='F')
 		return data
 	
 # --------------------
