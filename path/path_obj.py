@@ -1,7 +1,7 @@
 import simplejson
 import os
 import numpy as N
-from d_info_json_read import *
+import path_json_read as PR
 
 # http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
 class PrettyPrecision2SciFloat(float):
@@ -52,15 +52,20 @@ class PathObj(object):
 
 		print 'Trying to load data set from directory ', self.path_data_dir
 
-		self.d_info = load_d_info( os.path.join(self.path_data_dir, 'd_info.json') )
-		self.netpoints = load_netpoints( os.path.join(self.path_data_dir, 'netpoints.json') )
-		self.path_info = load_trajectory( os.path.join(self.path_data_dir, 'trajectory.json') )
-		self.sim_opts = load_sim_opts( os.path.join(self.path_data_dir, 'sim_opts.json') )
+		self.d_info = PR.load_d_info( os.path.join(self.path_data_dir, 'd_info.json') )
+		self.netpoints = PR.load_netpoints( os.path.join(self.path_data_dir, 'netpoints.json') )
+		self.path_info = PR.load_trajectory( os.path.join(self.path_data_dir, 'trajectory.json') )
+		self.sim_opts = PR.load_sim_opts( os.path.join(self.path_data_dir, 'sim_opts.json') )
 		
 	# --------------------
-	def GetWholePathCoordList_JSON(self):
+	def GetRawPathCoordList_JSON(self):
 		
 		return simplejson.dumps(self.path_info['path'].tolist())
+		
+	# --------------------
+	def GetNetPathCoordList_JSON(self):
+		
+		return simplejson.dumps(self.netpoints[self.path_info['path_index'].squeeze(),:2].tolist())
 		
 # --------------------
 # --------------------
@@ -68,6 +73,6 @@ if __name__ == "__main__":
 
 	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
 	path = PathObj(data_dir)
-	print path.GetWholePathCoordList_JSON()
+	# print path.GetWholePathCoordList_JSON()
 
 		

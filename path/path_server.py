@@ -14,13 +14,20 @@ class PathServer:
 		return self.path.path_data_dir
 		
 	@cherrypy.tools.gzip()
-	def allpathcoords(self):
+	def rawpathcoords(self):
 		
-		return self.path.GetWholePathCoordList_JSON()
+		return self.path.GetRawPathCoordList_JSON()
+		
+	@cherrypy.tools.gzip()
+	def netpathcoords(self):
+		
+		return self.path.GetNetPathCoordList_JSON()
 		
 
+
 	index.exposed = True
-	allpathcoords.exposed = True
+	rawpathcoords.exposed = True
+	netpathcoords.exposed = True
 
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
