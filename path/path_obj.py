@@ -67,6 +67,21 @@ class PathObj(object):
 		
 		return simplejson.dumps(self.netpoints[self.path_info['path_index'].squeeze(),:2].tolist())
 		
+	# --------------------
+	def GetGlobalPathCoordList_JSON(self):
+		
+		# NOTE: hard-coded 2d...
+		g_path = []
+		for ii,idx in enumerate(self.path_info['path_index']):
+			d_info = self.d_info[idx]
+			U = d_info['U'][:,:2]
+			x = self.path_info['path'][ii].reshape((1,2))
+			x = x.dot(U.T)
+			x = x + d_info['mu']
+			g_path.append(x.squeeze()[:2].tolist())
+		
+		return simplejson.dumps(g_path)
+		
 # --------------------
 # --------------------
 if __name__ == "__main__":

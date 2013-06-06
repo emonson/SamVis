@@ -23,11 +23,16 @@ class PathServer:
 		
 		return self.path.GetNetPathCoordList_JSON()
 		
+	@cherrypy.tools.gzip()
+	def globalpathcoords(self):
+		
+		return self.path.GetGlobalPathCoordList_JSON()
 
 
 	index.exposed = True
 	rawpathcoords.exposed = True
 	netpathcoords.exposed = True
+	globalpathcoords.exposed = True
 
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
