@@ -9,40 +9,48 @@
 
 	var x_scale, y_scale;
 	var divElem2 = d3.select("#svgpath");
-	var dataset = [];
+	var width = 700;
+	var height = 700;
 	
 		svgcanvas2 = divElem2.append("svg:svg")
-				.attr("width", 600)
-				.attr("height", 600)
+				.attr("width", width)
+				.attr("height", height)
 
-	d3.json('http://emo2.trinity.duke.edu/remote/globalpathcoords', function(data) {
-		
-    // DEBUG
-		dataset = data;
+	d3.json('http://emo2.trinity.duke.edu/remote/netpathcoords', function(netdata) {
+		d3.json('http://emo2.trinity.duke.edu/remote/globalpathcoords', function(data) {
 		
 		x_scale = d3.scale.linear()
 					.domain(d3.extent(data, function(d){return d[0];}))
-					.range([0,600]);
+					.range([0,width]);
 					
 		y_scale = d3.scale.linear()
 					.domain(d3.extent(data, function(d){return d[1];}))
-					.range([0,600]);
+					.range([0,height]);
 
 		// Specify the function for generating path data             
 		var lineFunction = d3.svg.line()
 										.x(function(d){return x_scale(d[0]);})
 										.y(function(d){return y_scale(d[1]);})
-										.interpolate("linear")
-										.defined(function(d,i){ return (i%10)!=0; }); 
+										.interpolate("linear");
+										// .defined(function(d,i){ return (i%1)!=0; }); 
 
-		// Creating path using data in pathinfo and path data generator
-		// d3line.
+		// Creating actual path
 		svgcanvas2.append("svg:path")
-				.attr("d", lineFunction(dataset))
-				.style("stroke-width", 1.5)
-				.style("stroke", "steelblue")
+				.attr("d", lineFunction(data))
+				.style("stroke-width", 1)
+				.style("stroke-opacity", 0.3)
+				.style("stroke", "saddlebrown")
 				.style("fill", "none");
 
+		// Creating net path
+		svgcanvas2.append("svg:path")
+				.attr("d", lineFunction(netdata))
+				.style("stroke-width", 1)
+				.style("stroke-opacity", 0.2)
+				.style("stroke", "black")
+				.style("fill", "none");
+
+  	});
   });
 
 </script>

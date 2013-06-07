@@ -1,6 +1,7 @@
 # Saved from Matlab with JSONlab
 # NOTE: JSONlab writes out its 1D arrays in Matlab's column-major ordering, like FORTRAN
 #   which necessitates an order='F' on reshape for numpy
+# NOTE: Matlab arrays have 1-based indices, and Python has 0-based!!
 
 # load('d_info.mat')
 # savejson('',d_info,'ArrayToStruct',1,'ArrayIndent',0,'FileName','d_info.json','ForceRootName',0);
@@ -28,7 +29,12 @@ def fill_dict_with_arrays(obj):
 	c = {}
 	for k,v in obj.items():
 		if isinstance(v, dict):
-			c[k] = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F')
+			# NOTE: bad name-based test!!
+			if isinstance(k,str) and k.endswith('index'):
+				# changing 1-based indices to 0-based
+				c[k] = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F') - 1
+			else:
+				c[k] = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F')
 		else:
 			c[k] = v
 	return c
