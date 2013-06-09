@@ -7,24 +7,27 @@
 <script src="http://mbostock.github.com/d3/d3.js?2.7.2"></script>
 <script>
 
+	var host_path = 'localhost';
+	// var host_path = 'emo2.trinity.duke.edu';
 	var x_scale, y_scale;
 	var divElem2 = d3.select("#svgpath");
-	var width = 700;
-	var height = 700;
+	var width = 1200;
+	var height = 1200;
 	
 		svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
 				.attr("height", height)
 
-	d3.json('http://emo2.trinity.duke.edu/remote/netpathcoords', function(netdata) {
-		d3.json('http://emo2.trinity.duke.edu/remote/globalpathcoords', function(data) {
+	d3.json('http://' + host_path + '/remote/netpathcoords', function(netpathdata) {
+		d3.json('http://' + host_path + '/remote/globalpathcoords', function(data) {
+			d3.json('http://' + host_path + '/remote/netcoords', function(netdata) {
 		
 		x_scale = d3.scale.linear()
-					.domain(d3.extent(data, function(d){return d[0];}))
+					.domain(d3.extent(netdata, function(d){return d[0];}))
 					.range([0,width]);
 					
 		y_scale = d3.scale.linear()
-					.domain(d3.extent(data, function(d){return d[1];}))
+					.domain(d3.extent(netdata, function(d){return d[1];}))
 					.range([0,height]);
 
 		// Specify the function for generating path data             
@@ -44,12 +47,24 @@
 
 		// Creating net path
 		svgcanvas2.append("svg:path")
-				.attr("d", lineFunction(netdata))
-				.style("stroke-width", 1)
-				.style("stroke-opacity", 0.2)
+				.attr("d", lineFunction(netpathdata))
+				.style("stroke-width", 1.01)
+				.style("stroke-opacity", 0.5)
 				.style("stroke", "black")
 				.style("fill", "none");
+		
+		svgcanvas2.selectAll("circle")
+				.data(netdata)
+			.enter()
+				.append("circle")
+				.attr("cx", function(d) { return x_scale(d[0]); })
+				.attr("cy", function(d) { return y_scale(d[1]); })
+				.attr("r", 2)
+				.style("fill", 'gray')
+				.style("fill-opacity", 0.5)
+				.style("stroke", "none");
 
+	  	});
   	});
   });
 

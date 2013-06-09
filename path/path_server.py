@@ -19,6 +19,11 @@ class PathServer:
 		return self.path.GetRawPathCoordList_JSON()
 		
 	@cherrypy.tools.gzip()
+	def netcoords(self):
+		
+		return self.path.GetNetCoordList_JSON()
+		
+	@cherrypy.tools.gzip()
 	def netpathcoords(self):
 		
 		return self.path.GetNetPathCoordList_JSON()
@@ -31,13 +36,14 @@ class PathServer:
 
 	index.exposed = True
 	rawpathcoords.exposed = True
+	netcoords.exposed = True
 	netpathcoords.exposed = True
 	globalpathcoords.exposed = True
 
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
 		'server.socket_port': 9000, 
-		# 'server.socket_host':'127.0.0.1'
-		'server.socket_host':'152.3.61.80'
+		'server.socket_host':'127.0.0.1'
+		# 'server.socket_host':'152.3.61.80'
 		})
 cherrypy.quickstart(PathServer())

@@ -63,10 +63,15 @@ class PathObj(object):
 		return simplejson.dumps(self.path_info['path'].tolist())
 		
 	# --------------------
+	def GetNetCoordList_JSON(self):
+		
+		return simplejson.dumps(self.netpoints[:,:2].tolist())
+		
+	# --------------------
 	def GetNetPathCoordList_JSON(self):
 		
 		netpts = self.netpoints[self.path_info['path_index'].squeeze(),:2]
-		netpts = netpts + 0.000*(N.max(self.netpoints)-N.min(self.netpoints))*N.random.standard_normal(netpts.shape)
+		netpts = netpts + 0.0005*(N.max(self.netpoints)-N.min(self.netpoints))*N.random.standard_normal(netpts.shape)
 		return simplejson.dumps(netpts.tolist())
 		
 	# --------------------
