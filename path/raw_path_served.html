@@ -7,6 +7,17 @@
   pointer-events: all;
 }
 
+ellipse {
+	fill: gray;
+	stroke: black;
+	fill-opacity: 0.1;
+	stroke-opacity: 0.2;
+}
+
+ellipse:hover {
+	fill-opacity: 0.2;
+}
+
 </style>
 <body>
 
@@ -24,11 +35,10 @@
 	var width = 800;
 	var height = 800;
 	
-	var x_scale = d3.scale.linear()
-					.range([0,width]);
-					
-	var y_scale = d3.scale.linear()
-					.range([0,height]);
+	var x_scale = d3.scale.linear().range([0,width]);
+	var y_scale = d3.scale.linear().range([0,height]);
+	var xr_scale = d3.scale.linear().range([0,width]);
+	var yr_scale = d3.scale.linear().range([0,height]);
 
 	var transformit = function(d) {
 				return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")";
@@ -40,17 +50,15 @@
 	
 	d3.json('http://' + host_path + '/remote/netpathcoords', function(netpathdata) {
 		d3.json('http://' + host_path + '/remote/globalpathcoords', function(data) {
-			d3.json('http://' + host_path + '/remote/netcoords', function(netdata) {
+			d3.json('http://' + host_path + '/remote/allellipses', function(ellipse_data) {
 		
-		x_extent = d3.extent(netdata, function(d){return d[0];});
-		x_diff = x_extent[1] - x_extent[0];
-		y_extent = d3.extent(netdata, function(d){return d[1];});
-		y_diff = y_extent[1] - y_extent[0];
-		diff_max = d3.max([x_diff, y_diff]);
+		var eldata = ellipse_data.data;
+		var bounds = ellipse_data.bounds;
 		
-		x_scale.domain([x_extent[0], d3.max([x_extent[0]+diff_max, x_extent[1]])]);
-					
-		y_scale.domain([y_extent[0], d3.max([y_extent[0]+diff_max, y_extent[1]])]);
+		x_scale.domain(bounds[0]);
+		y_scale.domain(bounds[1]);
+		xr_scale.domain([0, bounds[0][1]-bounds[0][0]]);
+		xr_scale.domain([0, bounds[1][1]-bounds[1][0]]);
 
 		// Specify the function for generating path data             
 		var lineFunction = d3.svg.line()
@@ -60,6 +68,16 @@
 										// .defined(function(d,i){ return (i%1)!=0; }); 
 
 		
+		// Update the ellipses
+		// data = [[X, Y, RX, RY, Phi, i], ...]
+		svgcanvas2.selectAll("ellipse")
+				.data(eldata, function(d){return d[5];})
+			.enter()
+				.append("ellipse")
+				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + d[4] + ")";})
+				.attr("rx", function(d) { return xr_scale(d[2]); })
+				.attr("ry", function(d) { return yr_scale(d[3]); });
+
 		// Creating net path
 		svgcanvas2.append("svg:path")
 				.attr("d", lineFunction(netpathdata))
@@ -75,16 +93,6 @@
 				.style("stroke-opacity", 0.8)
 				.style("stroke", "saddlebrown")
 				.style("fill", "none");
-
-		svgcanvas2.selectAll("circle")
-				.data(netdata)
-			.enter()
-				.append("circle")
-				.attr("transform", transformit)
-				.attr("r", 2)
-				.style("fill", 'gray')
-				.style("fill-opacity", 0.4)
-				.style("stroke", "none");
 
 	  	});
   	});

@@ -66,7 +66,7 @@ class PathObj(object):
 		
 		self.path_data_loaded = True
 		# HACK: data_center
-		self.data_center = N.zeros(self.d_info[0]['mu'].shape)
+		self.data_center = N.zeros(self.d_info[0]['mu'].shape).T
 		self.ResetBasis()
 		
 	# --------------------
@@ -78,16 +78,16 @@ class PathObj(object):
 			self.proj_basis = N.diag([1,1]+[0]*(len(self.d_info[0]['mu'].squeeze())-2))
 
 	# --------------------
-	def SetBasisID_ReprojectAll(self, id):
+	def ResetBasis_ReprojectAll(self):
 	
-		if (id is not None) and self.path_data_loaded and id >= 0 and id < len(self.d_info):
+		if self.path_data_loaded:
+			self.ResetBasis()
 			
-			if id != self.basis_id:
-				self.SetBasisID(id)
-				
-				self.all_ellipse_params = []
-				for node in self.nodes_by_id:
-					self.all_ellipse_params.append(self.calculate_node_ellipse(node['id']))
+			self.all_ellipse_params = []
+			# for ii in range(len(self.d_info)):
+			# DEBUG
+			for ii in set(self.path_info['path_index'].squeeze().tolist()):
+				self.all_ellipse_params.append(self.calculate_node_ellipse(ii))
 
 	# --------------------
 	def SetBasisID(self, id):
@@ -108,12 +108,6 @@ class PathObj(object):
 				self.all_ellipse_params = []
 				for node in self.nodes_by_id:
 					self.all_ellipse_params.append(self.calculate_node_ellipse(node['id']))
-
-	# --------------------
-	def GetMaxID(self):
-	
-		if self.path_data_loaded:
-			return len(self.d_info)-1
 
 	# --------------------
 	def GetRawPathCoordList_JSON(self):
@@ -153,23 +147,48 @@ class PathObj(object):
 			return simplejson.dumps(g_path)
 		
 	# --------------------
+	def GetAllEllipses_NoProjection(self):
+		"""Return dict of all ellipses in tree"""
+	
+		if self.path_data_loaded:
+			
+			# Even though specified NoProjection, if no ellipse params, generate default
+			if self.all_ellipse_params is None:
+				self.ResetBasis_ReprojectAll()
+			
+			bounds = self.calculate_ellipse_bounds(self.all_ellipse_params)
+			return_obj = {'data':self.all_ellipse_params, 'bounds':bounds}
+
+			return return_obj
+		
+	# --------------------
+	def GetAllEllipses_NoProjection_JSON(self):
+		"""Get JSON of all ellipses without reprojecting"""
+	
+		return simplejson.dumps(self.GetAllEllipses_NoProjection())
+		
+	# --------------------
+	# UTILITY CLASSES
+	
+	# --------------------
 	def calculate_node_ellipse(self, node_id):
 		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse"""
 		
 		node = self.d_info[node_id]
 		
 		# Compute projection of this node's covariance matrix
-		A = node['phi'].T
-		sigma = N.matrix(N.diag(node['E']))
-		center = node['mu']
+		A = node['U'].T
+		sigma = N.diag(node['E'].squeeze())
+		center = node['mu'].T
 		
-		A = A * N.sqrt(sigma)
-		C1 = self.proj_basis.T * A
-		C = C1 * C1.T
-		print C
+		A = A.dot(N.sqrt(sigma))
+		C1 = N.dot(self.proj_basis.T, A)
+		C = N.dot(C1, C1.T)
+
 		# ALT METHOD for transforming the unit circle according to projected covariance
 		# Compute svd in projected space to find rx, ry and rotation for ellipse in D3 vis
 		U, S, V = N.linalg.svd(C)
+		S2 = N.sqrt(S)
 
 		# Project mean
 		xm = N.dot(self.proj_basis.T, center)
@@ -184,13 +203,12 @@ class PathObj(object):
 		# t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
 		
 		# How many sigma ellipses cover
-		s_mult = 2.0
-		result_list = N.round((xm[0], xm[1], s_mult*S[0], s_mult*S[1], phi_deg), 2).tolist()
-		result_list.append(node['id'])
+		s_mult = 1.0
+		result_list = N.round((xm[0], xm[1], s_mult*S2[0], s_mult*S2[1], phi_deg), 2).tolist()
+		result_list.append(node_id)
 		
 		return result_list
 	
-	# --------------------
 	def calculate_ellipse_bounds(self, e_params):
 		"""Rough calculation of ellipse bounds by centers +/- max radius for each"""
 		
@@ -206,6 +224,18 @@ class PathObj(object):
 		maxY = N.max(Y+maxR)
 		
 		return [(minX, maxX), (minY, maxY)]
+
+	# --------------------
+	# http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
+	def pretty_sci_floats(self, obj):
+	
+		if isinstance(obj, float):
+			return PrettyPrecision2SciFloat(obj)
+		elif isinstance(obj, dict):
+			return dict((k, self.pretty_sci_floats(v)) for k, v in obj.items())
+		elif isinstance(obj, (list, tuple)):
+			return map(self.pretty_sci_floats, obj)             
+		return obj
 
 # --------------------
 # --------------------

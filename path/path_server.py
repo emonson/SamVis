@@ -33,12 +33,18 @@ class PathServer:
 		
 		return self.path.GetGlobalPathCoordList_JSON()
 
+	@cherrypy.tools.gzip()
+	def allellipses(self):
+		
+		return self.path.GetAllEllipses_NoProjection_JSON()
+
 
 	index.exposed = True
 	rawpathcoords.exposed = True
 	netcoords.exposed = True
 	netpathcoords.exposed = True
 	globalpathcoords.exposed = True
+	allellipses.exposed = True
 
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
