@@ -36,12 +36,12 @@ class PathServer:
 	@cherrypy.tools.gzip()
 	def allellipses(self):
 		
-		return self.path.GetAllEllipses_NoProjection_JSON()
+		return self.path.GetAllEllipses_JSON()
 
 	@cherrypy.tools.gzip()
 	def pathellipses(self):
 		
-		return self.path.GetPathEllipses_NoProjection_JSON()
+		return self.path.GetPathEllipses_JSON()
 
 
 	index.exposed = True

@@ -105,26 +105,6 @@ class PathObj(object):
 				self.path_ellipse_params.append(self.calculate_node_ellipse(ii))
 
 	# --------------------
-	def SetBasisID(self, id):
-	
-		if (id is not None) and self.path_data_loaded and id >= 0 and id < len(self.d_info):
-			
-			self.basis_id = id
-			self.proj_basis = self.d_info[id]['U'][:,:2]
-
-	# --------------------
-	def SetBasisID_ReprojectAll(self, id):
-	
-		if (id is not None) and self.path_data_loaded and id >= 0 and id < len(self.d_info):
-			
-			if id != self.basis_id:
-				self.SetBasisID(id)
-				
-				self.all_ellipse_params = []
-				for node in self.nodes_by_id:
-					self.all_ellipse_params.append(self.calculate_node_ellipse(node['id']))
-
-	# --------------------
 	def GetRawPathCoordList_JSON(self):
 		
 		if self.path_data_loaded:
@@ -163,14 +143,12 @@ class PathObj(object):
 			return simplejson.dumps(g_path)
 		
 	# --------------------
-	def GetAllEllipses_NoProjection(self):
+	def GetAllEllipses(self):
 		"""Return dict of all ellipses in tree"""
 	
 		if self.path_data_loaded:
 			
-			# Even though specified NoProjection, if no ellipse params, generate default
-			if self.all_ellipse_params is None:
-				self.ResetBasis_ReprojectAll()
+			self.ResetBasis_ReprojectAll()
 			
 			bounds = self.calculate_ellipse_bounds(self.all_ellipse_params)
 			bounds = self.pretty_sci_floats(bounds)
@@ -179,7 +157,7 @@ class PathObj(object):
 			return return_obj
 		
 	# --------------------
-	def GetPathEllipses_NoProjection(self):
+	def GetPathEllipses(self):
 		"""Return dict of all ellipses in tree"""
 	
 		if self.path_data_loaded:
@@ -194,16 +172,16 @@ class PathObj(object):
 			return return_obj
 		
 	# --------------------
-	def GetAllEllipses_NoProjection_JSON(self):
+	def GetAllEllipses_JSON(self):
 		"""Get JSON of all ellipses without reprojecting"""
 	
-		return simplejson.dumps(self.GetAllEllipses_NoProjection())
+		return simplejson.dumps(self.GetAllEllipses())
 		
 	# --------------------
-	def GetPathEllipses_NoProjection_JSON(self):
+	def GetPathEllipses_JSON(self):
 		"""Get JSON of all ellipses without reprojecting"""
 	
-		return simplejson.dumps(self.GetPathEllipses_NoProjection())
+		return simplejson.dumps(self.GetPathEllipses())
 		
 	# --------------------
 	# UTILITY CLASSES
