@@ -48,7 +48,6 @@ ellipse:hover {
 				.attr("width", width)
 				.attr("height", height);
 	
-	d3.json('http://' + host_path + '/remote/netpathcoords', function(netpathdata) {
 		d3.json('http://' + host_path + '/remote/globalpathcoords', function(data) {
 			d3.json('http://' + host_path + '/remote/allellipses', function(ellipse_data) {
 		
@@ -102,14 +101,6 @@ ellipse:hover {
 				.attr("rx", function(d) { return xr_scale(d[2]); })
 				.attr("ry", function(d) { return yr_scale(d[3]); });
 
-		// Creating net path
-		svgcanvas2.append("svg:path")
-				.attr("d", lineFunction(netpathdata))
-				.style("stroke-width", 1.5)
-				.style("stroke-opacity", 0.2)
-				.style("stroke", "black")
-				.style("fill", "none");
-		
 		// Creating actual path
 		svgcanvas2.append("svg:path")
 				.attr("d", lineFunction(data))
@@ -120,7 +111,6 @@ ellipse:hover {
 
 	  	});
   	});
-  });
 
 </script>
 </body>

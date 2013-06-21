@@ -82,7 +82,11 @@ class PathObj(object):
 			self.basis_id = None
 			# TODO: Needs to be generalized to D dimensions...
 			# Want projection basis to be D x 2
-			self.proj_basis = N.array([[1,0,0],[0,1,0]]).T 
+			tmp_basis = N.array([[1,0,0],[0,1,0]], dtype='f').T
+			# Normalize (but not orthogonalize...)
+			# self.proj_basis = tmp_basis/N.sqrt((tmp_basis ** 2).sum(axis=0))[N.newaxis,...]
+			# Normalize and orthoganalize with QR decomposition
+			self.proj_basis, r = N.linalg.qr(tmp_basis)
 
 	# --------------------
 	def ResetBasis_ReprojectAll(self):
@@ -127,6 +131,11 @@ class PathObj(object):
 		
 	# --------------------
 	def GetGlobalPathCoordList_JSON(self):
+		"""Transfer all path coordinates from local district coordinates into the global
+		space, and then project onto projection basis plane. This could be used for all
+		visualizations of the path, but the disadvantage of this method is that if the
+		ambient dimension is very high, points need to be transferred into this high-d
+		space before they're projected back down to 2d..."""
 		
 		if self.path_data_loaded:
 			n,d = self.path_info['path'].shape
@@ -193,11 +202,11 @@ class PathObj(object):
 		node = self.d_info[node_id]
 		
 		# Compute projection of this node's covariance matrix
-		A = node['U'].T
+		A = node['U']
 		sigma = N.diag(node['E'].squeeze())
 		center = node['mu'].T
 		
-		A = A.dot(N.sqrt(sigma))
+		A = N.dot(A, N.sqrt(sigma))
 		C1 = N.dot(self.proj_basis.T, A)
 		C = N.dot(C1, C1.T)
 
