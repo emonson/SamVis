@@ -8,6 +8,10 @@ class PrettyPrecision2SciFloat(float):
 	def __repr__(self):
 		return '%.2g' % self
 
+class PrettyPrecision3SciFloat(float):
+	def __repr__(self):
+		return '%.3g' % self
+
 # --------------------
 class PathObj(object):
 	
@@ -26,6 +30,7 @@ class PathObj(object):
 		self.proj_basis = None
 		self.data_center = None
 		self.all_ellipse_params = None
+		self.path_ellipse_params = None
 
 		# Built so it will automatically load a valid ipca file if given in constructor
 		# Otherwise, call SetTreeFileName('file.ipca') and LoadTreeData() separately
@@ -75,7 +80,9 @@ class PathObj(object):
 		if self.path_data_loaded:
 			
 			self.basis_id = None
-			self.proj_basis = N.diag([1,1]+[0]*(len(self.d_info[0]['mu'].squeeze())-2))
+			# TODO: Needs to be generalized to D dimensions...
+			# Want projection basis to be D x 2
+			self.proj_basis = N.array([[1,0,0],[0,1,0]]).T 
 
 	# --------------------
 	def ResetBasis_ReprojectAll(self):
@@ -84,10 +91,18 @@ class PathObj(object):
 			self.ResetBasis()
 			
 			self.all_ellipse_params = []
-			# for ii in range(len(self.d_info)):
-			# DEBUG
-			for ii in set(self.path_info['path_index'].squeeze().tolist()):
+			for ii in range(len(self.d_info)):
 				self.all_ellipse_params.append(self.calculate_node_ellipse(ii))
+
+	# --------------------
+	def ResetBasis_ReprojectPathEllipses(self):
+	
+		if self.path_data_loaded:
+			self.ResetBasis()
+			
+			self.path_ellipse_params = []
+			for ii in set(self.path_info['path_index'].squeeze().tolist()):
+				self.path_ellipse_params.append(self.calculate_node_ellipse(ii))
 
 	# --------------------
 	def SetBasisID(self, id):
@@ -134,15 +149,16 @@ class PathObj(object):
 	def GetGlobalPathCoordList_JSON(self):
 		
 		if self.path_data_loaded:
-			# NOTE: hard-coded 2d...
+			n,d = self.path_info['path'].shape
 			g_path = []
 			for ii,idx in enumerate(self.path_info['path_index']):
 				d_info = self.d_info[idx]
-				U = d_info['U'][:,:2]
-				x = self.path_info['path'][ii].reshape((1,2))
+				U = d_info['U'][:,:d]
+				x = self.path_info['path'][ii][N.newaxis,:]	# makes (1,d) instead of (d,)
 				x = x.dot(U.T)
 				x = x + d_info['mu']
-				g_path.append(x.squeeze()[:2].tolist())
+				x = x.dot(self.proj_basis)
+				g_path.append(x.squeeze().tolist())
 		
 			return simplejson.dumps(g_path)
 		
@@ -157,7 +173,23 @@ class PathObj(object):
 				self.ResetBasis_ReprojectAll()
 			
 			bounds = self.calculate_ellipse_bounds(self.all_ellipse_params)
+			bounds = self.pretty_sci_floats(bounds)
 			return_obj = {'data':self.all_ellipse_params, 'bounds':bounds}
+
+			return return_obj
+		
+	# --------------------
+	def GetPathEllipses_NoProjection(self):
+		"""Return dict of all ellipses in tree"""
+	
+		if self.path_data_loaded:
+			
+			# Even though specified NoProjection, if no ellipse params, generate default
+			self.ResetBasis_ReprojectPathEllipses()
+			
+			bounds = self.calculate_ellipse_bounds(self.path_ellipse_params)
+			bounds = self.pretty_sci_floats(bounds)
+			return_obj = {'data':self.path_ellipse_params, 'bounds':bounds}
 
 			return return_obj
 		
@@ -166,6 +198,12 @@ class PathObj(object):
 		"""Get JSON of all ellipses without reprojecting"""
 	
 		return simplejson.dumps(self.GetAllEllipses_NoProjection())
+		
+	# --------------------
+	def GetPathEllipses_NoProjection_JSON(self):
+		"""Get JSON of all ellipses without reprojecting"""
+	
+		return simplejson.dumps(self.GetPathEllipses_NoProjection())
 		
 	# --------------------
 	# UTILITY CLASSES
@@ -204,7 +242,8 @@ class PathObj(object):
 		
 		# How many sigma ellipses cover
 		s_mult = 1.0
-		result_list = N.round((xm[0], xm[1], s_mult*S2[0], s_mult*S2[1], phi_deg), 2).tolist()
+		result_list = [xm[0], xm[1], s_mult*S2[0], s_mult*S2[1], phi_deg]
+		result_list = self.pretty_sci_floats(result_list)
 		result_list.append(node_id)
 		
 		return result_list
@@ -223,14 +262,14 @@ class PathObj(object):
 		minY = N.min(Y-maxR)
 		maxY = N.max(Y+maxR)
 		
-		return [(minX, maxX), (minY, maxY)]
+		return self.pretty_sci_floats([[minX, maxX], [minY, maxY]])
 
 	# --------------------
 	# http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
 	def pretty_sci_floats(self, obj):
 	
 		if isinstance(obj, float):
-			return PrettyPrecision2SciFloat(obj)
+			return PrettyPrecision3SciFloat(obj)
 		elif isinstance(obj, dict):
 			return dict((k, self.pretty_sci_floats(v)) for k, v in obj.items())
 		elif isinstance(obj, (list, tuple)):
