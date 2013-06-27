@@ -26,7 +26,7 @@ class PathObj(object):
 		self.sim_opts = None
 		
 		# For projection of district ellipses into a certain basis
-		self.basis_id = None
+		self.basis_district_id = None
 		self.proj_basis = None
 		self.data_center = None
 		self.all_ellipse_params = None
@@ -79,7 +79,7 @@ class PathObj(object):
 	
 		if self.path_data_loaded:
 			
-			self.basis_id = None
+			self.basis_district_id = None
 			# TODO: Needs to be generalized to D dimensions...
 			# Want projection basis to be D x 2
 			tmp_basis = N.array([[1,0,0],[0,1,0]], dtype='f').T
@@ -97,6 +97,18 @@ class PathObj(object):
 			self.all_ellipse_params = []
 			for ii in range(len(self.d_info)):
 				self.all_ellipse_params.append(self.calculate_node_ellipse(ii))
+
+	# --------------------
+	def SetBasisDistrict(self, district_id = None):
+	
+		if self.basis_district_id == district_id:
+			return
+		elif (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
+			self.all_ellipse_params = None
+			self.path_ellipse_params = None
+			self.basis_district_id = district_id
+			n,d = self.path_info['path'].shape
+			self.proj_basis = self.d_info[district_id]['U'][:,:d]
 
 	# --------------------
 	def ResetBasis_ReprojectPathEllipses(self):
@@ -140,15 +152,33 @@ class PathObj(object):
 		if self.path_data_loaded:
 			n,d = self.path_info['path'].shape
 			g_path = []
-			for ii,idx in enumerate(self.path_info['path_index']):
-				d_info = self.d_info[idx]
-				U = d_info['U'][:,:d]
-				x = self.path_info['path'][ii][N.newaxis,:]	# makes (1,d) instead of (d,)
-				x = x.dot(U.T)
-				x = x + d_info['mu']
+			for ii in range(n):
+				x = self.index_to_global_path_coord(ii)
 				x = x.dot(self.proj_basis)
 				g_path.append(x.squeeze().tolist())
 		
+			return simplejson.dumps(g_path)
+		
+	# --------------------
+	def GetDistrictPathCoords_JSON(self, dest_district=None):
+		"""Select out path coordinates that exist within a given district and transfer them
+		to the coordinates of the central node. NOTE: As of now this will connect segments
+		that actually go out of the district -- just for testing!!"""
+		
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			# Set basis to requested district
+			self.SetBasisDistrict(dest_district)
+			
+			# Searches for which indices in path match district and NN indexes
+			indexes = N.nonzero(N.in1d(self.path_info['path_index'],self.d_info[dest_district]['index']))[0]
+			print indexes
+			g_path = []
+			
+			for idx in indexes:
+				x = self.transfer_coord_to_neighbor_district(idx, dest_district).squeeze().tolist()
+				g_path.append(self.pretty_sci_floats(x))
+
 			return simplejson.dumps(g_path)
 		
 	# --------------------
@@ -166,6 +196,12 @@ class PathObj(object):
 			return return_obj
 		
 	# --------------------
+	def GetAllEllipses_JSON(self):
+		"""Get JSON of all ellipses without reprojecting"""
+	
+		return simplejson.dumps(self.GetAllEllipses())
+		
+	# --------------------
 	def GetPathEllipses(self):
 		"""Return dict of all ellipses in tree"""
 	
@@ -181,23 +217,60 @@ class PathObj(object):
 			return return_obj
 		
 	# --------------------
-	def GetAllEllipses_JSON(self):
-		"""Get JSON of all ellipses without reprojecting"""
-	
-		return simplejson.dumps(self.GetAllEllipses())
-		
-	# --------------------
 	def GetPathEllipses_JSON(self):
 		"""Get JSON of all ellipses without reprojecting"""
 	
 		return simplejson.dumps(self.GetPathEllipses())
 		
 	# --------------------
+	def GetDistrictEllipses(self, district_id = None):
+		"""Return list of ellipses in a district (center plus neighbors)"""
+
+		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
+			
+			# Set basis to requested district
+			self.SetBasisDistrict(district_id)
+			
+			indexes = self.d_info[district_id]['index'].squeeze().tolist()
+			ellipse_params = []
+			
+			for idx in indexes:
+				ellipse_params.append(self.calculate_node_ellipse(idx))
+			
+			bounds = self.calculate_ellipse_bounds(ellipse_params)
+			bounds = self.pretty_sci_floats(bounds)
+			return_obj = {'data':ellipse_params, 'bounds':bounds}
+
+			return return_obj
+		
+	# --------------------
+	def GetDistrictEllipses_JSON(self, district_id):
+		"""Get JSON of all ellipses without reprojecting"""
+	
+		return simplejson.dumps(self.GetDistrictEllipses(district_id))
+		
+	# --------------------
 	# UTILITY CLASSES
 	
 	# --------------------
+	def index_to_global_path_coord(self, index):
+		
+		n,d = self.path_info['path'].shape
+		district_id = self.path_info['path_index'][index]
+		d_info = self.d_info[district_id]
+		U = d_info['U'][:,:d]
+		x = self.path_info['path'][index][N.newaxis,:]	# makes (1,d) instead of (d,)
+		x = x.dot(U.T)
+		x = x + d_info['mu']
+		
+		return x
+
+	# --------------------
 	def calculate_node_ellipse(self, node_id):
-		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse"""
+		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse.
+		Returns pretty_sci_floats() version of parameters."""
+		
+		# TODO: Move pretty_sci_floats() out to routines that use returned params
 		
 		node = self.d_info[node_id]
 		
@@ -231,7 +304,8 @@ class PathObj(object):
 		s_mult = 1.0
 		result_list = [xm[0], xm[1], s_mult*S2[0], s_mult*S2[1], phi_deg]
 		result_list = self.pretty_sci_floats(result_list)
-		result_list.append(node_id)
+		# Casting to int() here because json serializer has trouble with numpy ints
+		result_list.append(int(node_id))
 		
 		return result_list
 	
@@ -250,6 +324,31 @@ class PathObj(object):
 		maxY = N.max(Y+maxR)
 		
 		return self.pretty_sci_floats([[minX, maxX], [minY, maxY]])
+	
+	# --------------------
+	def transfer_coord_to_neighbor_district(self, pos_idx, dest_district):
+		
+		n,d = self.path_info['path'].shape
+		# start district of position -- original coordinate system in which it's defined
+		idx = self.path_info['path_index'][pos_idx, 0]
+		nnidx = N.nonzero(self.d_info[idx]['index'].squeeze() == dest_district)[0][0]
+		
+		x = self.path_info['path'][pos_idx,:]
+		x = x - self.d_info[idx]['lmk_mean'][nnidx, 1:d]
+		x = x * self.d_info[idx]['TM'][1:d, 1:d, nnidx]
+
+		oldidx = N.nonzero(self.d_info[dest_district]['index'].squeeze() == idx)[0][0]
+		
+		x = x + self.d_info[dest_district]['lmk_mean'][oldidx, 1:d]
+		
+		# TODO: shouldn't have to recompute this for each point, do it on district level...
+		center = self.d_info[dest_district]['mu'].T
+		# Project mean
+		xm = N.dot(self.proj_basis.T, center)
+		xrm = N.dot(self.proj_basis.T, self.data_center)
+		xm = N.squeeze(N.asarray(xm - xrm))
+
+		return x + xm[:2]
 
 	# --------------------
 	# http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
