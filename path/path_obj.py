@@ -333,13 +333,13 @@ class PathObj(object):
 		idx = self.path_info['path_index'][pos_idx, 0]
 		nnidx = N.nonzero(self.d_info[idx]['index'].squeeze() == dest_district)[0][0]
 		
-		x = self.path_info['path'][pos_idx,:]
-		x = x - self.d_info[idx]['lmk_mean'][nnidx, 1:d]
-		x = x * self.d_info[idx]['TM'][1:d, 1:d, nnidx]
+		x = self.path_info['path'][pos_idx, :]
+		x = x - self.d_info[idx]['lmk_mean'][nnidx, :d]
+		x = x.dot(self.d_info[idx]['TM'][:d, :d, nnidx])
 
 		oldidx = N.nonzero(self.d_info[dest_district]['index'].squeeze() == idx)[0][0]
 		
-		x = x + self.d_info[dest_district]['lmk_mean'][oldidx, 1:d]
+		x = x + self.d_info[dest_district]['lmk_mean'][oldidx, :d]
 		
 		# TODO: shouldn't have to recompute this for each point, do it on district level...
 		center = self.d_info[dest_district]['mu'].T
@@ -348,7 +348,7 @@ class PathObj(object):
 		xrm = N.dot(self.proj_basis.T, self.data_center)
 		xm = N.squeeze(N.asarray(xm - xrm))
 
-		return x + xm[:2]
+		return x + xm[:d]
 
 	# --------------------
 	# http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module

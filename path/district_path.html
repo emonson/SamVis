@@ -53,7 +53,7 @@ text {
 			.text("id = " + d[5]);
 	}
 	
-	var district_id = 181;
+	var district_id = 352;
 
 		d3.json('http://' + host_path + '/remote/districtpathcoords?district_id=' + district_id, function(data) {
 			d3.json('http://' + host_path + '/remote/districtellipses?district_id=' + district_id, function(ellipse_data) {
