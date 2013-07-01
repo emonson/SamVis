@@ -75,6 +75,9 @@ class PathObj(object):
 		self.ResetBasis()
 		
 	# --------------------
+	# BASIS
+
+	# --------------------
 	def ResetBasis(self):
 	
 		if self.path_data_loaded:
@@ -121,11 +124,8 @@ class PathObj(object):
 				self.path_ellipse_params.append(self.calculate_node_ellipse(ii))
 
 	# --------------------
-	def GetRawPathCoordList_JSON(self):
-		
-		if self.path_data_loaded:
-			return simplejson.dumps(self.path_info['path'].tolist())
-		
+	# NET POINTS
+
 	# --------------------
 	def GetNetCoordList_JSON(self):
 		
@@ -142,12 +142,23 @@ class PathObj(object):
 			return simplejson.dumps(netpts.tolist())
 		
 	# --------------------
-	def GetGlobalPathCoordList_JSON(self):
+	# PATHS
+
+	# --------------------
+	def GetRawPathCoordList_JSON(self):
+		
+		if self.path_data_loaded:
+			return simplejson.dumps(self.path_info['path'].tolist())
+		
+	# --------------------
+	def GetGlobalPathCoordList(self):
 		"""Transfer all path coordinates from local district coordinates into the global
 		space, and then project onto projection basis plane. This could be used for all
 		visualizations of the path, but the disadvantage of this method is that if the
 		ambient dimension is very high, points need to be transferred into this high-d
 		space before they're projected back down to 2d..."""
+		
+		# TODO: Need to set projection basis first...
 		
 		if self.path_data_loaded:
 			n,d = self.path_info['path'].shape
@@ -157,10 +168,32 @@ class PathObj(object):
 				x = x.dot(self.proj_basis)
 				g_path.append(x.squeeze().tolist())
 		
+			return g_path
+		
+	# --------------------
+	def GetGlobalPathCoordList_JSON(self):
+		
+		if self.path_data_loaded:
+			g_path = self.GetGlobalPathCoordList()
 			return simplejson.dumps(g_path)
 		
 	# --------------------
-	def GetDistrictPathCoords_JSON(self, dest_district=None):
+	def GetGlobalPathCoordPairs_JSON(self):
+		
+		if self.path_data_loaded:
+			g_path = self.GetGlobalPathCoordList()
+			g_pairs = []
+			for ii in range(len(g_path)-1):
+				gg = g_path[ii]
+				gg.extend(g_path[ii+1])
+				gg.append(ii)
+				g_pairs.append(gg)
+			
+			g_pairs = self.pretty_sci_floats(g_pairs)
+			return simplejson.dumps(g_pairs)
+		
+	# --------------------
+	def GetDistrictPathCoordList(self, dest_district=None):
 		"""Select out path coordinates that exist within a given district and transfer them
 		to the coordinates of the central node. NOTE: As of now this will connect segments
 		that actually go out of the district -- just for testing!!"""
@@ -172,15 +205,47 @@ class PathObj(object):
 			
 			# Searches for which indices in path match district and NN indexes
 			indexes = N.nonzero(N.in1d(self.path_info['path_index'],self.d_info[dest_district]['index']))[0]
-			print indexes
 			g_path = []
 			
 			for idx in indexes:
 				x = self.transfer_coord_to_neighbor_district(idx, dest_district).squeeze().tolist()
 				g_path.append(self.pretty_sci_floats(x))
 
+			return (g_path, indexes)
+		
+	# --------------------
+	def GetDistrictPathCoordList_JSON(self, dest_district=None):
+		"""Select out path coordinates that exist within a given district and transfer them
+		to the coordinates of the central node. NOTE: As of now this will connect segments
+		that actually go out of the district -- just for testing!!"""
+		
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			(g_path, indexes) = self.GetDistrictPathCoordList(dest_district)
+			
 			return simplejson.dumps(g_path)
 		
+	# --------------------
+	def GetDistrictPathCoordPairs_JSON(self, dest_district=None):
+		"""Get back district path coordinate pairs [[x0, y0, x1, y1, i], ...]
+		Index is based on starting coordinate index of pair"""
+		
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			(g_path, indexes) = self.GetDistrictPathCoordList(dest_district)
+			g_pairs = []
+			for ii in range(len(indexes)-1):
+				idx = int(indexes[ii]) 	# numpy.int64 not json serializable...
+				gg = g_path[ii]
+				gg.extend(g_path[ii+1])
+				gg.append(idx)
+				g_pairs.append(gg)
+			print g_pairs
+			return simplejson.dumps(g_pairs)
+		
+	# --------------------
+	# ELLIPSES
+
 	# --------------------
 	def GetAllEllipses(self):
 		"""Return dict of all ellipses in tree"""

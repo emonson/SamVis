@@ -43,6 +43,7 @@ text {
 	var y_scale = d3.scale.linear().range([0,height]);
 	var xr_scale = d3.scale.linear().range([0,width]);
 	var yr_scale = d3.scale.linear().range([0,height]);
+	var c_scale = d3.scale.linear().range(["red", "black"]);
 
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
@@ -53,7 +54,7 @@ text {
 			.text("id = " + d[5]);
 	}
 
-		d3.json('http://' + host_path + '/remote/globalpathcoords', function(data) {
+		d3.json('http://' + host_path + '/remote/globalpathpairs', function(data) {
 			d3.json('http://' + host_path + '/remote/pathellipses', function(ellipse_data) {
 		
 		var eldata = ellipse_data.data;
@@ -86,15 +87,8 @@ text {
 		y_scale.domain(yb);
 		xr_scale.domain([0, x_range]);
 		yr_scale.domain([0, y_range]);
+		c_scale.domain([0, data.length-1]);
 
-		// Specify the function for generating path data             
-		var lineFunction = d3.svg.line()
-										.x(function(d){return x_scale(d[0]);})
-										.y(function(d){return y_scale(d[1]);})
-										.interpolate("linear");
-										// .defined(function(d,i){ return (i%1)!=0; }); 
-
-		
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
 		svgcanvas2.selectAll("ellipse")
@@ -108,11 +102,17 @@ text {
 				.on("mouseover", el_hover);
 
 		// Creating actual path
-		svgcanvas2.append("svg:path")
-				.attr("d", lineFunction(data))
+		svgcanvas2.selectAll("line")
+				.data(data, function(d){return d[4];})
+			.enter()
+				.append("line")
+				.attr("x1", function(d){return x_scale(d[0]);})
+				.attr("y1", function(d){return y_scale(d[1]);})
+				.attr("x2", function(d){return x_scale(d[2]);})
+				.attr("y2", function(d){return y_scale(d[3]);})
 				.style("stroke-width", 1.5)
-				.style("stroke-opacity", 0.8)
-				.style("stroke", "saddlebrown")
+				.style("stroke-opacity", 0.5)
+				.style("stroke", function(d){return c_scale(d[4]);})
 				.style("fill", "none");
 
 	  	});

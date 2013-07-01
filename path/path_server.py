@@ -14,6 +14,9 @@ class PathServer:
 		
 		return self.path.path_data_dir
 		
+	# ------------
+	# Paths
+
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def rawpathcoords(self):
@@ -40,6 +43,31 @@ class PathServer:
 
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
+	def globalpathpairs(self):
+		
+		return self.path.GetGlobalPathCoordPairs_JSON()
+
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def districtpathcoords(self, district_id = None):
+		
+		if district_id is not None:
+			dist_id = int(district_id)
+			return self.path.GetDistrictPathCoordList_JSON(dist_id)
+
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def districtpathpairs(self, district_id = None):
+		
+		if district_id is not None:
+			dist_id = int(district_id)
+			return self.path.GetDistrictPathCoordPairs_JSON(dist_id)
+
+	# ------------
+	# Ellipses
+	
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
 	def allellipses(self):
 		
 		return self.path.GetAllEllipses_JSON()
@@ -64,15 +92,8 @@ class PathServer:
 			dist_id = int(district_id)
 			return self.path.GetDistrictEllipses_JSON(dist_id)
 
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def districtpathcoords(self, district_id = None):
-		
-		if district_id is not None:
-			dist_id = int(district_id)
-			return self.path.GetDistrictPathCoords_JSON(dist_id)
 
-
+# ------------
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
 		'server.socket_port': 9000, 

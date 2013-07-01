@@ -46,15 +46,35 @@ text {
 
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
-				.attr("height", height);
+				.attr("height", height)
+			.append("g")
+				.attr("transform", "translate(0,0)");
 	
+	svgcanvas2.append("defs").append("clipPath")
+				.attr("id", "clip")
+			.append("rect")
+				.attr("width", width)
+				.attr("height", height);
+				
+	var pth = svgcanvas2.append("g")
+							.attr("clip-path", "url(#clip)");
+
 	var el_hover = function(d) {
 		d3.select("#el_id")
 			.text("id = " + d[5]);
 	}
 	
 	var district_id = 352;
-
+	
+	var el_click_function = function() {
+					
+		var that = this;
+		visgen(that.__data__[5]);
+		
+		// $.publish("/elplot/ellipse_click", that.__data__[5]);
+	};
+	
+	var visgen = function(district_id) {
 		d3.json('http://' + host_path + '/remote/districtpathcoords?district_id=' + district_id, function(data) {
 			d3.json('http://' + host_path + '/remote/districtellipses?district_id=' + district_id, function(ellipse_data) {
 		
@@ -94,48 +114,52 @@ text {
 										.x(function(d){return x_scale(d[0]);})
 										.y(function(d){return y_scale(d[1]);})
 										.interpolate("linear");
-										// .defined(function(d,i){ return (i%1)!=0; }); 
-
-		
+	
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
-		svgcanvas2.selectAll("ellipse")
-				.data(eldata, function(d){return d[5];})
-			.enter()
+		var els = svgcanvas2.selectAll("ellipse")
+				.data(eldata, function(d){return d[5];});
+		
+		els.transition()
+			.duration(1000)		
+				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + -d[4] + ")";})
+				.attr("rx", function(d) { return xr_scale(d[2]); })
+				.attr("ry", function(d) { return yr_scale(d[3]); });
+	
+		els.enter()
 				.append("ellipse")
 				// NOTE: since Y-axis is inverted in SVG coordinate system, need to invert rotation angle...
 				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + -d[4] + ")";})
 				.attr("rx", function(d) { return xr_scale(d[2]); })
 				.attr("ry", function(d) { return yr_scale(d[3]); })
-				.on("mouseover", el_hover);
+				.on("mouseover", el_hover)
+				.on("click", el_click_function);
+		
+		els.exit()
+				.remove();
 
-// 		svgcanvas2.selectAll("text")
-// 				.data(eldata)
-// 			.enter().append("text")
-// 				.attr("x", function(d){return x_scale(d[0]);})
-// 				.attr("y", function(d){return y_scale(d[1]);})
-// 				.attr("text-anchor", "middle") // text-align: right
-// 				.text(function(d){return String(d[5]);});
-
-		// Creating net path
-// 		svgcanvas2.append("svg:path")
-// 				.attr("d", lineFunction(netpathdata))
-// 				.style("stroke-width", 1.5)
-// 				.style("stroke-opacity", 0.2)
-// 				.style("stroke", "black")
-// 				.style("fill", "none");
 		
 		// Creating actual path
-		svgcanvas2.append("svg:path")
-				.attr("d", lineFunction(data))
-				.style("stroke-width", 1.5)
-				.style("stroke-opacity", 0.8)
-				.style("stroke", "saddlebrown")
-				.style("fill", "none");
-
+		svgcanvas2.selectAll("path").remove();
+		
+		pth.append("path")
+					.data([data])
+					.attr("class", "line")
+					.attr("d", lineFunction)
+					.style("stroke-width", 1.5)
+					.style("stroke-opacity", 0.8)
+					.style("stroke", "saddlebrown")
+					.style("fill", "none");
+		
 	  	});
   	});
-
+	};
+	
+	// MAIN
+	//
+	// Generate initial vis
+	visgen(district_id);
+	
 </script>
 </body>
 </html>
