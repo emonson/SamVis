@@ -187,6 +187,7 @@ class PathObj(object):
 				gg = g_path[ii]
 				gg.extend(g_path[ii+1])
 				gg.append(ii)
+				gg.append(int(self.path_info['path_index'][ii,0]))
 				g_pairs.append(gg)
 			
 			g_pairs = self.pretty_sci_floats(g_pairs)
@@ -204,12 +205,15 @@ class PathObj(object):
 			self.SetBasisDistrict(dest_district)
 			
 			# Searches for which indices in path match district and NN indexes
-			indexes = N.nonzero(N.in1d(self.path_info['path_index'],self.d_info[dest_district]['index']))[0]
+			indexes = N.nonzero( N.in1d( self.path_info['path_index'], self.d_info[dest_district]['index'] ) )[0]
+			print self.d_info[dest_district]['index']
 			g_path = []
 			
 			for idx in indexes:
 				x = self.transfer_coord_to_neighbor_district(idx, dest_district).squeeze().tolist()
-				g_path.append(self.pretty_sci_floats(x))
+				xp = self.pretty_sci_floats(x)
+				print idx, self.path_info['path_index'][idx], self.path_info['path'][idx, :], xp
+				g_path.append(xp)
 
 			return (g_path, indexes)
 		
@@ -232,15 +236,20 @@ class PathObj(object):
 		
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
 
+			# indexes is the array of "time" indexes which correspond to the coordinates
+			# and district path_index values for the path that intersects this district and its
+			# neighbors
 			(g_path, indexes) = self.GetDistrictPathCoordList(dest_district)
 			g_pairs = []
 			for ii in range(len(indexes)-1):
+				if (indexes[ii+1]-indexes[ii] > 1):
+					continue
 				idx = int(indexes[ii]) 	# numpy.int64 not json serializable...
 				gg = g_path[ii]
 				gg.extend(g_path[ii+1])
 				gg.append(idx)
+				gg.append(int(self.path_info['path_index'][idx])) # district path originated in
 				g_pairs.append(gg)
-			print g_pairs
 			return simplejson.dumps(g_pairs)
 		
 	# --------------------
@@ -318,19 +327,6 @@ class PathObj(object):
 	# UTILITY CLASSES
 	
 	# --------------------
-	def index_to_global_path_coord(self, index):
-		
-		n,d = self.path_info['path'].shape
-		district_id = self.path_info['path_index'][index]
-		d_info = self.d_info[district_id]
-		U = d_info['U'][:,:d]
-		x = self.path_info['path'][index][N.newaxis,:]	# makes (1,d) instead of (d,)
-		x = x.dot(U.T)
-		x = x + d_info['mu']
-		
-		return x
-
-	# --------------------
 	def calculate_node_ellipse(self, node_id):
 		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse.
 		Returns pretty_sci_floats() version of parameters."""
@@ -391,6 +387,19 @@ class PathObj(object):
 		return self.pretty_sci_floats([[minX, maxX], [minY, maxY]])
 	
 	# --------------------
+	def index_to_global_path_coord(self, index):
+		
+		n,d = self.path_info['path'].shape
+		district_id = self.path_info['path_index'][index]
+		d_info = self.d_info[district_id]
+		U = d_info['U'][:,:d]
+		x = self.path_info['path'][index][N.newaxis,:]	# makes (1,d) instead of (d,)
+		x = x.dot(U.T)
+		x = x + d_info['mu']
+		
+		return x
+
+	# --------------------
 	def transfer_coord_to_neighbor_district(self, pos_idx, dest_district):
 		
 		n,d = self.path_info['path'].shape
@@ -400,7 +409,9 @@ class PathObj(object):
 		
 		x = self.path_info['path'][pos_idx, :]
 		x = x - self.d_info[idx]['lmk_mean'][nnidx, :d]
-		x = x.dot(self.d_info[idx]['TM'][:d, :d, nnidx])
+		# NOTE: For some reason Miles stored all zeros TM for self-transfer...
+		if idx != dest_district:
+			x = x.dot(self.d_info[idx]['TM'][:d, :d, nnidx])
 
 		oldidx = N.nonzero(self.d_info[dest_district]['index'].squeeze() == idx)[0][0]
 		
@@ -413,6 +424,7 @@ class PathObj(object):
 		xrm = N.dot(self.proj_basis.T, self.data_center)
 		xm = N.squeeze(N.asarray(xm - xrm))
 
+		# return x
 		return x + xm[:d]
 
 	# --------------------

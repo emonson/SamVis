@@ -8,13 +8,13 @@
 }
 
 ellipse {
-	fill: gray;
-	fill-opacity: 0.1;
+	// fill: gray;
+	fill-opacity: 0.2;
 }
 
 ellipse:hover {
-	fill-opacity: 0.2;
-	fill: gold;
+	fill-opacity: 0.3;
+	// fill: gold;
 }
 
 text {
@@ -43,7 +43,9 @@ text {
 	var y_scale = d3.scale.linear().range([0,height]);
 	var xr_scale = d3.scale.linear().range([0,width]);
 	var yr_scale = d3.scale.linear().range([0,height]);
-	var c_scale = d3.scale.linear().range(["red", "black"]);
+	var idx_ints = [];
+	for (var i=0; i<1127; i++) { idx_ints.push(i); }
+	var c_scale = d3.scale.category20().domain(idx_ints);
 
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
@@ -87,7 +89,8 @@ text {
 		y_scale.domain(yb);
 		xr_scale.domain([0, x_range]);
 		yr_scale.domain([0, y_range]);
-		c_scale.domain([0, data.length-1]);
+		// c_scale.domain([0, data.length-1]);
+		// c_scale.domain([0, 1127]);
 
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
@@ -99,6 +102,7 @@ text {
 				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + -d[4] + ")";})
 				.attr("rx", function(d) { return xr_scale(d[2]); })
 				.attr("ry", function(d) { return yr_scale(d[3]); })
+				.attr("fill", function(d) { return c_scale(d[5]); })
 				.on("mouseover", el_hover);
 
 		// Creating actual path
@@ -111,8 +115,8 @@ text {
 				.attr("x2", function(d){return x_scale(d[2]);})
 				.attr("y2", function(d){return y_scale(d[3]);})
 				.style("stroke-width", 1.5)
-				.style("stroke-opacity", 0.5)
-				.style("stroke", function(d){return c_scale(d[4]);})
+				.style("stroke-opacity", 1.0)
+				.style("stroke", function(d){return c_scale(d[5]);})
 				.style("fill", "none");
 
 	  	});
