@@ -78,7 +78,7 @@ text {
 	};
 	
 	var visgen = function(district_id) {
-		d3.json('http://' + host_path + '/remote/districtpathpairs?district_id=' + district_id, function(data) {
+		d3.json('http://' + host_path + '/remote/districtpathpairs?district_id=' + district_id, function(path_data) {
 			d3.json('http://' + host_path + '/remote/districtellipses?district_id=' + district_id, function(ellipse_data) {
 		
 		var eldata = ellipse_data.data;
@@ -151,7 +151,7 @@ text {
 		// Creating actual path
 		// Creating actual path
 		var pth = svgcanvas2.selectAll("line")
-				.data(data, function(d){return d[4];});
+				.data(path_data, function(d,i){return d[4];});
 		
 		pth.transition()
 				.duration(1000)

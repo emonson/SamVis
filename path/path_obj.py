@@ -194,10 +194,9 @@ class PathObj(object):
 			return simplejson.dumps(g_pairs)
 		
 	# --------------------
-	def GetDistrictPathCoordList(self, dest_district=None):
+	def GetDistrictPathCoordInfo(self, dest_district=None):
 		"""Select out path coordinates that exist within a given district and transfer them
-		to the coordinates of the central node. NOTE: As of now this will connect segments
-		that actually go out of the district -- just for testing!!"""
+		to the coordinates of the central node. Returns {path:[[x,y],...], time_idx:[i,...], district_id:[i,...]}"""
 		
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
 
@@ -205,33 +204,33 @@ class PathObj(object):
 			self.SetBasisDistrict(dest_district)
 			
 			# Searches for which indices in path match district and NN indexes
-			indexes = N.nonzero( N.in1d( self.path_info['path_index'], self.d_info[dest_district]['index'] ) )[0]
-			print self.d_info[dest_district]['index']
-			g_path = []
+			idx_matches = N.nonzero( N.in1d( self.path_info['path_index'], self.d_info[dest_district]['index'] ) )
+			indexes = idx_matches[0].squeeze().tolist()
+			path = []
+			district_ids = self.path_info['path_index'][idx_matches].squeeze().tolist()
 			
 			for idx in indexes:
 				x = self.transfer_coord_to_neighbor_district(idx, dest_district).squeeze().tolist()
 				xp = self.pretty_sci_floats(x)
-				print idx, self.path_info['path_index'][idx], self.path_info['path'][idx, :], xp
-				g_path.append(xp)
+				path.append(xp)
 
-			return (g_path, indexes)
+			return {'path':path, 'time_idx':indexes, 'district_id':district_ids}
 		
 	# --------------------
-	def GetDistrictPathCoordList_JSON(self, dest_district=None):
+	def GetDistrictPathCoordInfo_JSON(self, dest_district=None):
 		"""Select out path coordinates that exist within a given district and transfer them
 		to the coordinates of the central node. NOTE: As of now this will connect segments
 		that actually go out of the district -- just for testing!!"""
 		
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
 
-			(g_path, indexes) = self.GetDistrictPathCoordList(dest_district)
+			district_path_info = self.GetDistrictPathCoordInfo(dest_district)
 			
-			return simplejson.dumps(g_path)
+			return simplejson.dumps(district_path_info)
 		
 	# --------------------
 	def GetDistrictPathCoordPairs_JSON(self, dest_district=None):
-		"""Get back district path coordinate pairs [[x0, y0, x1, y1, i], ...]
+		"""Get back district path coordinate pairs [[x0, y0, x1, y1, time_idx, district_id], ...]
 		Index is based on starting coordinate index of pair"""
 		
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
@@ -239,16 +238,19 @@ class PathObj(object):
 			# indexes is the array of "time" indexes which correspond to the coordinates
 			# and district path_index values for the path that intersects this district and its
 			# neighbors
-			(g_path, indexes) = self.GetDistrictPathCoordList(dest_district)
+			district_path_info = self.GetDistrictPathCoordInfo(dest_district)
+			path = district_path_info['path']
+			time_indexes = district_path_info['time_idx']
+			district_ids = district_path_info['district_id']
 			g_pairs = []
-			for ii in range(len(indexes)-1):
-				if (indexes[ii+1]-indexes[ii] > 1):
+			for ii in range(len(time_indexes)-1):
+				if (time_indexes[ii+1]-time_indexes[ii] > 1):
 					continue
-				idx = int(indexes[ii]) 	# numpy.int64 not json serializable...
-				gg = g_path[ii]
-				gg.extend(g_path[ii+1])
+				idx = int(time_indexes[ii]) 	# numpy.int64 not json serializable...
+				gg = path[ii]
+				gg.extend(path[ii+1])
 				gg.append(idx)
-				gg.append(int(self.path_info['path_index'][idx])) # district path originated in
+				gg.append(int(district_ids[ii]))
 				g_pairs.append(gg)
 			return simplejson.dumps(g_pairs)
 		

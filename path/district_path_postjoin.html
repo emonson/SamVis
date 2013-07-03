@@ -8,13 +8,13 @@
 }
 
 ellipse {
-	fill: gray;
-	fill-opacity: 0.1;
+	// fill: gray;
+	fill-opacity: 0.2;
 }
 
 ellipse:hover {
-	fill-opacity: 0.2;
-	fill: gold;
+	fill-opacity: 0.3;
+	// fill: gold;
 }
 
 text {
@@ -43,6 +43,9 @@ text {
 	var y_scale = d3.scale.linear().range([0,height]);
 	var xr_scale = d3.scale.linear().range([0,width]);
 	var yr_scale = d3.scale.linear().range([0,height]);
+	var idx_ints = [];
+	for (var i=0; i<1127; i++) { idx_ints.push(i); }
+	var c_scale = d3.scale.category20().domain(idx_ints);
 
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
@@ -64,7 +67,7 @@ text {
 			.text("id = " + d[5]);
 	}
 	
-	var district_id = 352;
+	var district_id = 162;
 	
 	var el_click_function = function() {
 					
@@ -74,19 +77,36 @@ text {
 		// $.publish("/elplot/ellipse_click", that.__data__[5]);
 	};
 	
+	var coords_to_pairs = function(p_info) {
+		
+		var pairs_list = [];
+
+		var path = p_info.path;
+		var time_idx = p_info.time_idx;
+		var district_id = p_info.district_id;
+		
+		for (var ii = 0; ii < time_idx.length-1; ii++) {
+			// only connect pairs that are sequential in time
+			if ((time_idx[ii+1] - time_idx[ii]) == 1) {
+				pairs_list.push( path[ii].concat(path[ii+1], time_idx[ii], district_id[ii]) );
+			}
+		}
+		
+		return pairs_list;
+	}
+	
 	var visgen = function(district_id) {
-		d3.json('http://' + host_path + '/remote/districtpathcoords?district_id=' + district_id, function(path_data) {
+		d3.json('http://' + host_path + '/remote/districtpathcoords?district_id=' + district_id, function(path_info) {
 			d3.json('http://' + host_path + '/remote/districtellipses?district_id=' + district_id, function(ellipse_data) {
 		
-		var pdata = path_data.path;
-		var eldata = ellipse_data.data;
-		var bounds = ellipse_data.bounds;
-
+		// Do the manipulation of path coordinates into line segment pairs with ids here
+		var path_pairs = coords_to_pairs(path_info);
+		
 		// equalizing bounds so even x,y spacing even in w,h that doesn't match ratio
 		// setting against origin and adding padding on positive side
 		// TODO: this will probably have to change if adding padding, inverting y, etc...
-		var xb = bounds[0];
-		var yb = bounds[1];
+		var xb = ellipse_data.bounds[0];
+		var yb = ellipse_data.bounds[1];
 		var x_range = xb[1]-xb[0];
 		var y_range = yb[1]-yb[0];
 		var display_ratio = width/height;
@@ -119,7 +139,7 @@ text {
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
 		var els = svgcanvas2.selectAll("ellipse")
-				.data(eldata, function(d){return d[5];});
+				.data(ellipse_data.data, function(d){return d[5];});
 		
 		els.transition()
 			.duration(1000)		
@@ -133,24 +153,48 @@ text {
 				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + -d[4] + ")";})
 				.attr("rx", function(d) { return xr_scale(d[2]); })
 				.attr("ry", function(d) { return yr_scale(d[3]); })
+				.attr("fill", function(d) {return c_scale(d[5]); })
+				.style("opacity", 0.0)
 				.on("mouseover", el_hover)
-				.on("click", el_click_function);
+				.on("click", el_click_function)
+			.transition()
+			.delay(1000)
+			.duration(500)
+				.style("opacity", 1.0);
 		
 		els.exit()
 				.remove();
 
 		
 		// Creating actual path
-		svgcanvas2.selectAll("path").remove();
+		// Creating actual path
+		var pth = svgcanvas2.selectAll("line")
+				.data(path_pairs, function(d){return d[4];});
 		
-		pth.append("path")
-					.data([pdata])
-					.attr("class", "line")
-					.attr("d", lineFunction)
-					.style("stroke-width", 1.5)
-					.style("stroke-opacity", 0.8)
-					.style("stroke", "saddlebrown")
-					.style("fill", "none");
+		pth.transition()
+				.duration(1000)
+				.attr("x1", function(d){return x_scale(d[0]);})
+				.attr("y1", function(d){return y_scale(d[1]);})
+				.attr("x2", function(d){return x_scale(d[2]);})
+				.attr("y2", function(d){return y_scale(d[3]);});
+		
+		pth.enter()
+				.append("line")
+				.attr("x1", function(d){return x_scale(d[0]);})
+				.attr("y1", function(d){return y_scale(d[1]);})
+				.attr("x2", function(d){return x_scale(d[2]);})
+				.attr("y2", function(d){return y_scale(d[3]);})
+				.style("stroke-width", 2.5)
+				.style("stroke-opacity", 0.0)
+				.style("stroke", function(d){return c_scale(d[5]);})
+				.style("fill", "none")
+			.transition()
+			.delay(1000)
+			.duration(500)
+				.style("stroke-opacity", 1.0);
+		
+		pth.exit()
+				.remove();
 		
 	  	});
   	});

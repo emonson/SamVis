@@ -53,7 +53,7 @@ class PathServer:
 		
 		if district_id is not None:
 			dist_id = int(district_id)
-			return self.path.GetDistrictPathCoordList_JSON(dist_id)
+			return self.path.GetDistrictPathCoordInfo_JSON(dist_id)
 
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
