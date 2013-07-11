@@ -1,6 +1,7 @@
 import simplejson
 import os
 import numpy as N
+import collections as C
 import path_json_read as PR
 
 # http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
@@ -24,6 +25,9 @@ class PathObj(object):
 		self.netpoints = None
 		self.path_info = None
 		self.sim_opts = None
+		
+		# Path coordinates gathered by district ID for faster search
+		self.coords_by_id = None
 		
 		# For projection of district ellipses into a certain basis
 		self.basis_district_id = None
@@ -70,6 +74,10 @@ class PathObj(object):
 		self.sim_opts = PR.load_sim_opts( os.path.join(self.path_data_dir, 'sim_opts.json') )
 		
 		self.path_data_loaded = True
+		
+		# Gather up path coordinates by district ID for faster lookup later
+		self.gather_coords_by_id()
+		
 		# HACK: data_center
 		self.data_center = N.zeros(self.d_info[0]['mu'].shape).T
 		self.ResetBasis()
@@ -246,7 +254,7 @@ class PathObj(object):
 			for ii in range(len(time_indexes)-1):
 				if (time_indexes[ii+1]-time_indexes[ii] > 1):
 					continue
-				idx = int(time_indexes[ii]) 	# numpy.int64 not json serializable...
+				idx = int(time_indexes[ii])		# numpy.int64 not json serializable...
 				gg = path[ii]
 				gg.extend(path[ii+1])
 				gg.append(idx)
@@ -372,6 +380,7 @@ class PathObj(object):
 		
 		return result_list
 	
+	# --------------------
 	def calculate_ellipse_bounds(self, e_params):
 		"""Rough calculation of ellipse bounds by centers +/- max radius for each"""
 		
@@ -402,6 +411,23 @@ class PathObj(object):
 		return x
 
 	# --------------------
+	def gather_coords_by_id(self):
+		
+		if not self.path_data_loaded:
+			raise Exception('DataNotLoaded')
+
+		n,d = self.path_info['path'].shape
+		self.coords_by_id = {}
+		
+		path_district_ids = N.unique(self.path_info['path_index'])
+		
+		for id in path_district_ids:
+			self.coords_by_id[id] = {}
+			idx_matches = N.nonzero( N.in1d( self.path_info['path_index'], N.array([id]) ) )
+			self.coords_by_id[id]['coords'] = self.path_info['path'][idx_matches]
+			self.coords_by_id[id]['time_idxs'] = idx_matches[0].squeeze()
+		
+	# --------------------
 	def transfer_coord_to_neighbor_district(self, pos_idx, dest_district):
 		
 		n,d = self.path_info['path'].shape
@@ -430,6 +456,124 @@ class PathObj(object):
 		return x + xm[:d]
 
 	# --------------------
+	def generate_nn_tree(self, root_district_id, depth_limit=2):
+		"""Generate dictionaries of (nodes_by_id, nodes_by_depth) from NN information
+		on districts, storing 'district_id', 'parent_id', 'child_ids', 'coords', 'time_idxs'
+		in each node. Root node considered depth=0, will continue including depth limit value."""
+	
+		if (root_district_id is not None) and (root_district_id >= 0) and (root_district_id < len(self.d_info)) and self.path_data_loaded:
+
+			# NOTE: Have to go breadth-first with the way I'm figuring out which are children
+			#   from the nearest-neighbor indices. If you go depth-first, some of the level 2
+			#   children get counted as children of other level 2s rather than as children
+			#   of level 1s since you visit some level 2s before the level 1s are done...
+			
+			# MODE = 'breadth_first'
+
+			# Iterative traversal
+			#		Note: for Python deque, 
+			#				extendleft / appendleft --> [0, 1, 2] <-- extend / append
+			#											 popleft <--						 --> pop
+
+			node_ids= C.deque()
+			node_ids.appendleft(root_district_id)
+		
+			parent_ids = {}
+			nodes_by_id = {}
+			nodes_by_depth = {}
+
+			while len(node_ids) > 0:
+				# Get next node to process from deque for iterative traversal
+				# MODE == 'breadth_first':
+				curr_id = node_ids.pop()
+		
+				# Calculate something on the current node
+				node = {}
+			
+				if curr_id == root_district_id:
+					depth = 0
+					parent_id = None
+					# Initialize accounted-for ids with root id since it won't get added as a child
+					accounted_node_ids = N.array([root_district_id], dtype='int')
+				else:
+					parent_id = parent_ids[curr_id]
+					depth = nodes_by_id[parent_id]['depth'] + 1
+			
+				node['id'] = curr_id
+				node['parent_id'] = parent_id
+				node['depth'] = depth
+			
+				# Some nearest neighbors will be siblings and parent
+				potential_child_ids = self.d_info[curr_id]['index']
+				# Take out current node
+				non_self_child_ids = N.setdiff1d(potential_child_ids, [curr_id])
+				child_ids = N.setdiff1d(potential_child_ids, accounted_node_ids)
+
+				# NOTE: Some nodes won't end up with children at this point
+				node['child_ids'] = child_ids
+				
+				# NOTE: The way it's being done right now some districts will be returned that
+				#   don't have coordinates, so record None (for now) if nothing
+				if curr_id in self.coords_by_id:
+					node['coords'] = self.coords_by_id[curr_id]['coords']
+					node['time_idxs'] = self.coords_by_id[curr_id]['time_idxs']
+				else:
+					node['coords'] = N.array([[]])
+					node['time_idxs'] = N.array([])
+			
+				# Record parents for later reverse lookup
+				for id in child_ids:
+					parent_ids[id] = int(curr_id)
+			
+				# Add current children into array of accounted-for ids
+				accounted_node_ids = N.union1d(accounted_node_ids, child_ids)
+				nodes_by_id[curr_id] = node
+				if depth not in nodes_by_depth:
+					nodes_by_depth[depth] = []
+				nodes_by_depth[depth].append(node)
+	
+				# Check if should proceed, add on to deque for ongoing iterative tree traveral
+				if depth < depth_limit and len(child_ids) > 0:
+					node_ids.extendleft(child_ids.tolist())
+			
+			return (nodes_by_id, nodes_by_depth)
+
+	# --------------------
+	def traverse_tree(self, root_node, child_key='children'):
+		"""A general routine for traversing a tree iteratively"""
+	
+		# MODE = 'breadth_first'
+		MODE = 'depth_first'
+
+		# Iterative traversal
+		#		Note: for Python deque, 
+		#				extendleft / appendleft --> [0, 1, 2] <-- extend / append
+		#											 popleft <--						 --> pop
+
+		nodes = C.deque()
+		nodes.appendleft(root_node)
+
+		while len(nodes) > 0:
+			# Get next node to process from deque for iterative traversal
+			if MODE == 'breadth_first':
+				current_node = nodes.pop()
+			elif MODE == 'depth_first':
+				current_node = nodes.popleft()
+			else:
+				break
+		
+			# Calculate something on the current node
+			if child_key in current_node:
+				if len(current_node[child_key]) == 0:
+					del current_node[child_key]
+				else:
+					current_node[child_key] = list(current_node[child_key])
+	
+			# Check if should proceed, add on to deque for ongoing iterative tree traveral
+			if child_key in current_node:
+				nodes.extendleft(current_node[child_key])
+
+	# --------------------
 	# http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
 	def pretty_sci_floats(self, obj):
 	
@@ -438,7 +582,7 @@ class PathObj(object):
 		elif isinstance(obj, dict):
 			return dict((k, self.pretty_sci_floats(v)) for k, v in obj.items())
 		elif isinstance(obj, (list, tuple)):
-			return map(self.pretty_sci_floats, obj)             
+			return map(self.pretty_sci_floats, obj)							
 		return obj
 
 # --------------------

@@ -27,7 +27,7 @@ text {
 	<div id="svgpath"></div>
 	<p id="el_id"></p>
 	
-<script src="http://mbostock.github.com/d3/d3.js?2.7.2"></script>
+<script type="text/javascript" src="../libs/d3_3.1.6/d3.v3.min.js"></script>
 <script>
 
 	// var host_path = 'localhost';
@@ -44,6 +44,8 @@ text {
 	var xr_scale = d3.scale.linear().range([0,width]);
 	var yr_scale = d3.scale.linear().range([0,height]);
 	var idx_ints = [];
+	
+	// HACK: Hard-coding color scale for 1127 ellipse IDs...
 	for (var i=0; i<1127; i++) { idx_ints.push(i); }
 	var c_scale = d3.scale.category20().domain(idx_ints);
 
