@@ -63,6 +63,15 @@ class PathServer:
 			dist_id = int(district_id)
 			return self.path.GetDistrictPathCoordPairs_JSON(dist_id)
 
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def districtdeepcoords(self, district_id = None, depth=2):
+		
+		if district_id is not None:
+			dist_id = int(district_id)
+			d = int(depth)
+			return self.path.GetDistrictDeepPathCoordInfo_JSON(dist_id, d)
+
 	# ------------
 	# Ellipses
 	

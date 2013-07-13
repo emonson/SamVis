@@ -76,7 +76,7 @@ class PathObj(object):
 		self.path_data_loaded = True
 		
 		# Gather up path coordinates by district ID for faster lookup later
-		self.gather_coords_by_id()
+		self.gather_coords_by_district_id()
 		
 		# HACK: data_center
 		self.data_center = N.zeros(self.d_info[0]['mu'].shape).T
@@ -263,6 +263,59 @@ class PathObj(object):
 			return simplejson.dumps(g_pairs)
 		
 	# --------------------
+	def GetDistrictDeepPathCoordInfo(self, dest_district=None, depth=2):
+		"""Get paths in neighborhood of a district through NN transfer (not projection
+		to global space). Not limited to 1st NN, can set depth.
+		Returns {path:[[x,y],...], time_idx:[i,...], district_id:[i,...]}"""
+	
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			# Get "node tree" representations around root district
+			nodes_by_id, nodes_by_depth = self.generate_nn_tree(dest_district, depth)
+			
+			# Go from deepest up to root, layer by layer, transferring coordinates inward
+			depths = nodes_by_depth.keys()
+			depths.sort(reverse=True)
+			for dd in depths:
+				for node in nodes_by_depth[dd]:
+					parent_district = node['parent_id']
+					# If not root node
+					if parent_district is not None:
+						child_district = node['id']
+						coords = node['coords']
+						time_idxs = node['time_idxs']
+						district_ids = node['district_ids']
+						n = len(time_idxs)
+						for ii in range(n):
+							# Transfer coordinate between districts
+							coord = coords[ii]
+							new_coord = self.transfer_coord_between_districts(child_district, parent_district, coord)
+							# Add coords onto parent
+							nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'],coord[N.newaxis,...]),axis=0)
+							nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'],N.array([time_idxs[ii]])))
+							nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'],N.array([district_ids[ii]])))
+			
+			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
+			return_obj = {}
+			return_obj['path'] = self.pretty_sci_floats(nodes_by_id[dest_district]['coords'][time_order].tolist())
+			return_obj['time_idx'] = nodes_by_id[dest_district]['time_idxs'][time_order].squeeze().tolist()
+			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
+			
+			return return_obj
+			
+	# --------------------
+	def GetDistrictDeepPathCoordInfo_JSON(self, dest_district=None, depth=2):
+		"""Select out path coordinates that exist within a given district and transfer them
+		to the coordinates of the central node. NOTE: As of now this will connect segments
+		that actually go out of the district -- just for testing!!"""
+		
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			district_path_info = self.GetDistrictDeepPathCoordInfo(dest_district, depth)
+			
+			return simplejson.dumps(district_path_info)
+		
+	# --------------------
 	# ELLIPSES
 
 	# --------------------
@@ -411,7 +464,7 @@ class PathObj(object):
 		return x
 
 	# --------------------
-	def gather_coords_by_id(self):
+	def gather_coords_by_district_id(self):
 		
 		if not self.path_data_loaded:
 			raise Exception('DataNotLoaded')
@@ -425,7 +478,7 @@ class PathObj(object):
 			self.coords_by_id[id] = {}
 			idx_matches = N.nonzero( N.in1d( self.path_info['path_index'], N.array([id]) ) )
 			self.coords_by_id[id]['coords'] = self.path_info['path'][idx_matches]
-			self.coords_by_id[id]['time_idxs'] = idx_matches[0].squeeze()
+			self.coords_by_id[id]['time_idxs'] = idx_matches[0]
 		
 	# --------------------
 	def transfer_coord_to_neighbor_district(self, pos_idx, dest_district):
@@ -436,6 +489,36 @@ class PathObj(object):
 		nnidx = N.nonzero(self.d_info[idx]['index'].squeeze() == dest_district)[0][0]
 		
 		x = self.path_info['path'][pos_idx, :]
+		x = x - self.d_info[idx]['lmk_mean'][nnidx, :d]
+		# NOTE: For some reason Miles stored all zeros TM for self-transfer...
+		if idx != dest_district:
+			x = x.dot(self.d_info[idx]['TM'][:d, :d, nnidx])
+
+		oldidx = N.nonzero(self.d_info[dest_district]['index'].squeeze() == idx)[0][0]
+		
+		x = x + self.d_info[dest_district]['lmk_mean'][oldidx, :d]
+		
+		# TODO: shouldn't have to recompute this for each point, do it on district level...
+		center = self.d_info[dest_district]['mu'].T
+		# Project mean
+		xm = N.dot(self.proj_basis.T, center)
+		xrm = N.dot(self.proj_basis.T, self.data_center)
+		xm = N.squeeze(N.asarray(xm - xrm))
+
+		# return x
+		return x + xm[:d]
+
+	# --------------------
+	def transfer_coord_between_districts(self, orig_district, dest_district, coord):
+		
+		# NOTE: Not quite sure how to make this generic... coord comes in as shape (d,)
+		
+		d, = coord.shape
+		# start district of position -- original coordinate system in which it's defined
+		idx = orig_district
+		nnidx = N.nonzero(self.d_info[idx]['index'].squeeze() == dest_district)[0][0]
+		
+		x = coord
 		x = x - self.d_info[idx]['lmk_mean'][nnidx, :d]
 		# NOTE: For some reason Miles stored all zeros TM for self-transfer...
 		if idx != dest_district:
@@ -518,8 +601,11 @@ class PathObj(object):
 					node['coords'] = self.coords_by_id[curr_id]['coords']
 					node['time_idxs'] = self.coords_by_id[curr_id]['time_idxs']
 				else:
-					node['coords'] = N.array([[]])
+					node['coords'] = N.array([])
 					node['time_idxs'] = N.array([])
+				
+				# keep track of these for later when coords are transferred between districts
+				node['district_ids'] = N.array([curr_id]*len(node['time_idxs']))
 			
 				# Record parents for later reverse lookup
 				for id in child_ids:
