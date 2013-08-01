@@ -202,6 +202,32 @@ class PathObj(object):
 			return simplejson.dumps(g_pairs)
 		
 	# --------------------
+	def GetDistrictPathCoordPairs_JSON(self, dest_district=None):
+		"""Get back district path coordinate pairs [[x0, y0, x1, y1, time_idx, district_id], ...]
+		Index is based on starting coordinate index of pair"""
+		
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			# indexes is the array of "time" indexes which correspond to the coordinates
+			# and district path_index values for the path that intersects this district and its
+			# neighbors
+			district_path_info = self.GetDistrictPathCoordInfo(dest_district)
+			path = district_path_info['path']
+			time_indexes = district_path_info['time_idx']
+			district_ids = district_path_info['district_id']
+			g_pairs = []
+			for ii in range(len(time_indexes)-1):
+				if (time_indexes[ii+1]-time_indexes[ii] > 1):
+					continue
+				idx = int(time_indexes[ii])		# numpy.int64 not json serializable...
+				gg = path[ii]
+				gg.extend(path[ii+1])
+				gg.append(idx)
+				gg.append(int(district_ids[ii]))
+				g_pairs.append(gg)
+			return simplejson.dumps(g_pairs)
+		
+	# --------------------
 	def GetDistrictPathCoordInfo(self, dest_district=None):
 		"""Select out path coordinates that exist within a given district and transfer them
 		to the coordinates of the central node. Returns {path:[[x,y],...], time_idx:[i,...], district_id:[i,...]}"""
@@ -237,32 +263,6 @@ class PathObj(object):
 			return simplejson.dumps(district_path_info)
 		
 	# --------------------
-	def GetDistrictPathCoordPairs_JSON(self, dest_district=None):
-		"""Get back district path coordinate pairs [[x0, y0, x1, y1, time_idx, district_id], ...]
-		Index is based on starting coordinate index of pair"""
-		
-		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
-
-			# indexes is the array of "time" indexes which correspond to the coordinates
-			# and district path_index values for the path that intersects this district and its
-			# neighbors
-			district_path_info = self.GetDistrictPathCoordInfo(dest_district)
-			path = district_path_info['path']
-			time_indexes = district_path_info['time_idx']
-			district_ids = district_path_info['district_id']
-			g_pairs = []
-			for ii in range(len(time_indexes)-1):
-				if (time_indexes[ii+1]-time_indexes[ii] > 1):
-					continue
-				idx = int(time_indexes[ii])		# numpy.int64 not json serializable...
-				gg = path[ii]
-				gg.extend(path[ii+1])
-				gg.append(idx)
-				gg.append(int(district_ids[ii]))
-				g_pairs.append(gg)
-			return simplejson.dumps(g_pairs)
-		
-	# --------------------
 	def GetDistrictDeepPathCoordInfo(self, dest_district=None, depth=2):
 		"""Get paths in neighborhood of a district through NN transfer (not projection
 		to global space). Not limited to 1st NN, can set depth.
@@ -270,10 +270,14 @@ class PathObj(object):
 	
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
 
+			# Set basis to requested district
+			self.SetBasisDistrict(dest_district)
+			
 			# Get "node tree" representations around root district
 			nodes_by_id, nodes_by_depth = self.generate_nn_tree(dest_district, depth)
 			
 			# Go from deepest up to root, layer by layer, transferring coordinates inward
+			# NOTE: None of these will have the district global offset yet
 			depths = nodes_by_depth.keys()
 			depths.sort(reverse=True)
 			for dd in depths:
@@ -285,22 +289,43 @@ class PathObj(object):
 						coords = node['coords']
 						time_idxs = node['time_idxs']
 						district_ids = node['district_ids']
+						depth_list = node['depths']
 						n = len(time_idxs)
 						for ii in range(n):
 							# Transfer coordinate between districts
 							coord = coords[ii]
 							new_coord = self.transfer_coord_between_districts(child_district, parent_district, coord)
 							# Add coords onto parent
-							nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'],coord[N.newaxis,...]),axis=0)
-							nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'],N.array([time_idxs[ii]])))
-							nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'],N.array([district_ids[ii]])))
+							if nodes_by_id[parent_district]['coords'].size != 0:
+								nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'],new_coord[N.newaxis,...]),axis=0)
+								nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'],N.array([time_idxs[ii]])))
+								nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'],N.array([district_ids[ii]])))
+								nodes_by_id[parent_district]['depths'] = N.concatenate((nodes_by_id[parent_district]['depths'],N.array([depth_list[ii]])))
+							else:
+								nodes_by_id[parent_district]['coords'] = new_coord[N.newaxis,...]
+								nodes_by_id[parent_district]['time_idxs'] = N.array([time_idxs[ii]])
+								nodes_by_id[parent_district]['district_ids'] = N.array([district_ids[ii]])
+								nodes_by_id[parent_district]['depths'] = N.array([depth_list[ii]])
+								
+			# Now that all of the coordinates are transferred to the dest_district,
+			# need to add the dest_district (projected) center
+			d, = nodes_by_id[dest_district]['coords'][0,:].shape
+			center = self.d_info[dest_district]['mu'].T
+			# Project mean
+			xm = N.dot(self.proj_basis.T, center)
+			xrm = N.dot(self.proj_basis.T, self.data_center)
+			xm = N.squeeze(N.asarray(xm - xrm))
+			# Adding offset
+			nodes_by_id[dest_district]['coords'] = nodes_by_id[dest_district]['coords'] + xm[:d]
 			
 			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
 			return_obj = {}
 			return_obj['path'] = self.pretty_sci_floats(nodes_by_id[dest_district]['coords'][time_order].tolist())
 			return_obj['time_idx'] = nodes_by_id[dest_district]['time_idxs'][time_order].squeeze().tolist()
 			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
+			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
 			
+			# DEBUG
 			return return_obj
 			
 	# --------------------
@@ -505,6 +530,8 @@ class PathObj(object):
 		xrm = N.dot(self.proj_basis.T, self.data_center)
 		xm = N.squeeze(N.asarray(xm - xrm))
 
+		# print idx, x
+		
 		# return x
 		return x + xm[:d]
 
@@ -512,6 +539,7 @@ class PathObj(object):
 	def transfer_coord_between_districts(self, orig_district, dest_district, coord):
 		
 		# NOTE: Not quite sure how to make this generic... coord comes in as shape (d,)
+		# NOTE: This routine doesn't add the district global offset (center)
 		
 		d, = coord.shape
 		# start district of position -- original coordinate system in which it's defined
@@ -528,15 +556,9 @@ class PathObj(object):
 		
 		x = x + self.d_info[dest_district]['lmk_mean'][oldidx, :d]
 		
-		# TODO: shouldn't have to recompute this for each point, do it on district level...
-		center = self.d_info[dest_district]['mu'].T
-		# Project mean
-		xm = N.dot(self.proj_basis.T, center)
-		xrm = N.dot(self.proj_basis.T, self.data_center)
-		xm = N.squeeze(N.asarray(xm - xrm))
-
-		# return x
-		return x + xm[:d]
+		# print idx, x
+		
+		return x
 
 	# --------------------
 	def generate_nn_tree(self, root_district_id, depth_limit=2):
@@ -600,9 +622,11 @@ class PathObj(object):
 				if curr_id in self.coords_by_id:
 					node['coords'] = self.coords_by_id[curr_id]['coords']
 					node['time_idxs'] = self.coords_by_id[curr_id]['time_idxs']
+					node['depths'] = N.array([depth]*len(node['time_idxs']))
 				else:
 					node['coords'] = N.array([])
 					node['time_idxs'] = N.array([])
+					node['depths'] = N.array([])
 				
 				# keep track of these for later when coords are transferred between districts
 				node['district_ids'] = N.array([curr_id]*len(node['time_idxs']))
