@@ -290,22 +290,20 @@ class PathObj(object):
 						time_idxs = node['time_idxs']
 						district_ids = node['district_ids']
 						depth_list = node['depths']
-						n = len(time_idxs)
-						for ii in range(n):
-							# Transfer coordinate between districts
-							coord = coords[ii]
-							new_coord = self.transfer_coord_between_districts(child_district, parent_district, coord)
+						# Transfer coordinate between districts
+						if len(time_idxs) > 0:
+							new_coords = self.transfer_coord_between_districts(child_district, parent_district, coords)
 							# Add coords onto parent
 							if nodes_by_id[parent_district]['coords'].size != 0:
-								nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'],new_coord[N.newaxis,...]),axis=0)
-								nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'],N.array([time_idxs[ii]])))
-								nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'],N.array([district_ids[ii]])))
-								nodes_by_id[parent_district]['depths'] = N.concatenate((nodes_by_id[parent_district]['depths'],N.array([depth_list[ii]])))
+								nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'], new_coords), axis=0)
+								nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'], time_idxs))
+								nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'], district_ids))
+								nodes_by_id[parent_district]['depths'] = N.concatenate((nodes_by_id[parent_district]['depths'], depth_list))
 							else:
-								nodes_by_id[parent_district]['coords'] = new_coord[N.newaxis,...]
-								nodes_by_id[parent_district]['time_idxs'] = N.array([time_idxs[ii]])
-								nodes_by_id[parent_district]['district_ids'] = N.array([district_ids[ii]])
-								nodes_by_id[parent_district]['depths'] = N.array([depth_list[ii]])
+								nodes_by_id[parent_district]['coords'] = new_coords
+								nodes_by_id[parent_district]['time_idxs'] = time_idxs
+								nodes_by_id[parent_district]['district_ids'] = district_ids
+								nodes_by_id[parent_district]['depths'] = depth_list
 								
 			# Now that all of the coordinates are transferred to the dest_district,
 			# need to add the dest_district (projected) center
@@ -325,7 +323,6 @@ class PathObj(object):
 			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
 			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
 			
-			# DEBUG
 			return return_obj
 			
 	# --------------------
@@ -337,6 +334,74 @@ class PathObj(object):
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
 
 			district_path_info = self.GetDistrictDeepPathCoordInfo(dest_district, depth)
+			
+			return simplejson.dumps(district_path_info)
+		
+	# --------------------
+	def GetDistrictDeepPathLocalCoordInfo(self, dest_district=None, depth=2):
+		"""Get paths in neighborhood of a district through NN transfer (not projection
+		to global space). Not limited to 1st NN, can set depth.
+		Returns {path:[[x,y],...], time_idx:[i,...], district_id:[i,...]}"""
+	
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			# Get "node tree" representations around root district
+			print 'getting ready to make tree'
+			nodes_by_id, nodes_by_depth = self.generate_nn_tree(dest_district, depth)
+			print 'made tree, starting transfer'
+			
+			# Go from deepest up to root, layer by layer, transferring coordinates inward
+			# NOTE: None of these will have the district global offset yet
+			depths = nodes_by_depth.keys()
+			depths.sort(reverse=True)
+			print 'sorted'
+			for dd in depths:
+				for node in nodes_by_depth[dd]:
+					parent_district = node['parent_id']
+					# If not root node
+					if parent_district is not None:
+						child_district = node['id']
+						coords = node['coords']
+						time_idxs = node['time_idxs']
+						district_ids = node['district_ids']
+						depth_list = node['depths']
+						# Transfer coordinate between districts
+						if len(time_idxs) > 0:
+							new_coords = self.transfer_coord_between_districts(child_district, parent_district, coords)
+							# Add coords onto parent
+							if nodes_by_id[parent_district]['coords'].size != 0:
+								nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'], new_coords), axis=0)
+								nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'], time_idxs))
+								nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'], district_ids))
+								nodes_by_id[parent_district]['depths'] = N.concatenate((nodes_by_id[parent_district]['depths'], depth_list))
+							else:
+								nodes_by_id[parent_district]['coords'] = new_coords
+								nodes_by_id[parent_district]['time_idxs'] = time_idxs
+								nodes_by_id[parent_district]['district_ids'] = district_ids
+								nodes_by_id[parent_district]['depths'] = depth_list
+			
+			print 'done with transfer up tree'
+			# Don't add any offset of center district
+			
+			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
+			return_obj = {}
+			return_obj['path'] = self.pretty_sci_floats(nodes_by_id[dest_district]['coords'][time_order].tolist())
+			return_obj['time_idx'] = nodes_by_id[dest_district]['time_idxs'][time_order].squeeze().tolist()
+			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
+			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
+			
+			print 'returning obj'
+			return return_obj
+			
+	# --------------------
+	def GetDistrictDeepPathLocalCoordInfo_JSON(self, dest_district=None, depth=2):
+		"""Select out path coordinates that exist within a given district and transfer them
+		to the coordinates of the central node. NOTE: As of now this will connect segments
+		that actually go out of the district -- just for testing!!"""
+		
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			district_path_info = self.GetDistrictDeepPathLocalCoordInfo(dest_district, depth)
 			
 			return simplejson.dumps(district_path_info)
 		
@@ -386,7 +451,9 @@ class PathObj(object):
 		
 	# --------------------
 	def GetDistrictEllipses(self, district_id = None):
-		"""Return list of ellipses in a district (center plus neighbors)"""
+		"""Return list of ellipses in a district (center plus neighbors). Takes ellipses
+		out to global coordinate system (potentially high-d) and uses offset in global system
+		rather than centered at zero in local center system."""
 
 		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
 			
@@ -407,7 +474,32 @@ class PathObj(object):
 		
 	# --------------------
 	def GetDistrictEllipses_JSON(self, district_id):
-		"""Get JSON of all ellipses without reprojecting"""
+	
+		return simplejson.dumps(self.GetDistrictEllipses(district_id))
+		
+	# --------------------
+	def GetDistrictLocalEllipses(self, district_id = None):
+		"""Return list of ellipses in a district (center plus neighbors). This routine
+		never goes out into the global space, but uses TM to transfer coordinate systems
+		of neighbors into center local system (all low-d). Centered at zero on local center
+		system."""
+
+		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
+			
+			indexes = self.d_info[district_id]['index'].squeeze().tolist()
+			ellipse_params = []
+			
+			for idx in indexes:
+				ellipse_params.append(self.calculate_local_node_ellipse(idx, district_id))
+			
+			bounds = self.calculate_ellipse_bounds(ellipse_params)
+			bounds = self.pretty_sci_floats(bounds)
+			return_obj = {'data':ellipse_params, 'bounds':bounds}
+
+			return return_obj
+		
+	# --------------------
+	def GetDistrictLocalEllipses_JSON(self, district_id):
 	
 		return simplejson.dumps(self.GetDistrictEllipses(district_id))
 		
@@ -444,6 +536,46 @@ class PathObj(object):
 		
 		# Calculate scalings (not needed because it's in sigma
 		# N.squeeze(N.asarray(N.sum(N.square(a),1)))
+		
+		# Calculate angles
+		phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
+		# t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
+		
+		# How many sigma ellipses cover
+		s_mult = 1.0
+		result_list = [xm[0], xm[1], s_mult*S2[0], s_mult*S2[1], phi_deg]
+		result_list = self.pretty_sci_floats(result_list)
+		# Casting to int() here because json serializer has trouble with numpy ints
+		result_list.append(int(node_id))
+		
+		return result_list
+	
+	# --------------------
+	def calculate_local_node_ellipse(self, ellipse_id, dest_id):
+		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse.
+		Returns pretty_sci_floats() version of parameters."""
+		
+		# TODO: Move pretty_sci_floats() out to routines that use returned params
+		
+		# TODO: FIX FROM HERE!! **********************
+		
+		node = self.d_info[node_id]
+		
+		# Compute projection of this node's covariance matrix
+		A = node['U']
+		sigma = N.diag(node['E'].squeeze())
+		center = node['mu'].T
+		
+		A = N.dot(A, N.sqrt(sigma))
+		C1 = N.dot(self.proj_basis.T, A)
+		C = N.dot(C1, C1.T)
+		
+		# TODO: FIX TO HERE!! ***********************
+
+		# ALT METHOD for transforming the unit circle according to projected covariance
+		# Compute svd in projected space to find rx, ry and rotation for ellipse in D3 vis
+		U, S, V = N.linalg.svd(C)
+		S2 = N.sqrt(S)
 		
 		# Calculate angles
 		phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
@@ -536,17 +668,17 @@ class PathObj(object):
 		return x + xm[:d]
 
 	# --------------------
-	def transfer_coord_between_districts(self, orig_district, dest_district, coord):
+	def transfer_coord_between_districts(self, orig_district, dest_district, coords):
 		
 		# NOTE: Not quite sure how to make this generic... coord comes in as shape (d,)
 		# NOTE: This routine doesn't add the district global offset (center)
 		
-		d, = coord.shape
+		n,d = coords.shape
 		# start district of position -- original coordinate system in which it's defined
 		idx = orig_district
 		nnidx = N.nonzero(self.d_info[idx]['index'].squeeze() == dest_district)[0][0]
 		
-		x = coord
+		x = coords
 		x = x - self.d_info[idx]['lmk_mean'][nnidx, :d]
 		# NOTE: For some reason Miles stored all zeros TM for self-transfer...
 		if idx != dest_district:
@@ -699,7 +831,7 @@ class PathObj(object):
 # --------------------
 if __name__ == "__main__":
 
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
+	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 

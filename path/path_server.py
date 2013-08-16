@@ -7,7 +7,7 @@ class PathServer:
 	
 	def __init__(self):
 		
-		self.path = PathObj('data/json_20130601')
+		self.path = PathObj('data/json_20130813')
 		
 	@cherrypy.expose
 	def index(self):
@@ -72,6 +72,15 @@ class PathServer:
 			d = int(depth)
 			return self.path.GetDistrictDeepPathCoordInfo_JSON(dist_id, d)
 
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def districtdeeplocalcoords(self, district_id = None, depth=2):
+		
+		if district_id is not None:
+			dist_id = int(district_id)
+			d = int(depth)
+			return self.path.GetDistrictDeepPathLocalCoordInfo_JSON(dist_id, d)
+
 	# ------------
 	# Ellipses
 	
@@ -100,6 +109,14 @@ class PathServer:
 		if district_id is not None:
 			dist_id = int(district_id)
 			return self.path.GetDistrictEllipses_JSON(dist_id)
+
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def districtlocalellipses(self, district_id = None):
+		
+		if district_id is not None:
+			dist_id = int(district_id)
+			return self.path.GetDistrictLocalEllipses_JSON(dist_id)
 
 
 # ------------
