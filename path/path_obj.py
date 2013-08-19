@@ -381,7 +381,14 @@ class PathObj(object):
 								nodes_by_id[parent_district]['depths'] = depth_list
 			
 			print 'done with transfer up tree'
-			# Don't add any offset of center district
+
+			# Trying adding offset of center district A
+			dest_node = self.d_info[dest_district]
+			orig_nnidx = N.nonzero(dest_node['index'].squeeze() == dest_district)[0][0]
+			n,d = nodes_by_id[dest_district]['coords'].shape
+			center = dest_node['A'][orig_nnidx, :d]
+			nodes_by_id[dest_district]['coords'] = nodes_by_id[dest_district]['coords'] + center
+
 			
 			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
 			return_obj = {}
@@ -468,6 +475,10 @@ class PathObj(object):
 			
 			bounds = self.calculate_ellipse_bounds(ellipse_params)
 			bounds = self.pretty_sci_floats(bounds)
+			#DEBUG
+			print
+			print 'Global ellipses bounds:', bounds
+			print
 			return_obj = {'data':ellipse_params, 'bounds':bounds}
 
 			return return_obj
@@ -490,10 +501,15 @@ class PathObj(object):
 			ellipse_params = []
 			
 			for idx in indexes:
-				ellipse_params.append(self.calculate_local_node_ellipse(idx, district_id))
+				result_list = self.calculate_local_node_ellipse(idx, district_id)
+				ellipse_params.append(self.pretty_sci_floats(result_list))
 			
 			bounds = self.calculate_ellipse_bounds(ellipse_params)
 			bounds = self.pretty_sci_floats(bounds)
+			#DEBUG
+			print
+			print 'Local ellipses bounds:', bounds
+			print
 			return_obj = {'data':ellipse_params, 'bounds':bounds}
 
 			return return_obj
@@ -501,7 +517,7 @@ class PathObj(object):
 	# --------------------
 	def GetDistrictLocalEllipses_JSON(self, district_id):
 	
-		return simplejson.dumps(self.GetDistrictEllipses(district_id))
+		return simplejson.dumps(self.GetDistrictLocalEllipses(district_id))
 		
 	# --------------------
 	# UTILITY CLASSES
@@ -551,42 +567,49 @@ class PathObj(object):
 		return result_list
 	
 	# --------------------
-	def calculate_local_node_ellipse(self, ellipse_id, dest_id):
+	def calculate_local_node_ellipse(self, orig_id, dest_id):
 		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse.
 		Returns pretty_sci_floats() version of parameters."""
+				
+		orig_node = self.d_info[orig_id]
+		dest_nnidx = N.nonzero(orig_node['index'].squeeze() == dest_id)[0][0]
 		
-		# TODO: Move pretty_sci_floats() out to routines that use returned params
-		
-		# TODO: FIX FROM HERE!! **********************
-		
-		node = self.d_info[node_id]
-		
-		# Compute projection of this node's covariance matrix
-		A = node['U']
-		sigma = N.diag(node['E'].squeeze())
-		center = node['mu'].T
-		
-		A = N.dot(A, N.sqrt(sigma))
-		C1 = N.dot(self.proj_basis.T, A)
-		C = N.dot(C1, C1.T)
-		
-		# TODO: FIX TO HERE!! ***********************
+		dest_node = self.d_info[dest_id]
+		orig_nnidx = N.nonzero(dest_node['index'].squeeze() == orig_id)[0][0]
 
-		# ALT METHOD for transforming the unit circle according to projected covariance
-		# Compute svd in projected space to find rx, ry and rotation for ellipse in D3 vis
-		U, S, V = N.linalg.svd(C)
-		S2 = N.sqrt(S)
+		# NOTE: Taking d from district centers dimensionality. Always reliable...?
+		nn,d = orig_node['A'].shape
 		
+		# Method for transforming the unit circle according to projected covariance
+		# Compute svd in projected space to find rx, ry and rotation for ellipse in D3 vis
+		
+		# Sometimes self-TM not identity (as it should be), so safer to just set explicitly
+		if orig_id == dest_id:
+			T = N.matrix(N.eye(d))
+		else:
+			T = N.matrix(orig_node['TM'][:d,:d, dest_nnidx])
+		
+		I = N.matrix(N.eye(d))
+		S2 = N.matrix(N.diag(orig_node['E'][:d].squeeze()))
+	
+		covXT = T.T * I * S2 * I.T * T
+	
+		U, S, V = N.linalg.svd(covXT)
+		R = N.sqrt(S)
+	
 		# Calculate angles
 		phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
 		# t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
+	
+		center = dest_node['A'][orig_nnidx, :d]
 		
 		# How many sigma ellipses cover
-		s_mult = 1.0
-		result_list = [xm[0], xm[1], s_mult*S2[0], s_mult*S2[1], phi_deg]
-		result_list = self.pretty_sci_floats(result_list)
+		r_mult = 1.0
+		
+		# Will to rounding to specific precision in receiving routine
+		result_list = [center[0], center[1], r_mult*R[0], r_mult*R[1], phi_deg]
 		# Casting to int() here because json serializer has trouble with numpy ints
-		result_list.append(int(node_id))
+		result_list.append(int(orig_id))
 		
 		return result_list
 	
