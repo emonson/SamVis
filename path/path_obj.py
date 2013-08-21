@@ -346,15 +346,12 @@ class PathObj(object):
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
 
 			# Get "node tree" representations around root district
-			print 'getting ready to make tree'
 			nodes_by_id, nodes_by_depth = self.generate_nn_tree(dest_district, depth)
-			print 'made tree, starting transfer'
 			
 			# Go from deepest up to root, layer by layer, transferring coordinates inward
 			# NOTE: None of these will have the district global offset yet
 			depths = nodes_by_depth.keys()
 			depths.sort(reverse=True)
-			print 'sorted'
 			for dd in depths:
 				for node in nodes_by_depth[dd]:
 					parent_district = node['parent_id']
@@ -380,8 +377,6 @@ class PathObj(object):
 								nodes_by_id[parent_district]['district_ids'] = district_ids
 								nodes_by_id[parent_district]['depths'] = depth_list
 			
-			print 'done with transfer up tree'
-
 			# When we never go into global coordinates for the ellipses, we don't have to 
 			# add any offset onto the paths
 			
@@ -392,7 +387,6 @@ class PathObj(object):
 			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
 			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
 			
-			print 'returning obj'
 			return return_obj
 			
 	# --------------------
@@ -470,10 +464,6 @@ class PathObj(object):
 			
 			bounds = self.calculate_ellipse_bounds(ellipse_params)
 			bounds = self.pretty_sci_floats(bounds)
-			#DEBUG
-			print
-			print 'Global ellipses bounds:', bounds
-			print
 			return_obj = {'data':ellipse_params, 'bounds':bounds}
 
 			return return_obj
@@ -501,10 +491,6 @@ class PathObj(object):
 			
 			bounds = self.calculate_ellipse_bounds(ellipse_params)
 			bounds = self.pretty_sci_floats(bounds)
-			#DEBUG
-			print
-			print 'Local ellipses bounds:', bounds
-			print
 			return_obj = {'data':ellipse_params, 'bounds':bounds}
 
 			return return_obj

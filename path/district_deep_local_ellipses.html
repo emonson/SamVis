@@ -103,7 +103,7 @@ text {
 	}
 	
 	var visgen = function(district_id) {
-		d3.json('http://' + host_path + '/remote/districtdeeplocalcoords?district_id=' + district_id + '&depth=1', function(path_info) {
+		d3.json('http://' + host_path + '/remote/districtdeeplocalcoords?district_id=' + district_id + '&depth=2', function(path_info) {
 			d3.json('http://' + host_path + '/remote/districtlocalellipses?district_id=' + district_id, function(ellipse_data) {
 		
 		// Do the manipulation of path coordinates into line segment pairs with ids, etc here
@@ -185,7 +185,8 @@ text {
 				.attr("y1", function(d){return y_scale(d[1]);})
 				.attr("x2", function(d){return x_scale(d[2]);})
 				.attr("y2", function(d){return y_scale(d[3]);})
-				.style("stroke", function(d){return c_scale(d[5]);});
+				.style("stroke", function(d){return c_scale(d[5]);})
+				.style("stroke-opacity", function(d){return (d[6] < 2) ? 1.0 : 0.2;});
 				// .style("stroke", function(d){return (d[6] < 2) ? 'saddlebrown' : 'papayawhip';});
 		
 		pth.enter()
@@ -202,7 +203,7 @@ text {
 			.transition()
 			.delay(1000)
 			.duration(500)
-				.style("stroke-opacity", 1.0);
+				.style("stroke-opacity", function(d){return (d[6] < 2) ? 1.0 : 0.2;});
 		
 		pth.exit()
 				.remove();
