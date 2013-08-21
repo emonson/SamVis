@@ -382,13 +382,8 @@ class PathObj(object):
 			
 			print 'done with transfer up tree'
 
-			# Trying adding offset of center district A
-			dest_node = self.d_info[dest_district]
-			orig_nnidx = N.nonzero(dest_node['index'].squeeze() == dest_district)[0][0]
-			n,d = nodes_by_id[dest_district]['coords'].shape
-			center = dest_node['A'][orig_nnidx, :d]
-			nodes_by_id[dest_district]['coords'] = nodes_by_id[dest_district]['coords'] + center
-
+			# When we never go into global coordinates for the ellipses, we don't have to 
+			# add any offset onto the paths
 			
 			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
 			return_obj = {}
