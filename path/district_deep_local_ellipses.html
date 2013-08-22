@@ -65,7 +65,10 @@ text {
 				.attr("width", width)
 				.attr("height", height);
 				
-	var pth = svgcanvas2.append("g")
+	var pathbox = svgcanvas2.append("g")
+							.attr("clip-path", "url(#clip)");
+
+	var elbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
 
 	var el_hover = function(d) {
@@ -145,7 +148,7 @@ text {
 	
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
-		var els = svgcanvas2.selectAll("ellipse")
+		var els = elbox.selectAll("ellipse")
 				.data(ellipse_data.data, function(d){return d[5];});
 		
 		els.transition()
@@ -176,7 +179,7 @@ text {
 		
 		// Creating actual path
 		// Creating actual path
-		var pth = svgcanvas2.selectAll("line")
+		var pth = pathbox.selectAll("line")
 				.data(path_pairs, function(d){return d[4];});
 		
 		pth.transition()
