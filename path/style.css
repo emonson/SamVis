@@ -1,0 +1,13 @@
+ellipse {
+	// fill: gray;
+	fill-opacity: 0.15;
+}
+
+ellipse:hover {
+	fill-opacity: 0.25;
+	// fill: gold;
+}
+
+text {
+	font: 10px sans-serif;
+}
