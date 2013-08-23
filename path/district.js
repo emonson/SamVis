@@ -186,8 +186,8 @@ var DISTRICT = (function(d3, $, g){
 	// and update visualizations for both
 	dis.visgen = function(district_id) {
 		
-		d3.json( g.data_proxy_root + '/districtdeeplocalcoords?district_id=' + district_id + '&depth=2', function(path_info) {
-			d3.json( g.data_proxy_root + '/districtlocalellipses?district_id=' + district_id, function(ellipse_data) {
+		d3.json( g.data_proxy_root + '/districtcoords?district_id=' + district_id + '&depth=2', function(path_info) {
+			d3.json( g.data_proxy_root + '/districtellipses?district_id=' + district_id, function(ellipse_data) {
 	
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
 			var path_pairs = coords_to_pairs(path_info);
