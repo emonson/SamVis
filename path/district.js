@@ -24,32 +24,32 @@ var DISTRICT = (function(d3, $, g){
 	// HACK: Hard-coding color scale for 1127 ellipse IDs...
 	for (var i=0; i<1127; i++) { idx_ints.push(i); }
 	var c_scale = d3.scale.category20().domain(idx_ints);
-
+	
+	// Setting up the base SVG element for the visualization
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
 				.attr("height", height)
 			.append("g")
 				.attr("transform", "translate(0,0)");
-
+	
+	// Clipping box for paths and ellipses which go outside of bounds
+	// since vis is scaled right now to ellipse bounds and not paths
 	svgcanvas2.append("defs").append("clipPath")
 				.attr("id", "clip")
 			.append("rect")
 				.attr("width", width)
 				.attr("height", height);
 			
+	// Individual g elements in which to place ellipses and paths
 	var pathbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
-
+	
+	// Ellipses on top for now because listed second
 	var elbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
 
-	dis.el_hover = function(ellipse_id) {
-		d3.select("#el_id")
-			.text("id = " + ellipse_id);
-	}
-
-	var district_id = 162;
-
+	// UTILITY private methods
+	
 	var coords_to_pairs = function(p_info) {
 	
 		var pairs_list = [];
@@ -67,20 +67,17 @@ var DISTRICT = (function(d3, $, g){
 		}
 	
 		return pairs_list;
-	}
+	};
+	
+	var scale_to_bounds = function(bounds) {
 
-	dis.visgen = function(district_id) {
-		d3.json( g.data_proxy_root + '/districtdeeplocalcoords?district_id=' + district_id + '&depth=2', function(path_info) {
-			d3.json( g.data_proxy_root + '/districtlocalellipses?district_id=' + district_id, function(ellipse_data) {
-	
-		// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-		var path_pairs = coords_to_pairs(path_info);
-	
 		// equalizing bounds so even x,y spacing even in w,h that doesn't match ratio
-		// setting against origin and adding padding on positive side
+		// NOTE: setting against origin and adding padding on positive side
+		//   (i.e. not centered on bounds)
 		// TODO: this will probably have to change if adding padding, inverting y, etc...
-		var xb = ellipse_data.bounds[0];
-		var yb = ellipse_data.bounds[1];
+		
+		var xb = bounds[0];
+		var yb = bounds[1];
 		var x_range = xb[1]-xb[0];
 		var y_range = yb[1]-yb[0];
 		var display_ratio = width/height;
@@ -103,18 +100,24 @@ var DISTRICT = (function(d3, $, g){
 		y_scale.domain(yb);
 		xr_scale.domain([0, x_range]);
 		yr_scale.domain([0, y_range]);
+	
+	};
 
-		// Specify the function for generating path data             
-		var lineFunction = d3.svg.line()
-										.x(function(d){return x_scale(d[0]);})
-										.y(function(d){return y_scale(d[1]);})
-										.interpolate("linear");
+	// PUBLIC methods
+	
+	dis.el_hover = function(ellipse_id) {
+	
+		d3.select("#el_id").text("id = " + ellipse_id);
+			
+	}
 
+	dis.update_ellipses = function(ellipse_data) {
+	
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
 		var els = elbox.selectAll("ellipse")
 				.data(ellipse_data.data, function(d){return d[5];});
-	
+
 		els.transition()
 			.duration(1000)		
 				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + -d[4] + ")";})
@@ -136,16 +139,18 @@ var DISTRICT = (function(d3, $, g){
 			.delay(1000)
 			.duration(500)
 				.style("opacity", 1.0);
-	
+
 		els.exit()
 				.remove();
-
 	
-		// Creating actual path
+	};
+	
+	dis.update_paths = function(path_pairs) {
+
 		// Creating actual path
 		var pth = pathbox.selectAll("line")
 				.data(path_pairs, function(d){return d[4];});
-	
+
 		pth.transition()
 				.duration(1000)
 				.attr("x1", function(d){return x_scale(d[0]);})
@@ -155,7 +160,7 @@ var DISTRICT = (function(d3, $, g){
 				.style("stroke", function(d){return c_scale(d[5]);})
 				.style("stroke-opacity", function(d){return (d[6] < 2) ? 1.0 : 0.2;});
 				// .style("stroke", function(d){return (d[6] < 2) ? 'saddlebrown' : 'papayawhip';});
-	
+
 		pth.enter()
 				.append("line")
 				.attr("x1", function(d){return x_scale(d[0]);})
@@ -171,10 +176,31 @@ var DISTRICT = (function(d3, $, g){
 			.delay(1000)
 			.duration(500)
 				.style("stroke-opacity", function(d){return (d[6] < 2) ? 1.0 : 0.2;});
-	
+
 		pth.exit()
 				.remove();
 	
+	};
+	
+	// Get data for both the paths and ellipses surrounding a certain district
+	// and update visualizations for both
+	dis.visgen = function(district_id) {
+		
+		d3.json( g.data_proxy_root + '/districtdeeplocalcoords?district_id=' + district_id + '&depth=2', function(path_info) {
+			d3.json( g.data_proxy_root + '/districtlocalellipses?district_id=' + district_id, function(ellipse_data) {
+	
+			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
+			var path_pairs = coords_to_pairs(path_info);
+		
+			// Scale X and Y scales correctly so they can be equal within unequal width and height
+			scale_to_bounds(ellipse_data.bounds);
+			
+			// Update ellipse visualization
+			dis.update_ellipses(ellipse_data);
+	
+			// Update path visualization
+			dis.update_paths(path_pairs);
+			
 			});
 		});
 	};
@@ -183,5 +209,5 @@ var DISTRICT = (function(d3, $, g){
 
 }(d3, jQuery, GLOBALS));
 
-// END ELPLOT
+// END DISTRICT
 // --------------------------
