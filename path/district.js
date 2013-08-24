@@ -48,9 +48,29 @@ var DISTRICT = (function(d3, $, g){
 	var elbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
 
+	// SLIDER
+	
+	$(function(){
+
+		// Slider
+		$('#slider').dragslider({
+			animate: true,
+			range: true,
+			rangeDrag: true,
+			min: 0,
+			max: 500,
+			values: [30, 70],
+			slide: function( event, ui ) {
+						$.publish("/slider/slide", ui);
+					}  
+		});
+	});
+
+
+
 	// UTILITY private methods
 	
-	var coords_to_pairs = function(p_info) {
+	var coords_to_pairs = function(p_info, range) {
 	
 		var pairs_list = [];
 
@@ -58,11 +78,24 @@ var DISTRICT = (function(d3, $, g){
 		var time_idx = p_info.time_idx;
 		var district_id = p_info.district_id;
 		var depth = p_info.depths;
-	
-		for (var ii = 0; ii < time_idx.length-1; ii++) {
-			// only connect pairs that are sequential in time
-			if ((time_idx[ii+1] - time_idx[ii]) == 1) {
-				pairs_list.push( path[ii].concat(path[ii+1], time_idx[ii], district_id[ii], depth[ii]) );
+		
+		if (arguments.length == 2) {
+			// Range supplied
+			for (var ii = 0; ii < time_idx.length-1; ii++) {
+				// only connect pairs that are sequential in time
+				if (time_idx[ii] >= range[0] && time_idx[ii+1] <= range[1]) {
+					if ((time_idx[ii+1] - time_idx[ii]) == 1) {
+						pairs_list.push( path[ii].concat(path[ii+1], time_idx[ii], district_id[ii], depth[ii]) );
+					}
+				}
+			}
+		} else {
+			// No range supplied
+			for (var ii = 0; ii < time_idx.length-1; ii++) {
+				// only connect pairs that are sequential in time
+				if ((time_idx[ii+1] - time_idx[ii]) == 1) {
+					pairs_list.push( path[ii].concat(path[ii+1], time_idx[ii], district_id[ii], depth[ii]) );
+				}
 			}
 		}
 	
@@ -104,12 +137,24 @@ var DISTRICT = (function(d3, $, g){
 	};
 
 	// PUBLIC methods
+
+	dis.slide_fcn = function(ui) {
 	
+		$( "#amount" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] )
+		// values in global variable
+		g.slider_values = ui.values;
+		
+		// Update path visualization
+		var path_pairs = coords_to_pairs(g.path_info, ui.values);
+		dis.update_paths(path_pairs, 0);
+		
+	};
+
 	dis.el_hover = function(ellipse_id) {
 	
 		d3.select("#el_id").text("id = " + ellipse_id);
 			
-	}
+	};
 
 	dis.update_ellipses = function(ellipse_data) {
 	
@@ -145,14 +190,14 @@ var DISTRICT = (function(d3, $, g){
 	
 	};
 	
-	dis.update_paths = function(path_pairs) {
-
+	dis.update_paths = function(path_pairs, t_delay) {
+		
 		// Creating actual path
 		var pth = pathbox.selectAll("line")
 				.data(path_pairs, function(d){return d[4];});
 
 		pth.transition()
-				.duration(1000)
+				.duration(t_delay)
 				.attr("x1", function(d){return x_scale(d[0]);})
 				.attr("y1", function(d){return y_scale(d[1]);})
 				.attr("x2", function(d){return x_scale(d[2]);})
@@ -173,8 +218,8 @@ var DISTRICT = (function(d3, $, g){
 				// .style("stroke", function(d){return (d[6] < 2) ? 'saddlebrown' : 'papayawhip';})
 				.style("fill", "none")
 			.transition()
-			.delay(1000)
-			.duration(500)
+			.delay(t_delay)
+			.duration(t_delay/2.0)
 				.style("stroke-opacity", function(d){return (d[6] < 2) ? 1.0 : 0.2;});
 
 		pth.exit()
@@ -188,18 +233,31 @@ var DISTRICT = (function(d3, $, g){
 		
 		d3.json( g.data_proxy_root + '/districtcoords?district_id=' + district_id + '&depth=2', function(path_info) {
 			d3.json( g.data_proxy_root + '/districtellipses?district_id=' + district_id, function(ellipse_data) {
-	
-			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			var path_pairs = coords_to_pairs(path_info);
-		
+			
+			// Store data in global object so can filter without retrieving
+			g.ellipse_data = ellipse_data;
+			g.path_info = path_info;
+			
+			// Only reset range values and t_max if this is the first time through
+			// TODO: I don't like this method...
+			if (g.slider_values[1] < 0) {
+				$("#slider").dragslider({	'min': 0,
+																	'max': path_info.t_max_idx,
+																	'values': [0, path_info.t_max_idx]});
+				g.slider_values = [0, path_info.t_max_idx];
+			}
+			
 			// Scale X and Y scales correctly so they can be equal within unequal width and height
-			scale_to_bounds(ellipse_data.bounds);
+			scale_to_bounds(g.ellipse_data.bounds);
 			
 			// Update ellipse visualization
-			dis.update_ellipses(ellipse_data);
+			dis.update_ellipses(g.ellipse_data);
 	
+			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
+			var path_pairs = coords_to_pairs(g.path_info, g.slider_values);
+		
 			// Update path visualization
-			dis.update_paths(path_pairs);
+			dis.update_paths(path_pairs, 1000);
 			
 			});
 		});

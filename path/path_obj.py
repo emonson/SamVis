@@ -115,6 +115,8 @@ class PathObj(object):
 			return_obj['time_idx'] = nodes_by_id[dest_district]['time_idxs'][time_order].squeeze().tolist()
 			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
 			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
+			return_obj['t_max_idx'] = self.path_info['path'].shape[0] - 1
+			print 't_max_idx', return_obj['t_max_idx']
 			
 			return return_obj
 			

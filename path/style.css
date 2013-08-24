@@ -11,3 +11,8 @@ ellipse:hover {
 text {
 	font: 10px sans-serif;
 }
+
+#slider {
+	width: 600px;
+}
+
