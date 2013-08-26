@@ -7,6 +7,7 @@ class PathServer:
 	
 	def __init__(self):
 		
+		# self.path = PathObj('data/json_20130601')
 		self.path = PathObj('data/json_20130813')
 		
 	@cherrypy.expose
@@ -31,11 +32,14 @@ class PathServer:
 	
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
-	def districtellipses(self, district_id = None):
+	def districtellipses(self, district_id = None, type = 'space'):
 		
 		if district_id is not None:
 			dist_id = int(district_id)
-			return self.path.GetDistrictLocalEllipses_JSON(dist_id)
+			if type == 'diffusion':
+				return self.path.GetDistrictDiffusionEllipses_JSON(dist_id)
+			else:
+				return self.path.GetDistrictLocalEllipses_JSON(dist_id)
 
 
 # ------------

@@ -163,6 +163,33 @@ class PathObj(object):
 		return simplejson.dumps(self.GetDistrictLocalEllipses(district_id))
 		
 	# --------------------
+	def GetDistrictDiffusionEllipses(self, district_id = None):
+		"""Return list of ellipses in a district (center plus neighbors). This routine
+		never goes out into the global space, but uses TM to transfer coordinate systems
+		of neighbors into center local system (all low-d). Centered at zero on local center
+		system."""
+
+		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
+			
+			indexes = self.d_info[district_id]['index'].squeeze().tolist()
+			ellipse_params = []
+			
+			for idx in indexes:
+				result_list = self.calculate_local_diffusion_ellipse(idx, district_id)
+				ellipse_params.append(self.pretty_sci_floats(result_list))
+			
+			bounds = self.calculate_ellipse_bounds(ellipse_params)
+			bounds = self.pretty_sci_floats(bounds)
+			return_obj = {'data':ellipse_params, 'bounds':bounds}
+
+			return return_obj
+		
+	# --------------------
+	def GetDistrictDiffusionEllipses_JSON(self, district_id):
+	
+		return simplejson.dumps(self.GetDistrictDiffusionEllipses(district_id))
+		
+	# --------------------
 	# UTILITY CLASSES
 	
 	# --------------------
@@ -212,6 +239,58 @@ class PathObj(object):
 		
 		return result_list
 	
+	# --------------------
+	def calculate_local_diffusion_ellipse(self, orig_id, dest_id):
+		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse.
+		Returns pretty_sci_floats() version of parameters."""
+
+		orig_node = self.d_info[orig_id]
+		dest_nnidx = N.nonzero(orig_node['index'].squeeze() == dest_id)[0][0]
+
+		dest_node = self.d_info[dest_id]
+		orig_nnidx = N.nonzero(dest_node['index'].squeeze() == orig_id)[0][0]
+
+		# NOTE: Taking d from district centers dimensionality. Always reliable...?
+		nn,d = orig_node['A'].shape
+
+		# Method for transforming the unit circle according to projected covariance
+		# Compute svd in projected space to find rx, ry and rotation for ellipse in D3 vis
+
+		# Sometimes self-TM not identity (as it should be), so safer to just set explicitly
+		if orig_id == dest_id:
+			T = N.matrix(N.eye(d))
+		else:
+			T = N.matrix(orig_node['TM'][:d,:d, dest_nnidx])
+		
+		# Two types of data right now
+		if 'sig' in orig_node:
+			sig = N.matrix(orig_node['sig'])
+		else:
+			sig = N.matrix(orig_node['diff'])
+			
+		# TODO: Should probably sanity check size of sig...
+
+		covXT = T.T * sig * sig.T * T
+
+		U, S, V = N.linalg.svd(covXT)
+		R = N.sqrt(S)
+
+		# Calculate angles
+		phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
+		# t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
+
+		center = dest_node['A'][orig_nnidx, :d]
+
+		# How many sigma ellipses cover
+		r_mult = 0.25
+
+		# Will to rounding to specific precision in receiving routine
+		result_list = [center[0], center[1], r_mult*R[0], r_mult*R[1], phi_deg]
+		# Casting to int() here because json serializer has trouble with numpy ints
+		result_list.append(int(orig_id))
+
+		return result_list
+
 	# --------------------
 	def calculate_ellipse_bounds(self, e_params):
 		"""Rough calculation of ellipse bounds by centers +/- max radius for each"""
@@ -384,7 +463,8 @@ class PrettyPrecision3SciFloat(float):
 # --------------------
 if __name__ == "__main__":
 
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
+	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
+	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 
