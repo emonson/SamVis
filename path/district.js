@@ -39,7 +39,28 @@ var DISTRICT = (function(d3, $, g){
 			.append("rect")
 				.attr("width", width)
 				.attr("height", height);
-			
+	
+	// Linear gradient in X to use for ellipses
+	// TODO: https://gist.github.com/dholth/1368205
+	var gradient = svgcanvas2.append("svg:defs")
+		.append("svg:linearGradient")
+			.attr("id", "gradient")
+			.attr("x1", "0%")
+			.attr("y1", "0%")
+			.attr("x2", "100%")
+			.attr("y2", "0%")
+			.attr("spreadMethod", "pad");
+
+	gradient.append("svg:stop")
+			.attr("offset", "0%")
+			.attr("stop-color", "#0c0")
+			.attr("stop-opacity", 1);
+
+	gradient.append("svg:stop")
+			.attr("offset", "100%")
+			.attr("stop-color", "#c00")
+			.attr("stop-opacity", 1);
+ 			
 	// Individual g elements in which to place ellipses and paths
 	var pathbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
@@ -187,6 +208,7 @@ var DISTRICT = (function(d3, $, g){
 				.attr("ry", function(d) { return yr_scale(d[3]); })
 				// .attr("fill", function(d) {return c_scale(d[5]); })
 				.attr("fill", 'gray')
+				// .attr("fill", "url(#gradient)")
 				.style("opacity", 0.0)
 				.on("mouseover", function(d) { $.publish("/district/ellipse_hover", d[5]);} )
 				.on("click", function(d) { $.publish("/district/ellipse_click", d[5]);} )
