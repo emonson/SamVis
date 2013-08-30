@@ -25,6 +25,10 @@ var DISTRICT = (function(d3, $, g){
 	for (var i=0; i<1127; i++) { idx_ints.push(i); }
 	var c_scale = d3.scale.category20().domain(idx_ints);
 	
+	var color_by_time_scale = d3.scale.linear()
+				.domain([0, 1])
+				.range(["red", "blue"]);
+	
 	// Setting up the base SVG element for the visualization
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
@@ -86,6 +90,12 @@ var DISTRICT = (function(d3, $, g){
 	$("#ellipse_type").on('change', function(){
 		var type = $(this).val();
 		$.publish("/ellipse_type/change", type);
+	});
+
+	// COMBO Box callback
+	$("#path_color").on('change', function(){
+		var type = $(this).val();
+		$.publish("/path_color/change", type);
 	});
 
 	// UTILITY private methods
@@ -155,18 +165,38 @@ var DISTRICT = (function(d3, $, g){
 		yr_scale.domain([0, y_range]);
 	
 	};
+	
+	var set_path_stroke_color = function(d,i) {
+		
+		switch(g.path_color) {
+		
+			case 'domain':
+				return c_scale(d[5]);
+				break;
+			case 'time':
+				return color_by_time_scale(d[4]);
+				break;
+				
+			default:
+				return 'saddlebrown';
+				break;
+		}
+	};
 
 	// PUBLIC methods
 
 	dis.ellipse_type_change_fcn = function(val){
 		
-		// val comes in as string exactly from "select" combo box
-		
-		// Split and use only lowercase of first term
-		// and store ellipse type in global object
+		// Store ellipse type in global object and then get proper ellipse data
 		g.ellipse_type = val;
 		dis.grab_only_ellipses();
+	};
+	
+	dis.path_color_change_fcn = function(val){
 		
+		// Store path color in global object and rerender
+		g.path_color = val;
+		dis.update_paths(0);
 	};
 	
 	dis.slide_fcn = function(ui) {
@@ -174,10 +204,12 @@ var DISTRICT = (function(d3, $, g){
 		$( "#time_range" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] )
 		// values in global variable
 		g.slider_values = ui.values;
+		// also update domain of color scale for coloring by time
+		color_by_time_scale.domain(ui.values);
 		
 		// Update path visualization
-		var path_pairs = coords_to_pairs(g.path_info, ui.values);
-		dis.update_paths(path_pairs, 0);
+		g.path_pairs = coords_to_pairs(g.path_info, ui.values);
+		dis.update_paths(0);
 		
 	};
 
@@ -222,11 +254,11 @@ var DISTRICT = (function(d3, $, g){
 	
 	};
 	
-	dis.update_paths = function(path_pairs, t_delay) {
+	dis.update_paths = function(t_delay) {
 		
 		// Creating actual path
 		var pth = pathbox.selectAll("line")
-				.data(path_pairs, function(d){return d[4];});
+				.data(g.path_pairs, function(d){return d[4];});
 
 		pth.transition()
 				.duration(t_delay)
@@ -235,7 +267,7 @@ var DISTRICT = (function(d3, $, g){
 				.attr("x2", function(d){return x_scale(d[2]);})
 				.attr("y2", function(d){return y_scale(d[3]);})
 				// .style("stroke", function(d){return c_scale(d[5]);})
-				.style("stroke", 'saddlebrown')
+				.style("stroke", set_path_stroke_color)
 				.style("stroke-opacity", function(d){return (d[6] < 2) ? 1.0 : 0.2;});
 
 		pth.enter()
@@ -246,8 +278,7 @@ var DISTRICT = (function(d3, $, g){
 				.attr("y2", function(d){return y_scale(d[3]);})
 				.style("stroke-width", 2.0)
 				.style("stroke-opacity", 0.0)
-				// .style("stroke", function(d){return c_scale(d[5]);})
-				.style("stroke", 'saddlebrown')
+				.style("stroke", set_path_stroke_color)
 				.style("fill", "none")
 			.transition()
 			.delay(t_delay)
@@ -259,7 +290,7 @@ var DISTRICT = (function(d3, $, g){
 	
 	};
 	
-	// Only grab ellipses
+	// Only grab ellipse data from server
 	dis.grab_only_ellipses = function() {
 		
 		d3.json( g.data_proxy_root + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type, function(ellipse_data) {
@@ -274,10 +305,10 @@ var DISTRICT = (function(d3, $, g){
 			dis.update_ellipses(g.ellipse_data, 1000);
 
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			var path_pairs = coords_to_pairs(g.path_info, g.slider_values);
+			g.path_pairs = coords_to_pairs(g.path_info, g.slider_values);
 	
 			// Update path visualization
-			dis.update_paths(path_pairs, 1000);
+			dis.update_paths(1000);
 		
 		});
 	};
@@ -301,6 +332,8 @@ var DISTRICT = (function(d3, $, g){
 																	'max': path_info.t_max_idx,
 																	'values': [0, path_info.t_max_idx]});
 				g.slider_values = [0, path_info.t_max_idx];
+				color_by_time_scale.domain([0, path_info.t_max_idx]);
+				$( "#time_range" ).val( "0 - " + path_info.t_max_idx )
 			}
 			
 			// Scale X and Y scales correctly so they can be equal within unequal width and height
@@ -310,10 +343,10 @@ var DISTRICT = (function(d3, $, g){
 			dis.update_ellipses(g.ellipse_data, 1000);
 	
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			var path_pairs = coords_to_pairs(g.path_info, g.slider_values);
+			g.path_pairs = coords_to_pairs(g.path_info, g.slider_values);
 		
 			// Update path visualization
-			dis.update_paths(path_pairs, 1000);
+			dis.update_paths(1000);
 			
 			});
 		});

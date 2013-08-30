@@ -11,6 +11,7 @@ var GLOBALS = (function(){
 
 	// Keeping value for type of ellipses to grab/display in globals for now
 	globals.ellipse_type = 'space';
+	globals.path_color = 'brown';
 
 	return globals;
 
