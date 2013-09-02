@@ -219,12 +219,12 @@ var DISTRICT = (function(d3, $, g){
 			
 	};
 
-	dis.update_ellipses = function(ellipse_data, t_delay) {
+	dis.update_ellipses = function(t_delay) {
 	
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
 		var els = elbox.selectAll("ellipse")
-				.data(ellipse_data.data, function(d){return d[5];});
+				.data(g.ellipse_data.data, function(d){return d[5];});
 
 		els.transition()
 			.duration(t_delay)		
@@ -251,6 +251,36 @@ var DISTRICT = (function(d3, $, g){
 
 		els.exit()
 				.remove();
+		
+		var drift = elbox.selectAll("line")
+			.data(g.ellipse_data.drift, function(d){return d[4];});
+		
+		drift.transition()
+				.duration(t_delay)
+				.attr("x1", function(d){return x_scale(d[0]);})
+				.attr("y1", function(d){return y_scale(d[1]);})
+				.attr("x2", function(d){return x_scale(d[2]);})
+				.attr("y2", function(d){return y_scale(d[3]);})
+				.style("stroke", "black")
+				.style("stroke-opacity", 1.0);
+
+		drift.enter()
+				.append("line")
+				.attr("x1", function(d){return x_scale(d[0]);})
+				.attr("y1", function(d){return y_scale(d[1]);})
+				.attr("x2", function(d){return x_scale(d[2]);})
+				.attr("y2", function(d){return y_scale(d[3]);})
+				.style("stroke-width", 2.0)
+				.style("stroke-opacity", 0.0)
+				.style("stroke", "black")
+				.style("fill", "none")
+			.transition()
+			.delay(t_delay)
+			.duration(t_delay/2.0)
+				.style("stroke-opacity", 1.0);
+
+		drift.exit()
+				.remove();		
 	
 	};
 	
@@ -302,7 +332,7 @@ var DISTRICT = (function(d3, $, g){
 			scale_to_bounds(g.ellipse_data.bounds);
 		
 			// Update ellipse visualization
-			dis.update_ellipses(g.ellipse_data, 1000);
+			dis.update_ellipses(1000);
 
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
 			g.path_pairs = coords_to_pairs(g.path_info, g.slider_values);
@@ -340,7 +370,7 @@ var DISTRICT = (function(d3, $, g){
 			scale_to_bounds(g.ellipse_data.bounds);
 			
 			// Update ellipse visualization
-			dis.update_ellipses(g.ellipse_data, 1000);
+			dis.update_ellipses(1000);
 	
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
 			g.path_pairs = coords_to_pairs(g.path_info, g.slider_values);

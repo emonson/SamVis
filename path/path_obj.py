@@ -153,7 +153,7 @@ class PathObj(object):
 			
 			bounds = self.calculate_ellipse_bounds(ellipse_params)
 			bounds = self.pretty_sci_floats(bounds)
-			return_obj = {'data':ellipse_params, 'bounds':bounds}
+			return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':[]}
 
 			return return_obj
 		
@@ -173,15 +173,18 @@ class PathObj(object):
 			
 			indexes = self.d_info[district_id]['index'].squeeze().tolist()
 			ellipse_params = []
+			drift_params = []
 			
 			for idx in indexes:
 				result_list = self.calculate_local_diffusion_ellipse(idx, district_id)
 				ellipse_params.append(self.pretty_sci_floats(result_list))
+				drift_list = self.calculate_local_drift_vector(idx, district_id)
+				drift_params.append(self.pretty_sci_floats(drift_list))
 			
 			bounds = self.calculate_ellipse_bounds(ellipse_params)
 			bounds = self.pretty_sci_floats(bounds)
-			return_obj = {'data':ellipse_params, 'bounds':bounds}
-
+			return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':drift_params}
+			
 			return return_obj
 		
 	# --------------------
@@ -281,8 +284,8 @@ class PathObj(object):
 
 		center = dest_node['A'][orig_nnidx, :d]
 
-		# How many sigma ellipses cover
-		r_mult = 0.25
+		# Scale diffusion ellipses by simulation radius value
+		r_mult = dest_node['r'][orig_nnidx, 0]
 
 		# Will to rounding to specific precision in receiving routine
 		result_list = [center[0], center[1], r_mult*R[0], r_mult*R[1], phi_deg]
@@ -290,6 +293,40 @@ class PathObj(object):
 		result_list.append(int(orig_id))
 
 		return result_list
+
+	# --------------------
+	def calculate_local_drift_vector(self, orig_id, dest_id):
+		"""Transfers the drift vector from its own district to a NN destination district
+		using transfer matrix TM directly. [X1 Y1 X2 Y2 i]"""
+
+		orig_node = self.d_info[orig_id]
+		dest_nnidx = N.nonzero(orig_node['index'].squeeze() == dest_id)[0][0]
+
+		dest_node = self.d_info[dest_id]
+		orig_nnidx = N.nonzero(dest_node['index'].squeeze() == orig_id)[0][0]
+
+		if 'drift' in orig_node:
+			drift = orig_node['drift']
+			_,d = drift.shape
+
+			# Sometimes self-TM not identity (as it should be), so safer to just set explicitly
+			if orig_id == dest_id:
+				T = N.matrix(N.eye(d))
+			else:
+				T = N.matrix(orig_node['TM'][:d,:d, dest_nnidx])
+		
+			drift = drift*T
+			r_mult = 0.2*orig_node['r'][dest_nnidx, 0]
+			drift_scaled = N.asarray(r_mult*drift).squeeze()
+				
+			center = dest_node['A'][orig_nnidx, :d]
+			
+			# Will to rounding to specific precision in receiving routine
+			result_list = [center[0], center[1], center[0]+drift_scaled[0], center[1]+drift_scaled[1]]
+			# Casting to int() here because json serializer has trouble with numpy ints
+			result_list.append(int(orig_id))
+
+			return result_list
 
 	# --------------------
 	def calculate_ellipse_bounds(self, e_params):
@@ -463,8 +500,8 @@ class PrettyPrecision3SciFloat(float):
 # --------------------
 if __name__ == "__main__":
 
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
-	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
+	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
+	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 
