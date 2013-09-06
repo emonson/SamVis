@@ -65,72 +65,6 @@ class PathObj(object):
 
 	# --------------------
 	# PATHS
-
-	# --------------------
-	def GetDistrictDeepPathLocalCoordInfo(self, dest_district=None, depth=2):
-		"""Get paths in neighborhood of a district through NN transfer (not projection
-		to global space). Not limited to 1st NN, can set depth.
-		Returns {path:[[x,y],...], time_idx:[i,...], district_id:[i,...]}"""
-	
-		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
-
-			# Get "node tree" representations around root district
-			nodes_by_id, nodes_by_depth = self.generate_nn_tree(dest_district, depth)
-			
-			# Go from deepest up to root, layer by layer, transferring coordinates inward
-			# NOTE: None of these will have the district global offset yet
-			depths = nodes_by_depth.keys()
-			depths.sort(reverse=True)
-			for dd in depths:
-				for node in nodes_by_depth[dd]:
-					parent_district = node['parent_id']
-					# If not root node
-					if parent_district is not None:
-						child_district = node['id']
-						coords = node['coords']
-						time_idxs = node['time_idxs']
-						district_ids = node['district_ids']
-						depth_list = node['depths']
-						# Transfer coordinate between districts
-						if len(time_idxs) > 0:
-							new_coords = self.transfer_coord_between_districts(child_district, parent_district, coords)
-							# Add coords onto parent
-							if nodes_by_id[parent_district]['coords'].size != 0:
-								nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'], new_coords), axis=0)
-								nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'], time_idxs))
-								nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'], district_ids))
-								nodes_by_id[parent_district]['depths'] = N.concatenate((nodes_by_id[parent_district]['depths'], depth_list))
-							else:
-								nodes_by_id[parent_district]['coords'] = new_coords
-								nodes_by_id[parent_district]['time_idxs'] = time_idxs
-								nodes_by_id[parent_district]['district_ids'] = district_ids
-								nodes_by_id[parent_district]['depths'] = depth_list
-			
-			# When we never go into global coordinates for the ellipses, we don't have to 
-			# add any offset onto the paths
-			
-			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
-			return_obj = {}
-			return_obj['path'] = self.pretty_sci_floats(nodes_by_id[dest_district]['coords'][time_order].tolist())
-			return_obj['time_idx'] = nodes_by_id[dest_district]['time_idxs'][time_order].squeeze().tolist()
-			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
-			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
-			return_obj['t_max_idx'] = self.path_info['path'].shape[0] - 1
-			print 't_max_idx', return_obj['t_max_idx']
-			
-			return return_obj
-			
-	# --------------------
-	def GetDistrictDeepPathLocalCoordInfo_JSON(self, dest_district=None, depth=2):
-		"""Select out path coordinates that exist within a given district and transfer them
-		to the coordinates of the central node. NOTE: As of now this will connect segments
-		that actually go out of the district -- just for testing!!"""
-		
-		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
-
-			district_path_info = self.GetDistrictDeepPathLocalCoordInfo(dest_district, depth)
-			
-			return simplejson.dumps(district_path_info)
 		
 	# --------------------
 	def GetDistrictDeepPathLocalRotatedCoordInfo(self, dest_district=None, prev_district=None, depth=1, R_old=None):
@@ -190,7 +124,7 @@ class PathObj(object):
 					
 					# return R_new as string because it will just be passed back unchanged on next transition
 					# with square brackets stripped off
-					R_new_str = N.asarray(R_new).ravel().tolist()[1:-1]
+					R_new_str = str(N.asarray(R_new).ravel().tolist())[1:-1]
 					return_obj['R_old'] = R_new_str
 			
 			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
@@ -216,17 +150,13 @@ class PathObj(object):
 				# NOTE:  cherrypy routine parses R_old out from string to 2x2 list of lists, send that directly
 				district_path_info = self.GetDistrictDeepPathLocalRotatedCoordInfo(dest_district, prev_district, depth, R_old)
 			
-			else:
-				
-				district_path_info = self.GetDistrictDeepPathLocalCoordInfo(dest_district, depth)
-			
-			return simplejson.dumps(district_path_info)
+				return simplejson.dumps(district_path_info)
 		
 	# --------------------
 	# ELLIPSES
 		
 	# --------------------
-	def GetDistrictLocalEllipses(self, district_id = None):
+	def GetDistrictLocalRotatedEllipses(self, district_id = None, previous_id = None, R_old = None):
 		"""Return list of ellipses in a district (center plus neighbors). This routine
 		never goes out into the global space, but uses TM to transfer coordinate systems
 		of neighbors into center local system (all low-d). Centered at zero on local center
@@ -234,26 +164,48 @@ class PathObj(object):
 
 		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
 			
-			indexes = self.d_info[district_id]['index'].squeeze().tolist()
-			ellipse_params = []
-			
-			for idx in indexes:
-				result_list = self.calculate_local_node_ellipse(idx, district_id)
-				ellipse_params.append(self.pretty_sci_floats(result_list))
-			
-			bounds = self.calculate_ellipse_bounds(ellipse_params)
-			bounds = self.pretty_sci_floats(bounds)
-			return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':[]}
+			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
+			if (previous_id is not None) and (previous_id > 0) and (previous_id < len(self.d_info)):
+				if R_old is not None:
+					
+					# TODO: should put nice out if Rold doesn't form well...
+					# NOTE: calling cherrypy routine parses R_old out from string to 2x2 list of lists
+					R_prev = N.matrix(R_old)
+					R_new = self.calculate_local_rotation_matrix(previous_id, district_id, R_prev)
+					phi_deg = 360 * ( N.arctan(-R_new[0,1]/R_new[0,0] )/(2*N.pi))
+					
+					# return R_new as string because it will just be passed back unchanged on next transition
+					# with square brackets stripped off
+					R_new_str = str(N.asarray(R_new).ravel().tolist())[1:-1]
 
-			return return_obj
+					indexes = self.d_info[district_id]['index'].squeeze().tolist()
+					ellipse_params = []
+			
+					for idx in indexes:
+						result_list = self.calculate_local_node_ellipse(idx, district_id)
+						# Transform to eliminate rotations
+						# TODO: need to switch to doing the transforms for all ellipses at once...
+						center = N.matrix(result_list[:2])
+						center = center * R_new
+						result_list[0] = center[0,0]
+						result_list[1] = center[0,1]
+						result_list[4] = result_list[4] + phi_deg
+						ellipse_params.append(self.pretty_sci_floats(result_list))
+			
+					bounds = self.calculate_ellipse_bounds(ellipse_params)
+					bounds = self.pretty_sci_floats(bounds)
+					return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':[], 'R_old':R_new_str}
+
+			
+					return return_obj
 		
 	# --------------------
-	def GetDistrictLocalEllipses_JSON(self, district_id):
+	def GetDistrictLocalRotatedEllipses_JSON(self, district_id, previous_id, R_old):
 	
-		return simplejson.dumps(self.GetDistrictLocalEllipses(district_id))
+		return simplejson.dumps(self.GetDistrictLocalRotatedEllipses(district_id, previous_id, R_old))
 		
 	# --------------------
-	def GetDistrictDiffusionEllipses(self, district_id = None):
+	def GetDistrictDiffusionRotatedEllipses(self, district_id = None, previous_id = None, R_old = None):
 		"""Return list of ellipses in a district (center plus neighbors). This routine
 		never goes out into the global space, but uses TM to transfer coordinate systems
 		of neighbors into center local system (all low-d). Centered at zero on local center
@@ -261,26 +213,50 @@ class PathObj(object):
 
 		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
 			
-			indexes = self.d_info[district_id]['index'].squeeze().tolist()
-			ellipse_params = []
-			drift_params = []
+			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
+			if (previous_id is not None) and (previous_id > 0) and (previous_id < len(self.d_info)):
+				if R_old is not None:
+					
+					# TODO: should put nice out if Rold doesn't form well...
+					# NOTE: calling cherrypy routine parses R_old out from string to 2x2 list of lists
+					R_prev = N.matrix(R_old)
+					R_new = self.calculate_local_rotation_matrix(previous_id, district_id, R_prev)
+					phi_deg = 360 * ( N.arctan(-R_new[0,1]/R_new[0,0] )/(2*N.pi))
+					
+					# return R_new as string because it will just be passed back unchanged on next transition
+					# with square brackets stripped off
+					R_new_str = str(N.asarray(R_new).ravel().tolist())[1:-1]
+
+					indexes = self.d_info[district_id]['index'].squeeze().tolist()
+					ellipse_params = []
+					drift_params = []
 			
-			for idx in indexes:
-				result_list = self.calculate_local_diffusion_ellipse(idx, district_id)
-				ellipse_params.append(self.pretty_sci_floats(result_list))
-				drift_list = self.calculate_local_drift_vector(idx, district_id)
-				drift_params.append(self.pretty_sci_floats(drift_list))
+					for idx in indexes:
+						result_list = self.calculate_local_diffusion_ellipse(idx, district_id)
+						# Transform to eliminate rotations
+						# TODO: need to switch to doing the transforms for all ellipses at once...
+						center = N.matrix(result_list[:2])
+						center = center * R_new
+						result_list[0] = center[0,0]
+						result_list[1] = center[0,1]
+						result_list[4] = result_list[4] + phi_deg
+						ellipse_params.append(self.pretty_sci_floats(result_list))
+						drift_list = self.calculate_local_drift_vector(idx, district_id)
+						ends = N.matrix(drift_list[:4]).reshape((2,2))
+						ends = ends * R_new
+						drift_list[:4] = N.asarray(ends).ravel().tolist()
+						drift_params.append(self.pretty_sci_floats(drift_list))
 			
-			bounds = self.calculate_ellipse_bounds(ellipse_params)
-			bounds = self.pretty_sci_floats(bounds)
-			return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':drift_params}
+					bounds = self.calculate_ellipse_bounds(ellipse_params)
+					bounds = self.pretty_sci_floats(bounds)
+					return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':drift_params, 'R_old':R_new_str}
 			
-			return return_obj
+					return return_obj
 		
 	# --------------------
-	def GetDistrictDiffusionEllipses_JSON(self, district_id):
+	def GetDistrictDiffusionRotatedEllipses_JSON(self, district_id = None, previous_id = None, R_old = None):
 	
-		return simplejson.dumps(self.GetDistrictDiffusionEllipses(district_id))
+		return simplejson.dumps(self.GetDistrictDiffusionRotatedEllipses(district_id, previous_id, R_old))
 		
 	# --------------------
 	# UTILITY CLASSES

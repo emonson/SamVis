@@ -346,11 +346,16 @@ var DISTRICT = (function(d3, $, g){
 	// and update visualizations for both
 	dis.visgen = function(district_id) {
 		
+		// Initialize first time through
+		if (g.district_id < 0) {
+			g.district_id = district_id;
+		}
 		// Store old center for transfer routines
 		g.prev_district = g.district_id;
+		g.district_id = district_id
 		
-		d3.json( g.data_proxy_root + '/districtcoords?district_id=' + district_id + '&depth=2&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(path_info) {
-			d3.json( g.data_proxy_root + '/districtellipses?district_id=' + district_id + '&type=' + g.ellipse_type, function(ellipse_data) {
+		d3.json( g.data_proxy_root + '/districtcoords?district_id=' + g.district_id + '&depth=' + g.path_depth + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(path_info) {
+			d3.json( g.data_proxy_root + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
 			
 			// Store data in global object so can filter without retrieving
 			g.district_id = district_id;

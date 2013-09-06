@@ -8,6 +8,8 @@ var GLOBALS = (function(){
 	
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.slider_values = [-1, -1];
+	
+	globals.path_depth = 2;
 
 	// Keeping value for type of ellipses to grab/display in globals for now
 	globals.ellipse_type = 'space';

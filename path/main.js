@@ -12,8 +12,6 @@ window.onload = function() {
 	
 	// HACK: initial district to center on
 	var district_id = 17;
-	// First time around need to load something reasonable into prev district
-	GLOBALS.prev_district = district_id;
 	
 	// Generate initial vis
 	DISTRICT.visgen(district_id);
