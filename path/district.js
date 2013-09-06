@@ -296,7 +296,6 @@ var DISTRICT = (function(d3, $, g){
 				.attr("y1", function(d){return y_scale(d[1]);})
 				.attr("x2", function(d){return x_scale(d[2]);})
 				.attr("y2", function(d){return y_scale(d[3]);})
-				// .style("stroke", function(d){return c_scale(d[5]);})
 				.style("stroke", set_path_stroke_color)
 				.style("stroke-opacity", function(d){return (d[6] < 2) ? 1.0 : 0.2;});
 
@@ -347,13 +346,17 @@ var DISTRICT = (function(d3, $, g){
 	// and update visualizations for both
 	dis.visgen = function(district_id) {
 		
-		d3.json( g.data_proxy_root + '/districtcoords?district_id=' + district_id + '&depth=2', function(path_info) {
+		// Store old center for transfer routines
+		g.prev_district = g.district_id;
+		
+		d3.json( g.data_proxy_root + '/districtcoords?district_id=' + district_id + '&depth=2&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(path_info) {
 			d3.json( g.data_proxy_root + '/districtellipses?district_id=' + district_id + '&type=' + g.ellipse_type, function(ellipse_data) {
 			
 			// Store data in global object so can filter without retrieving
 			g.district_id = district_id;
 			g.ellipse_data = ellipse_data;
 			g.path_info = path_info;
+			g.R_old = path_info.R_old;
 			
 			// Only reset range values and t_max if this is the first time through
 			// TODO: I don't like this method...

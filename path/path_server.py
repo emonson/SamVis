@@ -20,12 +20,33 @@ class PathServer:
 
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
-	def districtcoords(self, district_id = None, depth=2):
+	def districtcoords(self, district_id = None, depth = 1, previous_id = None, rold = None):
 		
 		if district_id is not None:
 			dist_id = int(district_id)
 			d = int(depth)
-			return self.path.GetDistrictDeepPathLocalCoordInfo_JSON(dist_id, d)
+			
+			if previous_id is not None:
+				prev_id = int(previous_id)
+				
+				if rold is not None:
+					
+					# Parse comma-separated list of four floats encoded as a string
+					try:
+						a00, a01, a10, a11 = (float(r) for r in rold.split(','))
+						Rold = [[a00, a01], [a10, a11]]
+					except:
+						Rold = [[1.0, 0.0], [0.0, 1.0]]
+						
+				else:
+					Rold = [[1.0, 0.0], [0.0, 1.0]]
+					
+				return self.path.GetDistrictDeepPathLocalRotatedCoordInfo_JSON(dist_id, prev_id, d, Rold)
+				
+			# This is for old behavior without passing previous center district ID
+			# and old R orthogonal transformation matrix
+			else:
+				return self.path.GetDistrictDeepPathLocalCoordInfo_JSON(dist_id, d)
 
 	# ------------
 	# Ellipses

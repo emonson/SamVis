@@ -133,6 +133,96 @@ class PathObj(object):
 			return simplejson.dumps(district_path_info)
 		
 	# --------------------
+	def GetDistrictDeepPathLocalRotatedCoordInfo(self, dest_district=None, prev_district=None, depth=1, R_old=None):
+		"""Get paths in neighborhood of a district through NN transfer (not projection
+		to global space). Not limited to 1st NN, can set depth.
+		Returns {path:[[x,y],...], time_idx:[i,...], district_id:[i,...]}"""
+	
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			# Get "node tree" representations around root district
+			nodes_by_id, nodes_by_depth = self.generate_nn_tree(dest_district, depth)
+			
+			# Go from deepest up to root, layer by layer, transferring coordinates inward
+			# NOTE: None of these will have the district global offset yet
+			depths = nodes_by_depth.keys()
+			depths.sort(reverse=True)
+			for dd in depths:
+				for node in nodes_by_depth[dd]:
+					parent_district = node['parent_id']
+					# If not root node
+					if parent_district is not None:
+						child_district = node['id']
+						coords = node['coords']
+						time_idxs = node['time_idxs']
+						district_ids = node['district_ids']
+						depth_list = node['depths']
+						# Transfer coordinate between districts
+						if len(time_idxs) > 0:
+							new_coords = self.transfer_coord_between_districts(child_district, parent_district, coords)
+							# Add coords onto parent
+							if nodes_by_id[parent_district]['coords'].size != 0:
+								nodes_by_id[parent_district]['coords'] = N.concatenate((nodes_by_id[parent_district]['coords'], new_coords), axis=0)
+								nodes_by_id[parent_district]['time_idxs'] = N.concatenate((nodes_by_id[parent_district]['time_idxs'], time_idxs))
+								nodes_by_id[parent_district]['district_ids'] = N.concatenate((nodes_by_id[parent_district]['district_ids'], district_ids))
+								nodes_by_id[parent_district]['depths'] = N.concatenate((nodes_by_id[parent_district]['depths'], depth_list))
+							else:
+								nodes_by_id[parent_district]['coords'] = new_coords
+								nodes_by_id[parent_district]['time_idxs'] = time_idxs
+								nodes_by_id[parent_district]['district_ids'] = district_ids
+								nodes_by_id[parent_district]['depths'] = depth_list
+			
+			# When we never go into global coordinates for the ellipses, we don't have to 
+			# add any offset onto the paths
+			return_obj = {}
+			
+			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
+			if (prev_district is not None) and (prev_district > 0) and (prev_district < len(self.d_info)):
+				if R_old is not None:
+					
+					# TODO: should put nice out if Rold doesn't form well...
+					# NOTE: calling cherrypy routine parses R_old out from string to 2x2 list of lists
+					R_prev = N.matrix(R_old)
+					R_new = self.calculate_local_rotation_matrix(prev_district, dest_district, R_prev)
+					
+					# transform
+					nodes_by_id[dest_district]['coords'] = nodes_by_id[dest_district]['coords'] * R_new
+					
+					# return R_new as string because it will just be passed back unchanged on next transition
+					# with square brackets stripped off
+					R_new_str = N.asarray(R_new).ravel().tolist()[1:-1]
+					return_obj['R_old'] = R_new_str
+			
+			time_order = N.argsort(nodes_by_id[dest_district]['time_idxs'])
+			return_obj['path'] = self.pretty_sci_floats(nodes_by_id[dest_district]['coords'][time_order].tolist())
+			return_obj['time_idx'] = nodes_by_id[dest_district]['time_idxs'][time_order].squeeze().tolist()
+			return_obj['district_id'] = nodes_by_id[dest_district]['district_ids'][time_order].squeeze().tolist()
+			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
+			return_obj['t_max_idx'] = self.path_info['path'].shape[0] - 1
+			
+			return return_obj
+			
+	# --------------------
+	def GetDistrictDeepPathLocalRotatedCoordInfo_JSON(self, dest_district=None, prev_district=None, depth=1, R_old=None):
+		"""Select out path coordinates that exist within a given district and transfer them
+		to the coordinates of the central node. NOTE: As of now this will connect segments
+		that actually go out of the district -- just for testing!!"""
+		
+		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
+
+			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
+			if (prev_district is not None) and (prev_district > 0) and (prev_district < len(self.d_info)) and (R_old is not None):
+					
+				# NOTE:  cherrypy routine parses R_old out from string to 2x2 list of lists, send that directly
+				district_path_info = self.GetDistrictDeepPathLocalRotatedCoordInfo(dest_district, prev_district, depth, R_old)
+			
+			else:
+				
+				district_path_info = self.GetDistrictDeepPathLocalCoordInfo(dest_district, depth)
+			
+			return simplejson.dumps(district_path_info)
+		
+	# --------------------
 	# ELLIPSES
 		
 	# --------------------
@@ -196,6 +286,29 @@ class PathObj(object):
 	# UTILITY CLASSES
 	
 	# --------------------
+	def calculate_local_rotation_matrix(self, orig_id, dest_id, Rold):
+		"""Calculate new orthogonal matrix to transform all coordinates to eliminate rotation."""
+		
+		# old center node is where we want to get the old->new TransferMatrix
+		orig_node = self.d_info[orig_id]
+		dest_nnidx = N.nonzero(orig_node['index'].squeeze() == dest_id)[0][0]
+		
+		# NOTE: Taking d from district centers dimensionality. Always reliable...?
+		nn,d = orig_node['A'].shape
+		
+		# Sometimes self-TM not identity (as it should be), so safer to just set explicitly
+		if orig_id == dest_id:
+			T = N.matrix(N.eye(d))
+		else:
+			T = N.matrix(orig_node['TM'][:d, :d, dest_nnidx])
+
+		U, S, V = N.linalg.svd(T)
+		
+		Rnew = V * U.T * Rold
+		
+		return Rnew
+	
+	# --------------------
 	def calculate_local_node_ellipse(self, orig_id, dest_id):
 		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse.
 		Returns pretty_sci_floats() version of parameters."""
@@ -229,7 +342,7 @@ class PathObj(object):
 		# Calculate angles
 		phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
 		# t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
-	
+		
 		center = dest_node['A'][orig_nnidx, :d]
 		
 		# How many sigma ellipses cover
