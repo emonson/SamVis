@@ -240,6 +240,11 @@ class PathObj(object):
 						result_list[0] = center[0,0]
 						result_list[1] = center[0,1]
 						result_list[4] = result_list[4] + phi_deg
+						# Avoid "spinning ellipses" caused by addition of phi_deg taking it out of range
+						if result_list[4] < -90:
+							result_list[4] = result_list[4] + 180
+						if result_list[4] > 90:
+							result_list[4] = result_list[4] - 180
 						ellipse_params.append(self.pretty_sci_floats(result_list))
 						drift_list = self.calculate_local_drift_vector(idx, district_id)
 						ends = N.matrix(drift_list[:4]).reshape((2,2))

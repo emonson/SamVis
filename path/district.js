@@ -322,7 +322,7 @@ var DISTRICT = (function(d3, $, g){
 	// Only grab ellipse data from server
 	dis.grab_only_ellipses = function() {
 		
-		d3.json( g.data_proxy_root + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type, function(ellipse_data) {
+		d3.json( g.data_proxy_root + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
 		
 			// Store data in global object so can filter without retrieving
 			g.ellipse_data = ellipse_data;
