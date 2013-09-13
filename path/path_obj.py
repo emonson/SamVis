@@ -119,8 +119,8 @@ class PathObj(object):
 					R_prev = N.matrix(R_old)
 					R_new = self.calculate_local_rotation_matrix(prev_district, dest_district, R_prev)
 					
-					# transform
-					nodes_by_id[dest_district]['coords'] = nodes_by_id[dest_district]['coords'] * R_new
+					# transform, taking only 1st 2d of coordinates
+					nodes_by_id[dest_district]['coords'] = nodes_by_id[dest_district]['coords'][:,:2] * R_new
 					
 					# return R_new as string because it will just be passed back unchanged on next transition
 					# with square brackets stripped off
@@ -190,6 +190,11 @@ class PathObj(object):
 						result_list[0] = center[0,0]
 						result_list[1] = center[0,1]
 						result_list[4] = result_list[4] + phi_deg
+						# Avoid "spinning ellipses" caused by addition of phi_deg taking it out of range
+						if result_list[4] < -90:
+							result_list[4] = result_list[4] + 180
+						if result_list[4] > 90:
+							result_list[4] = result_list[4] - 180
 						ellipse_params.append(self.pretty_sci_floats(result_list))
 			
 					bounds = self.calculate_ellipse_bounds(ellipse_params)
@@ -283,9 +288,19 @@ class PathObj(object):
 		else:
 			T = N.matrix(orig_node['TM'][:d, :d, dest_nnidx])
 
+		# Calculate the new matrix to transform the translated points
+		# NOTE: numpy SVD returned V is what in Matlab you'd call V.T
+		#   so, reconstructing T = U * N.matrix(N.diag(S)) * V (rather than V.T as typical)
 		U, S, V = N.linalg.svd(T)
+		u = U[:2,:]
+		v = V[:,:2]
+		tmp = v.T * u.T
+		Rnew1 = tmp * Rold
 		
-		Rnew = V * U.T * Rold
+		# Since we only took the first 2-d of U and V, have to make sure Rnew is really
+		# orthogonal or else we'll squish some dimensions
+		U2, S2, V2 = N.linalg.svd(Rnew1)
+		Rnew = U2 * V2
 		
 		return Rnew
 	
@@ -329,6 +344,7 @@ class PathObj(object):
 		# How many sigma ellipses cover
 		r_mult = 1.0
 		
+		# Here taking only first 2d of centers
 		# Will to rounding to specific precision in receiving routine
 		result_list = [center[0], center[1], r_mult*R[0], r_mult*R[1], phi_deg]
 		# Casting to int() here because json serializer has trouble with numpy ints
@@ -596,6 +612,7 @@ if __name__ == "__main__":
 
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
 	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
+	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130913_ex3d'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 

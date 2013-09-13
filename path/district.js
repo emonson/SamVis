@@ -69,6 +69,10 @@ var DISTRICT = (function(d3, $, g){
 	var pathbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
 	
+	// Drift vector layer right under ellipses
+	var driftbox = svgcanvas2.append("g")
+							.attr("clip-path", "url(#clip)");
+
 	// Ellipses on top for now because listed second
 	var elbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
@@ -252,7 +256,7 @@ var DISTRICT = (function(d3, $, g){
 		els.exit()
 				.remove();
 		
-		var drift = elbox.selectAll("line")
+		var drift = driftbox.selectAll("line")
 			.data(g.ellipse_data.drift, function(d){return d[4];});
 		
 		drift.transition()
@@ -322,11 +326,15 @@ var DISTRICT = (function(d3, $, g){
 	// Only grab ellipse data from server
 	dis.grab_only_ellipses = function() {
 		
+		// Store old center for transfer routines
+		g.prev_district = g.district_id;
+		
 		d3.json( g.data_proxy_root + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
 		
 			// Store data in global object so can filter without retrieving
 			g.ellipse_data = ellipse_data;
-		
+			g.R_old = ellipse_data.R_old;
+			
 			// Scale X and Y scales correctly so they can be equal within unequal width and height
 			scale_to_bounds(g.ellipse_data.bounds);
 		
