@@ -189,6 +189,7 @@ class PathObj(object):
 						center = center * R_new
 						result_list[0] = center[0,0]
 						result_list[1] = center[0,1]
+						# print idx, result_list[4], phi_deg
 						result_list[4] = result_list[4] + phi_deg
 						# Avoid "spinning ellipses" caused by addition of phi_deg taking it out of range
 						if result_list[4] < -90:
@@ -244,6 +245,7 @@ class PathObj(object):
 						center = center * R_new
 						result_list[0] = center[0,0]
 						result_list[1] = center[0,1]
+						# print idx, result_list[4], phi_deg
 						result_list[4] = result_list[4] + phi_deg
 						# Avoid "spinning ellipses" caused by addition of phi_deg taking it out of range
 						if result_list[4] < -90:
