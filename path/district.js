@@ -78,15 +78,20 @@ var DISTRICT = (function(d3, $, g){
 							.attr("clip-path", "url(#clip)");
 
 	// Slider creation
-	$('#slider').dragslider({
-		animate: true,
-		range: true,
-		rangeDrag: true,
+	$('#time_center_slider').slider({
 		min: 0,
 		max: 1000,
-		values: [0, 1000],
+		value: 0,
 		slide: function( event, ui ) {
-					$.publish("/slider/slide", ui);
+					$.publish("/time_center_slider/slide", ui);
+				}  
+	});
+	$('#time_width_slider').slider({
+		min: 0,
+		max: 1000,
+		value: 0,
+		slide: function( event, ui ) {
+					$.publish("/time_width_slider/slide", ui);
 				}  
 	});
 
@@ -203,16 +208,34 @@ var DISTRICT = (function(d3, $, g){
 		dis.update_paths(0);
 	};
 	
-	dis.slide_fcn = function(ui) {
+	dis.time_center_slide_fcn = function(ui) {
 	
-		$( "#time_range" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] )
+		$( "#time_center" ).val( ui.value )
 		// values in global variable
-		g.slider_values = ui.values;
+		g.time_center = ui.value;
 		// also update domain of color scale for coloring by time
-		color_by_time_scale.domain(ui.values);
+		g.time_range[0] = g.time_center - g.time_width/2.0;
+		g.time_range[1] = g.time_center + g.time_width/2.0;
+		color_by_time_scale.domain(g.time_range);
 		
 		// Update path visualization
-		g.path_pairs = coords_to_pairs(g.path_info, ui.values);
+		g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
+		dis.update_paths(0);
+		
+	};
+
+	dis.time_width_slide_fcn = function(ui) {
+	
+		$( "#time_width" ).val( Math.round(Math.exp(ui.value)) )
+		// values in global variable (logarithmic scale)
+		g.time_width = Math.exp(ui.value);
+		// also update domain of color scale for coloring by time
+		g.time_range[0] = g.time_center - g.time_width/2.0;
+		g.time_range[1] = g.time_center + g.time_width/2.0;
+		color_by_time_scale.domain(g.time_range);
+		
+		// Update path visualization
+		g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
 		dis.update_paths(0);
 		
 	};
@@ -342,7 +365,7 @@ var DISTRICT = (function(d3, $, g){
 			dis.update_ellipses(1000);
 
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			g.path_pairs = coords_to_pairs(g.path_info, g.slider_values);
+			g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
 	
 			// Update path visualization
 			dis.update_paths(1000);
@@ -373,13 +396,21 @@ var DISTRICT = (function(d3, $, g){
 			
 			// Only reset range values and t_max if this is the first time through
 			// TODO: I don't like this method...
-			if (g.slider_values[1] < 0) {
-				$("#slider").dragslider({	'min': 0,
+			if (g.time_center < 0 || g.time_width < 0) {
+				$("#time_center_slider").slider({	'min': 0,
 																	'max': path_info.t_max_idx,
-																	'values': [0, path_info.t_max_idx]});
-				g.slider_values = [0, path_info.t_max_idx];
+																	'value': 0});
+				// width slider log scale, but always display actual numbers
+				$("#time_width_slider").slider({	'min': Math.log(2),
+																	'max': Math.log(path_info.t_max_idx),
+																	'step': (Math.log(path_info.t_max_idx)-Math.log(2))/1000,
+																	'value': Math.log(path_info.t_max_idx)});
+				g.time_center = 0;
+				g.time_width = path_info.t_max_idx;
+				g.time_range = [0, path_info.t_max_idx];
 				color_by_time_scale.domain([0, path_info.t_max_idx]);
-				$( "#time_range" ).val( "0 - " + path_info.t_max_idx )
+				$( "#time_center" ).val( "0 - " + path_info.t_max_idx )
+				$( "#time_width" ).val( "0 - " + path_info.t_max_idx )
 			}
 			
 			// Scale X and Y scales correctly so they can be equal within unequal width and height
@@ -389,7 +420,7 @@ var DISTRICT = (function(d3, $, g){
 			dis.update_ellipses(1000);
 	
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			g.path_pairs = coords_to_pairs(g.path_info, g.slider_values);
+			g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
 		
 			// Update path visualization
 			dis.update_paths(1000);

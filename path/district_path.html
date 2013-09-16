@@ -3,18 +3,13 @@
 		<meta charset="utf-8">
 		<title>D3: IPCA ellipses and tree view with brushing</title>
 		
-		<link rel="stylesheet" href="../libs/jquery-ui-1.10.3/themes/base/jquery.ui.all.css" media="screen">
+		<link href="../libs/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 		<link rel="stylesheet" href="style.css" media="screen">
 		
 		<script type="text/javascript" src="../libs/d3_3.1.6/d3.v3.min.js"></script>
 
-		<script type="text/javascript" src="../libs/jquery-ui-1.10.3/jquery-1.9.1.js"></script>
-		<script type="text/javascript" src="../libs/jquery-ui-1.10.3/ui/jquery.ui.core.js"></script>
-		<script type="text/javascript" src="../libs/jquery-ui-1.10.3/ui/jquery.ui.widget.js"></script>
-		<script type="text/javascript" src="../libs/jquery-ui-1.10.3/ui/jquery.ui.mouse.js"></script>
-		<script type="text/javascript" src="../libs/jquery-ui-1.10.3/ui/jquery.ui.slider.js"></script>
-
-		<script type="text/javascript" src="dragslider.js"></script>
+		<script src="../libs/jquery-ui-1.10.3.custom/js/jquery-1.9.1.js"></script>
+		<script src="../libs/jquery-ui-1.10.3.custom/js/jquery-ui-1.10.3.custom.js"></script>
 
 		<script type="text/javascript" src="../libs/jquery.tinypubsub.js"></script>
 
@@ -40,9 +35,13 @@
 			</select>
 		</div>
 				
-		<label for="time_range">Time range</label>
-		<input type="text" style="border:none" id="time_range" />
-		<div id="slider"></div>
+		<label for="time_center">Time center</label>
+		<input type="text" style="border:none" id="time_center" />
+		<div id="time_center_slider"></div>
+		
+		<label for="time_width">Time width</label>
+		<input type="text" style="border:none" id="time_width" />
+		<div id="time_width_slider"></div>
 		
 		<script type="text/javascript" src="globals.js"></script>
 		<script type="text/javascript" src="district.js"></script>

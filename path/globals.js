@@ -7,7 +7,9 @@ var GLOBALS = (function(){
 	// var site_root = "http://localhost/~emonson/Sam/"
 	
 	// Both ends of time filter slider set to -1 until initialized with real values
-	globals.slider_values = [-1, -1];
+	globals.time_width = -1;
+	globals.time_center = -1;
+	globals.time_range = [-1, -1];
 	
 	globals.path_depth = 2;
 
