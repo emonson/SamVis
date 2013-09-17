@@ -1,5 +1,5 @@
-var site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/"
-var data_proxy_root = "http://emo2.trinity.duke.edu/remote/"
+var site_root = "http://archer.trinity.duke.edu/~emonson/Sam/"
+var data_proxy_root = "http://archer.trinity.duke.edu/remote9002/"
 // var site_root = "http://localhost/~emonson/Sam/"
 
 // Arrays to hold all nodes scalar data
@@ -525,7 +525,8 @@ function setIceInstructionsToBrush() {
 function setIceInstructionsToSelect() {
 		d3.select("#ice_instructions")
 			.text("Click-Select Mode: Click on a node to change ellipse plot scale. \
-						 Alt-click to zoom in on a node's subtree. \
+						 Alt-click to choose that node as the projection basis. \
+						 Shift-click to zoom in on a node's subtree. \
 						 Double-click to reset zoom.");
 }
 

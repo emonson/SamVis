@@ -6,7 +6,7 @@
 
 		<link rel="stylesheet" href="ellipse_tree.css" media="screen">
 		<script type="text/javascript" src="../libs/d3_3.1.6/d3.v3.min.js"></script>
-		<script type="text/javascript" src="../libs/jquery-2.0.1.min.js"></script>
+		<script type="text/javascript" src="../libs/jquery-ui-1.10.3.custom/js/jquery-1.9.1.min.js"></script>
 		<script type="text/javascript" src="../libs/jquery.tinypubsub.js"></script>
 
 	</head>
@@ -15,7 +15,7 @@
 	<div id="container">
 		<div id="left_panel">
 		
-			<p>Press b to toggle icicle view brushing on and off</p>
+			<p>Alt-click to zoom in on a node's subtree. Double-click to reset.</p>
 			<p id="nodeinfo">id = , scale = </p>
 		
 			<div id="tree"></div>
@@ -25,7 +25,6 @@
 		<div id="right_panel">
 		
 			<p>Click on an ellipse to choose use that node as the projection basis</p>
-			<p>Double-click to reset to scale 0 basis</p>
 			
 			<div id="graph"></div>
 			

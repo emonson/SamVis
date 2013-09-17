@@ -1,7 +1,7 @@
 var globals = {};
 
-globals.site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/"
-globals.data_proxy_root = "http://emo2.trinity.duke.edu/remote/"
+globals.site_root = "http://archer.trinity.duke.edu/~emonson/Sam/"
+globals.data_proxy_root = "http://archer.trinity.duke.edu/remote9002/"
 // var site_root = "http://localhost/~emonson/Sam/"
 
 // Arrays to hold all nodes scalar data

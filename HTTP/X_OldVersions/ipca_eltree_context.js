@@ -1,5 +1,5 @@
-var site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/"
-var data_proxy_root = "http://emo2.trinity.duke.edu/remote/"
+var site_root = "http://152.3.61.34/~emonson/Sam/"
+var data_proxy_root = "http://152.3.61.34/remote9002/"
 // var site_root = "http://localhost/~emonson/Sam/"
 
 // Arrays to hold all nodes scalar data
