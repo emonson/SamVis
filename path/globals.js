@@ -2,8 +2,8 @@ var GLOBALS = (function(){
 
 	var globals = { version: '0.0.1' };
 
-	globals.site_root = "http://emo2.trinity.duke.edu/~emonson/Sam/path"
-	globals.data_proxy_root = "http://emo2.trinity.duke.edu/remote/"
+	globals.site_root = "http://archer.trinity.duke.edu/~emonson/Sam/path"
+	globals.data_proxy_root = "http://archer.trinity.duke.edu/remote9004/"
 	// var site_root = "http://localhost/~emonson/Sam/"
 	
 	// Both ends of time filter slider set to -1 until initialized with real values

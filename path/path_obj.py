@@ -470,7 +470,7 @@ class PathObj(object):
 		
 		for id in path_district_ids:
 			self.coords_by_id[id] = {}
-			idx_matches = N.nonzero( N.in1d( self.path_info['path_index'], N.array([id]) ) )
+			idx_matches = N.nonzero( N.in1d( self.path_info['path_index'].ravel(), N.array([id]) ) )
 			self.coords_by_id[id]['coords'] = self.path_info['path'][idx_matches]
 			self.coords_by_id[id]['time_idxs'] = idx_matches[0]
 
@@ -612,8 +612,8 @@ class PrettyPrecision3SciFloat(float):
 # --------------------
 if __name__ == "__main__":
 
-	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
+	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
+	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130913_ex3d'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
