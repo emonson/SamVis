@@ -1,6 +1,10 @@
-var GLOBALS = (function(){
+var GLOBALS = (function($){
 
 	var globals = { version: '0.0.1' };
+	
+	$.getJSON('../server_example.json', function(data) {
+		
+	}
 
 	globals.site_root = "http://archer.trinity.duke.edu/~emonson/Sam/path"
 	globals.data_proxy_root = "http://archer.trinity.duke.edu/remote9004/"
@@ -30,5 +34,5 @@ var GLOBALS = (function(){
 
 	return globals;
 
-}());
+}(jQuery));
 
