@@ -1,1 +1,5 @@
-{"server_name":"127.0.0.1"}
+{
+  "server_name":"archer.trinity.duke.edu",
+  "ipca_port":9002,
+  "path_port":9004
+}

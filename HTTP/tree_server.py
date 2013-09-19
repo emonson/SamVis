@@ -1,4 +1,5 @@
 import cherrypy
+import simplejson
 from ipca_tree import IPCATree
 
 class HelloWorld:
@@ -101,10 +102,13 @@ class HelloWorld:
 	contextellipses.exposed = True
 	# scaleellipses._cp_config = {'tools.gzip.on': True}
 
+server_filename = '../server_example.json'
+server_opts = simplejson.loads(open(server_filename).read())
+
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
-		'server.socket_port': 9002, 
+		'server.socket_port': server_opts['ipca_port'], 
 		# 'server.socket_host':'127.0.0.1'
-		'server.socket_host':'archer.trinity.duke.edu'
+		'server.socket_host':server_opts['server_name']
 		})
 cherrypy.quickstart(HelloWorld())

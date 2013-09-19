@@ -70,12 +70,14 @@ class PathServer:
 				return self.path.GetDistrictLocalRotatedEllipses_JSON(dist_id, prev_id, R_old)
 
 # ------------
+
 server_filename = '../server_example.json'
-server_dict = simplejson.loads(open(server_filename).read())
+server_opts = simplejson.loads(open(server_filename).read())
+
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
-		'server.socket_port': 9004, 
+		'server.socket_port': server_opts['path_port'], 
 		# 'server.socket_host':'127.0.0.1'
-		'server.socket_host':server_dict['server_name']
+		'server.socket_host':server_opts['server_name']
 		})
 cherrypy.quickstart(PathServer())

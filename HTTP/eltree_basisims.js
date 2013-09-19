@@ -1,7 +1,15 @@
-var site_root = "http://archer.trinity.duke.edu/~emonson/Sam/"
-var data_proxy_root = "http://archer.trinity.duke.edu/remote9002/"
-// var site_root = "http://localhost/~emonson/Sam/"
+var data_proxy_root;
 
+// Make it easier to swtich the server config when switching between machines
+$.ajax({
+	url:'../server_example.json',
+	async:false,
+	dataType:'json',
+	success:function(data) {
+		data_proxy_root = "http://" + data.server_name + "/remote" + data.ipca_port;
+	}
+});	
+	
 // Arrays to hold all nodes scalar data
 var scalardata = [];
 var scalars_name = 'labels';
@@ -145,8 +153,8 @@ var ellipse_basis2_color = d3.scale.linear()
 // Get all projected ellipses from the server for now rather than just the displayed ones
 var getBasisImagesFromServer = function() {
 
-	// d3.json(site_root + "treeallellipsesfacade.php?basis=" + basis_id, function(json) {
-	d3.json(data_proxy_root + "ellipsebasis?id=" + node_id, function(json) {
+	// d3.json(site_root + "/treeallellipsesfacade.php?basis=" + basis_id, function(json) {
+	d3.json(data_proxy_root + "/ellipsebasis?id=" + node_id, function(json) {
 		
 		// TODO: Should be reading width and height off of data itself
 		// TODO: Should be resetting image size if changes...?
@@ -203,8 +211,8 @@ var updateEllipseBasisImages = function() {
 // Utility functions
 
 var getScalarsFromServer = function(s_name) {
-	// d3.json(site_root + "treescalarsfacade.php?name=" + s_name, function(json) {
-	d3.json(data_proxy_root + "scalars?name=" + s_name, function(json) {
+	// d3.json(site_root + "/treescalarsfacade.php?name=" + s_name, function(json) {
+	d3.json(data_proxy_root + "/scalars?name=" + s_name, function(json) {
 	
 		scalardata = json;
 	
@@ -235,8 +243,8 @@ var updateAxes = function() {
 // Get all projected ellipses from the server for now rather than just the displayed ones
 var getReprojectedEllipsesFromServer = function() {
 
-	// d3.json(site_root + "treeallellipsesfacade.php?basis=" + basis_id, function(json) {
-	d3.json(data_proxy_root + "allellipses?basis=" + basis_id, function(json) {
+	// d3.json(site_root + "/treeallellipsesfacade.php?basis=" + basis_id, function(json) {
+	d3.json(data_proxy_root + "/allellipses?basis=" + basis_id, function(json) {
 
 		// NOTE: Domains and bounds are being set to _all_ ellipses...
 		
@@ -532,10 +540,8 @@ function setIceInstructionsToSelect() {
 
 var init_icicle_view = function() {
 	
-	// d3.json(site_root + "treedatafacade.php", function(json) {
-	d3.json(data_proxy_root + "index", function(json) {
-	// d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
-		
+	d3.json(data_proxy_root + "/index", function(json) {
+
 		// TODO: Don't need to send 's' as an attribute, partition function calculates
 		//   attribute 'depth'...
 		

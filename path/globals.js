@@ -1,14 +1,17 @@
 var GLOBALS = (function($){
 
 	var globals = { version: '0.0.1' };
-	
-	$.getJSON('../server_example.json', function(data) {
 		
-	}
-
-	globals.site_root = "http://archer.trinity.duke.edu/~emonson/Sam/path"
-	globals.data_proxy_root = "http://archer.trinity.duke.edu/remote9004/"
-	// var site_root = "http://localhost/~emonson/Sam/"
+	// Make it easier to swtich the server config when switching between machines
+	$.ajax({
+		url:'../server_example.json',
+		async:false,
+		dataType:'json',
+		success:function(data) {
+			globals.data_proxy_root = "http://" + data.server_name + "/remote" + data.path_port;
+		}
+	});	
+	
 	
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.time_width = -1;

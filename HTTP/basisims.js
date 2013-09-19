@@ -49,7 +49,7 @@ var BASIS_IMS = (function(d3, $, g){
 	// Get basis images from server
 	bi.getBasisImagesFromServer = function(id) {
 
-		d3.json(g.data_proxy_root + "ellipsebasis?id=" + id, function(json) {
+		d3.json(g.data_proxy_root + "/ellipsebasis?id=" + id, function(json) {
 	
 			// TODO: Should be reading width and height off of data itself
 			// TODO: Should be resetting image size if changes...?
