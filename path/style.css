@@ -1,3 +1,28 @@
+/* conainers: http://www.vanseodesign.com/css/2-column-layout-code/ */
+
+#container {
+	width:950px;
+	margin:0 auto;
+	background:#fff;
+	/* border: 1px solid #333; */
+}
+
+#left_panel {
+	float: left;
+	width: 600px;
+	margin: 10px;
+}
+
+#right_panel {
+	float: left;
+	width: 200px;
+	margin: 10px;
+}
+
+#footer {
+	clear: both;
+}
+
 ellipse {
 	// fill: gray;
 	fill-opacity: 0.15;
@@ -21,4 +46,13 @@ p {
 
 label {
 	font: 11px sans-serif;
+}
+
+.pathtime {
+	margin-top: 10px;
+}
+
+.pathtime rect {
+	stroke: none;
+	fill: saddlebrown;
 }

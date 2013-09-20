@@ -17,33 +17,46 @@
 	</head>
 	<body>
 
-		<div id="svgpath"></div>
-		<p id="el_id"></p>
 		
-		<div id="ellipse_type_selector">
-			<label for="ellipse_type">Ellipse type</label>
-			<select id="ellipse_type">
-				<option value="space">Space caricature</option>
-				<option value="diffusion">Diffusion</option>
-			</select>
-		</div>
+
+		<div id="left_panel">
+
+			<div id="svgpath"></div>
+			<div id="district_path_time"></div>
 				
-		<div id="path_color_selector">
-			<label for="path_color">Path color</label>
-			<select id="path_color">
-				<option value="brown">Brown</option>
-				<option value="time">Color by time</option>
-			</select>
+			<label for="time_center">Time center</label>
+			<input type="text" style="border:none" id="time_center" />
+			<div id="time_center_slider"></div>
+		
+			<label for="time_width">Time width</label>
+			<input type="text" style="border:none" id="time_width" />
+			<div id="time_width_slider"></div>
+		
 		</div>
+		
+		<div id="right_panel">
+		
+			<p id="el_id">ellipse id =</p>
+		
+			<div id="ellipse_type_selector">
+				<label for="ellipse_type">Ellipse type</label>
+				<select id="ellipse_type">
+					<option value="space">Space caricature</option>
+					<option value="diffusion">Diffusion</option>
+				</select>
+			</div>
 				
-		<label for="time_center">Time center</label>
-		<input type="text" style="border:none" id="time_center" />
-		<div id="time_center_slider"></div>
-		
-		<label for="time_width">Time width</label>
-		<input type="text" style="border:none" id="time_width" />
-		<div id="time_width_slider"></div>
-		
+			<div id="path_color_selector">
+				<label for="path_color">Path color</label>
+				<select id="path_color">
+					<option value="brown">Brown</option>
+					<option value="time">Color by time</option>
+				</select>
+			</div>
+					
+		</div>
+
+
 		<script type="text/javascript" src="globals.js"></script>
 		<script type="text/javascript" src="district.js"></script>
 		<script type="text/javascript" src="main.js"></script>

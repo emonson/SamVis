@@ -7,18 +7,19 @@ var DISTRICT = (function(d3, $, g){
 
 	var x_extent, y_extent, x_diff, y_diff, diff_max;
 	var divElem2 = d3.select("#svgpath");
+	var pathTimeElem = d3.select("#district_path_time");
 	var circle;
-	var width = 800;
+	var width = 600;
 	var height = 600;
+	var ptime_width = 600;
+	var ptime_height = 20;
 
 	var x_scale = d3.scale.linear().range([0,width]);
 	var y_scale = d3.scale.linear().range([0,height]);
 	var xr_scale = d3.scale.linear().range([0,width]);
 	var yr_scale = d3.scale.linear().range([0,height]);
-	var path_depth_color = d3.scale.linear()
-			.domain([0, 2])
-			.range(["saddlebrown", "#ddd"]);
-		
+	var ptime_scale = d3.scale.linear().range([0,ptime_width]);
+	
 	var idx_ints = [];
 
 	// HACK: Hard-coding color scale for 1127 ellipse IDs...
@@ -33,6 +34,14 @@ var DISTRICT = (function(d3, $, g){
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
 				.attr("height", height)
+			.append("g")
+				.attr("transform", "translate(0,0)");
+	
+	// Setting up the base SVG element for the district path time bar
+	var path_time_canvas = pathTimeElem.append("svg:svg")
+				.attr("class", "pathtime")
+				.attr("width", ptime_width)
+				.attr("height", ptime_height)
 			.append("g")
 				.attr("transform", "translate(0,0)");
 	
@@ -135,6 +144,50 @@ var DISTRICT = (function(d3, $, g){
 				if ((time_idx[ii+1] - time_idx[ii]) == 1) {
 					pairs_list.push( path[ii].concat(path[ii+1], time_idx[ii], district_id[ii], depth[ii]) );
 				}
+			}
+		}
+	
+		return pairs_list;
+	};
+	
+	var coords_to_time_blocks = function(p_info, d_depth) {
+		
+		var pairs_list = [];
+
+		var path = p_info.path;
+		var time_idx = p_info.time_idx;
+		var district_id = p_info.district_id;
+		var depth = p_info.depths;
+		
+		// If testing d_depth is less than maximum depth, filter arrays by depth
+		if (d3.max(depth) > d_depth) {
+			var new_path = [], 
+					new_time_idx = [], 
+					new_district_id = [], 
+					new_depth = [];
+			for (var ii = 0; ii < time_idx.length; ii++) {
+				if (depth[ii] <= d_depth) {
+					new_path.push(path[ii]);
+					new_time_idx.push(time_idx[ii]);
+					new_district_id.push(district_id[ii]);
+					new_depth.push(new_depth[ii]);
+				}
+			}
+			path = new_path;
+			time_idx = new_time_idx;
+			district_id = new_district_id;
+			depth = new_depth;
+		}
+		
+		var block = {start_time:time_idx[0], end_time:time_idx[0]};
+		
+		// build start and end time blocks out of all sequential path groups
+		for (var ii = 0; ii < time_idx.length-1; ii++) {
+			// if we come across a gap of bigger than one, save the previous block and start a new one
+			if ((time_idx[ii+1] - time_idx[ii]) > 1) {
+				block.end_time = time_idx[ii];
+				pairs_list.push( block );
+				block = {start_time:time_idx[ii+1], end_time:time_idx[ii+1]};
 			}
 		}
 	
@@ -346,6 +399,21 @@ var DISTRICT = (function(d3, $, g){
 	
 	};
 	
+	dis.update_path_time = function() {
+		var ptimebar = path_time_canvas.selectAll("rect")
+			.data(g.ptime_pairs);
+					
+		ptimebar.enter()
+				.append("rect")
+			.attr("x", function(d){ return ptime_scale(d.start_time); })
+			.attr("y", 0)
+			.attr("width", function(d){ return ptime_scale(d.end_time - d.start_time); })
+			.attr("height", ptime_height);
+		
+		ptimebar.exit()
+				.remove();
+	};
+	
 	// Only grab ellipse data from server
 	dis.grab_only_ellipses = function() {
 		
@@ -365,7 +433,7 @@ var DISTRICT = (function(d3, $, g){
 			dis.update_ellipses(1000);
 
 			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
+			// g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
 	
 			// Update path visualization
 			dis.update_paths(1000);
@@ -396,6 +464,7 @@ var DISTRICT = (function(d3, $, g){
 			
 			// Only reset range values and t_max if this is the first time through
 			// TODO: I don't like this method...
+			// TODO: If I'm testing this way, I need to reset these values to -1 when switching data sets...
 			if (g.time_center < 0 || g.time_width < 0) {
 				$("#time_center_slider").slider({	'min': 0,
 																	'max': path_info.t_max_idx,
@@ -409,6 +478,7 @@ var DISTRICT = (function(d3, $, g){
 				g.time_width = path_info.t_max_idx;
 				g.time_range = [0, path_info.t_max_idx];
 				color_by_time_scale.domain([0, path_info.t_max_idx]);
+				ptime_scale.domain([0, path_info.t_max_idx]);
 				$( "#time_center" ).val( "0 - " + path_info.t_max_idx )
 				$( "#time_width" ).val( "0 - " + path_info.t_max_idx )
 			}
@@ -424,6 +494,13 @@ var DISTRICT = (function(d3, $, g){
 		
 			// Update path visualization
 			dis.update_paths(1000);
+			
+			// Get continuous time blocks for this district at certain depth
+			// TODO: Make the depth an adjustable option for the GUI...
+			g.ptime_pairs = coords_to_time_blocks(g.path_info, 1);
+			
+			// Update the district path time bar
+			dis.update_path_time();
 			
 			});
 		});
