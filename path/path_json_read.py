@@ -29,6 +29,9 @@ def fill_dict_with_arrays(obj):
 	c = {}
 	for k,v in obj.items():
 		if isinstance(v, dict):
+			# NOTE: skipping sparse (and big!) lmks array for now...
+			if "_ArrayIsSparse_" in v:
+				continue
 			# NOTE: bad name-based test!!
 			if isinstance(k,str) and k.endswith('index'):
 				# changing 1-based indices to 0-based
@@ -66,7 +69,11 @@ def load_netpoints(filename):
 
 	if os.path.exists(filename):
 		d = simplejson.loads(open(filename).read())
-		data = N.array(d['_ArrayData_']).reshape(d['_ArraySize_'], order='F')
+		# NOTE: Hack until I can find out from Miles what the deal is with the new format...
+		if "points" in d:
+			data = N.array(d['points']['_ArrayData_']).reshape(d['points']['_ArraySize_'], order='F')
+		else:
+			data = N.array(d['_ArrayData_']).reshape(d['_ArraySize_'], order='F')
 		return data
 	
 # --------------------

@@ -397,7 +397,11 @@ class PathObj(object):
 		center = dest_node['A'][orig_nnidx, :d]
 
 		# Scale diffusion ellipses by simulation radius value
-		r_mult = dest_node['r'][orig_nnidx, 0]
+		# Sometimes 'r' is a vector and sometimes a single scalar...
+		if orig_node['r'].shape == (1,1):
+			r_mult = dest_node['r'][0, 0]
+		else:
+			r_mult = dest_node['r'][orig_nnidx, 0]
 
 		# Will to rounding to specific precision in receiving routine
 		result_list = [center[0], center[1], r_mult*R[0], r_mult*R[1], phi_deg]
@@ -428,7 +432,11 @@ class PathObj(object):
 				T = N.matrix(orig_node['TM'][:d,:d, dest_nnidx])
 		
 			drift = drift*T
-			r_mult = 0.2*orig_node['r'][dest_nnidx, 0]
+			# Sometimes 'r' is a vector and sometimes a single scalar...
+			if orig_node['r'].shape == (1,1):
+				r_mult = 0.2*orig_node['r'][0, 0]
+			else:
+				r_mult = 0.2*orig_node['r'][dest_nnidx, 0]
 			drift_scaled = N.asarray(r_mult*drift).squeeze()
 				
 			center = dest_node['A'][orig_nnidx, :d]
@@ -612,9 +620,10 @@ class PrettyPrecision3SciFloat(float):
 # --------------------
 if __name__ == "__main__":
 
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
+	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130913_ex3d'
+	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130923_imgex'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 
