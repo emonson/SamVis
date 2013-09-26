@@ -134,6 +134,8 @@ class PathObj(object):
 			return_obj['depths'] = nodes_by_id[dest_district]['depths'][time_order].squeeze().tolist()
 			return_obj['t_max_idx'] = self.path_info['path'].shape[0] - 1
 			
+			# print return_obj['path']
+			
 			return return_obj
 			
 	# --------------------
@@ -330,7 +332,7 @@ class PathObj(object):
 			T = N.matrix(orig_node['TM'][:d,:d, dest_nnidx])
 		
 		I = N.matrix(N.eye(d))
-		S2 = N.matrix(N.diag(orig_node['E'][:d].squeeze()))
+		S2 = N.matrix(N.diag(N.square(orig_node['E'][:d].squeeze())))
 	
 		covXT = T.T * I * S2 * I.T * T
 	
@@ -399,9 +401,9 @@ class PathObj(object):
 		# Scale diffusion ellipses by simulation radius value
 		# Sometimes 'r' is a vector and sometimes a single scalar...
 		if orig_node['r'].shape == (1,1):
-			r_mult = dest_node['r'][0, 0]
+			r_mult = N.sqrt(dest_node['t'][0, 0])
 		else:
-			r_mult = dest_node['r'][orig_nnidx, 0]
+			r_mult = N.sqrt(dest_node['t'][orig_nnidx, 0])
 
 		# Will to rounding to specific precision in receiving routine
 		result_list = [center[0], center[1], r_mult*R[0], r_mult*R[1], phi_deg]
@@ -434,9 +436,9 @@ class PathObj(object):
 			drift = drift*T
 			# Sometimes 'r' is a vector and sometimes a single scalar...
 			if orig_node['r'].shape == (1,1):
-				r_mult = 0.2*orig_node['r'][0, 0]
+				r_mult = 0.2*N.sqrt(dest_node['t'][0, 0])
 			else:
-				r_mult = 0.2*orig_node['r'][dest_nnidx, 0]
+				r_mult = 0.2*N.sqrt(dest_node['t'][orig_nnidx, 0])
 			drift_scaled = N.asarray(r_mult*drift).squeeze()
 				
 			center = dest_node['A'][orig_nnidx, :d]
@@ -623,7 +625,7 @@ if __name__ == "__main__":
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130913_ex3d'
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130923_imgex'
+	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130926_imgex'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 

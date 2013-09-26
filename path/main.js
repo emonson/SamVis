@@ -12,7 +12,7 @@ window.onload = function() {
 	$.subscribe("/path_color/change", DISTRICT.path_color_change_fcn);
 	
 	// HACK: initial district to center on
-	var district_id = 17;
+	var district_id = 338;
 	
 	// Generate initial vis
 	DISTRICT.visgen(district_id);

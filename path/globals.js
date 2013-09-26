@@ -21,8 +21,9 @@ var GLOBALS = (function($){
 	globals.path_depth = 2;
 
 	// Keeping value for type of ellipses to grab/display in globals for now
-	globals.ellipse_type = 'space';
-	globals.path_color = 'brown';
+	// TODO: should set combo boxes from these or grab combo box defaults and store here...
+	globals.ellipse_type = 'diffusion';
+	globals.path_color = 'domain';
 	
 	// Path and ellipse data
 	globals.path_pairs = {};
