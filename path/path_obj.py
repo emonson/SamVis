@@ -213,7 +213,7 @@ class PathObj(object):
 			
 					bounds = self.calculate_ellipse_bounds(ellipse_params)
 					bounds = self.pretty_sci_floats(bounds)
-					return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':[], 'R_old':R_new_str}
+					return_obj = {'data':ellipse_params, 'bounds':bounds, 'n_districts':len(self.d_info), 'drift':[], 'R_old':R_new_str}
 
 			
 					return return_obj
@@ -274,7 +274,7 @@ class PathObj(object):
 			
 					bounds = self.calculate_ellipse_bounds(ellipse_params)
 					bounds = self.pretty_sci_floats(bounds)
-					return_obj = {'data':ellipse_params, 'bounds':bounds, 'drift':drift_params, 'R_old':R_new_str}
+					return_obj = {'data':ellipse_params, 'bounds':bounds, 'n_districts':len(self.d_info), 'drift':drift_params, 'R_old':R_new_str}
 			
 					return return_obj
 		

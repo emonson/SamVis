@@ -12,7 +12,6 @@ var GLOBALS = (function($){
 		}
 	});	
 	
-	
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.time_width = -1;
 	globals.time_center = -1;
@@ -23,6 +22,7 @@ var GLOBALS = (function($){
 	// Keeping value for type of ellipses to grab/display in globals for now
 	// TODO: should set combo boxes from these or grab combo box defaults and store here...
 	globals.ellipse_type = 'diffusion';
+	globals.ellipse_color = 'domain';
 	globals.path_color = 'domain';
 	
 	// Path and ellipse data

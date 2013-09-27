@@ -19,12 +19,7 @@ var DISTRICT = (function(d3, $, g){
 	var xr_scale = d3.scale.linear().range([0,width]);
 	var yr_scale = d3.scale.linear().range([0,height]);
 	var ptime_scale = d3.scale.linear().range([0,ptime_width]);
-	
-	var idx_ints = [];
-
-	// HACK: Hard-coding color scale for 1127 ellipse IDs...
-	for (var i=0; i<1127; i++) { idx_ints.push(i); }
-	var c_scale = d3.scale.category20().domain(idx_ints);
+	var c_scale = d3.scale.category20();
 	
 	var color_by_time_scale = d3.scale.linear()
 				.domain([0, 1])
@@ -199,6 +194,20 @@ var DISTRICT = (function(d3, $, g){
 	
 	};
 	
+	var set_ellipse_fill_color = function(d,i) {
+		
+		switch(g.ellipse_color) {
+		
+			case 'domain':
+				return c_scale(d[5]);
+				break;
+
+			default:
+				return 'gray';
+				break;
+		}
+	};
+
 	var set_path_stroke_color = function(d,i) {
 		
 		switch(g.path_color) {
@@ -230,6 +239,13 @@ var DISTRICT = (function(d3, $, g){
 		// Store ellipse type in global object and then get proper ellipse data
 		g.ellipse_type = val;
 		dis.grab_only_ellipses();
+	};
+	
+	dis.ellipse_color_change_fcn = function(val){
+		
+		// Store ellipse type in global object and then get proper ellipse data
+		g.ellipse_color = val;
+		dis.update_ellipses(0);
 	};
 	
 	dis.path_color_change_fcn = function(val){
@@ -288,7 +304,8 @@ var DISTRICT = (function(d3, $, g){
 			.duration(t_delay)		
 				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + -d[4] + ")";})
 				.attr("rx", function(d) { return xr_scale(d[2]); })
-				.attr("ry", function(d) { return yr_scale(d[3]); });
+				.attr("ry", function(d) { return yr_scale(d[3]); })
+				.attr("fill", set_ellipse_fill_color );
 
 		els.enter()
 				.append("ellipse")
@@ -296,9 +313,7 @@ var DISTRICT = (function(d3, $, g){
 				.attr("transform", function(d){return "translate(" + x_scale(d[0]) + "," + y_scale(d[1]) + ")  rotate(" + -d[4] + ")";})
 				.attr("rx", function(d) { return xr_scale(d[2]); })
 				.attr("ry", function(d) { return yr_scale(d[3]); })
-				.attr("fill", function(d) {return c_scale(d[5]); })
-				// .attr("fill", 'gray')
-				// .attr("fill", "url(#gradient)")
+				.attr("fill", set_ellipse_fill_color )
 				.style("opacity", 0.0)
 				.on("mouseover", function(d) { $.publish("/district/ellipse_hover", d[5]);} )
 				.on("click", function(d) { $.publish("/district/ellipse_click", d[5]);} )
@@ -458,6 +473,12 @@ var DISTRICT = (function(d3, $, g){
 				g.time_width = 1000;
 				g.time_range[0] = g.time_center - g.time_width/2.0;
 				g.time_range[1] = g.time_center + g.time_width/2.0;
+				g.n_districts = ellipse_data.n_districts;
+
+				var idx_ints = [];
+				for (var i=0; i<g.n_districts; i++) { idx_ints.push(i); }
+				c_scale.domain(idx_ints);
+	
 				color_by_time_scale.domain(g.time_range);
 				ptime_scale.domain([0, path_info.t_max_idx]);
 				$( "#time_center" ).val( "0 - " + path_info.t_max_idx )

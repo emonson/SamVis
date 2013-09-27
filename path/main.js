@@ -24,6 +24,7 @@ window.onload = function() {
 	// Set combo boxes to default values before setting callback so can change defaults
 	// in globals.js rather than in the html
 	$("#ellipse_type").val(GLOBALS.ellipse_type);
+	$("#ellipse_color").val(GLOBALS.ellipse_color);
 	$("#path_color").val(GLOBALS.path_color);
 	
 	// BUTTON callback
@@ -38,6 +39,12 @@ window.onload = function() {
 	});
 
 	// COMBO Box callback
+	$("#ellipse_color").on('change', function(){
+		var type = $(this).val();
+		$.publish("/ellipse_color/change", type);
+	});
+
+	// COMBO Box callback
 	$("#path_color").on('change', function(){
 		var type = $(this).val();
 		$.publish("/path_color/change", type);
@@ -49,11 +56,12 @@ window.onload = function() {
 	$.subscribe("/time_center_slider/slide", DISTRICT.time_center_slide_fcn);
 	$.subscribe("/time_width_slider/slide", DISTRICT.time_width_slide_fcn);
 	$.subscribe("/ellipse_type/change", DISTRICT.ellipse_type_change_fcn);
+	$.subscribe("/ellipse_color/change", DISTRICT.ellipse_color_change_fcn);
 	$.subscribe("/path_color/change", DISTRICT.path_color_change_fcn);
 	$.subscribe("/time_center_button/click", DISTRICT.time_center_click_fcn);
 	
 	// HACK: initial district to center on
-	var district_id = 17;
+	var district_id = 22;
 	
 	// Generate initial vis
 	DISTRICT.visgen(district_id);
