@@ -48,7 +48,7 @@ window.onload = function() {
 	$.subscribe("/time_center_button/click", DISTRICT.time_center_click_fcn);
 	
 	// HACK: initial district to center on
-	var district_id = 578;
+	var district_id = 647;
 	
 	// Generate initial vis
 	DISTRICT.visgen(district_id);
