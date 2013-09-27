@@ -86,35 +86,6 @@ var DISTRICT = (function(d3, $, g){
 	var elbox = svgcanvas2.append("g")
 							.attr("clip-path", "url(#clip)");
 
-	// Slider creation
-	$('#time_center_slider').slider({
-		min: 0,
-		max: 1000,
-		value: 0,
-		slide: function( event, ui ) {
-					$.publish("/time_center_slider/slide", ui);
-				}  
-	});
-	$('#time_width_slider').slider({
-		min: 0,
-		max: 1000,
-		value: 0,
-		slide: function( event, ui ) {
-					$.publish("/time_width_slider/slide", ui);
-				}  
-	});
-
-	// COMBO Box callback
-	$("#ellipse_type").on('change', function(){
-		var type = $(this).val();
-		$.publish("/ellipse_type/change", type);
-	});
-
-	// COMBO Box callback
-	$("#path_color").on('change', function(){
-		var type = $(this).val();
-		$.publish("/path_color/change", type);
-	});
 
 	// UTILITY private methods
 	
@@ -246,6 +217,13 @@ var DISTRICT = (function(d3, $, g){
 	};
 
 	// PUBLIC methods
+	
+	dis.time_center_click_fcn = function(){
+		d3.json( g.data_proxy_root + '/pathtimedistrict?time=' + g.time_center, function(district_data) {
+		var district_id = district_data.district_id;
+		dis.visgen(district_id);
+		});
+	};
 
 	dis.ellipse_type_change_fcn = function(val){
 		
@@ -263,7 +241,7 @@ var DISTRICT = (function(d3, $, g){
 	
 	dis.time_center_slide_fcn = function(ui) {
 	
-		$( "#time_center" ).val( ui.value )
+		$( "#time_center" ).val( ui.value );
 		// values in global variable
 		g.time_center = ui.value;
 		// also update domain of color scale for coloring by time
@@ -279,7 +257,7 @@ var DISTRICT = (function(d3, $, g){
 
 	dis.time_width_slide_fcn = function(ui) {
 	
-		$( "#time_width" ).val( Math.round(Math.exp(ui.value)) )
+		$( "#time_width" ).val( Math.round(Math.exp(ui.value)) );
 		// values in global variable (logarithmic scale)
 		g.time_width = Math.exp(ui.value);
 		// also update domain of color scale for coloring by time
@@ -401,7 +379,7 @@ var DISTRICT = (function(d3, $, g){
 	
 	dis.update_path_time = function() {
 		var ptimebar = path_time_canvas.selectAll("rect")
-			.data(g.ptime_pairs);
+			.data(g.ptime_pairs, function(d){ return d['start_time']; });
 					
 		ptimebar.enter()
 				.append("rect")

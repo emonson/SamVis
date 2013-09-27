@@ -64,6 +64,17 @@ class PathObj(object):
 		
 
 	# --------------------
+	# QUERY
+		
+	# --------------------
+	def GetDistrictFromPathTime_JSON(self, time=None):
+		"""Get district ID for path at a given time. NOTE: time is an index, not real time
+		for now. Returns {district_id:ID} JSON"""
+
+		if time is not None:
+			return simplejson.dumps({'district_id':int(self.path_info['path_index'][time,0])})
+
+	# --------------------
 	# PATHS
 		
 	# --------------------
@@ -281,8 +292,13 @@ class PathObj(object):
 		
 		# old center node is where we want to get the old->new TransferMatrix
 		orig_node = self.d_info[orig_id]
-		dest_nnidx = N.nonzero(orig_node['index'].squeeze() == dest_id)[0][0]
-		
+		dest_idx_ar = N.nonzero(orig_node['index'].squeeze() == dest_id)[0]
+		# NOTE: for now just using old rotation matrix if not a nearest neighbor...
+		if len(dest_idx_ar) == 0:
+			return Rold
+		else:
+			dest_nnidx = dest_idx_ar[0]
+				
 		# NOTE: Taking d from district centers dimensionality. Always reliable...?
 		nn,d = orig_node['A'].shape
 		
