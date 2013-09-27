@@ -21,6 +21,11 @@ window.onload = function() {
 				}  
 	});
 	
+	// Set combo boxes to default values before setting callback so can change defaults
+	// in globals.js rather than in the html
+	$("#ellipse_type").val(GLOBALS.ellipse_type);
+	$("#path_color").val(GLOBALS.path_color);
+	
 	// BUTTON callback
 	$("#path_center").on('click', function() {
 		$.publish("/time_center_button/click");
@@ -48,7 +53,7 @@ window.onload = function() {
 	$.subscribe("/time_center_button/click", DISTRICT.time_center_click_fcn);
 	
 	// HACK: initial district to center on
-	var district_id = 647;
+	var district_id = 17;
 	
 	// Generate initial vis
 	DISTRICT.visgen(district_id);

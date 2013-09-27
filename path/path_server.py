@@ -12,7 +12,7 @@ class PathServer:
 		# self.path = PathObj('data/json_20130813')
 		# self.path = PathObj('data/json_20130913_ex3d')
 		# self.path = PathObj('data/json_20130926_imgex')
-		self.path = PathObj('data/json_20130927_imgex')
+		self.path = PathObj('data/json_20130927_img_d02')
 		
 	@cherrypy.expose
 	def index(self):

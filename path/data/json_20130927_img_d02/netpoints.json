@@ -1,0 +1,1169 @@
+{
+	"points": {
+		"_ArrayType_": "double",
+		"_ArraySize_": [232,2],
+		"_ArrayData_": [0.92,0.12,0.92,2.36,0.28,0,0.44,0.76,2.56,-0.52,-0.06,-0.42,-0.9,0.92,1.78,2.82,0.74,2.32,2.26,2.46,-1.18,2.36,1.44,1.3,1.66,-0.82,0.74,-0.14,0.5,-0.74,-0.44,1.68,2,3.26,2.64,2.84,2.88,-0.96,1.46,1.2,-0.98,-0.38,-0.24,0.82,0.38,0.86,-0.62,1.92,1.32,1.62,-0.24,2.34,0.6,-0.7,0.56,1.24,0.6,0.3,0.18,1.6,0.88,2.1,-0.52,2.1,0.98,0.34,1.16,3.18,-0.14,0.1,1.9,-0.1,1.46,0.56,-0.32,3.04,3.02,2.38,0.5,0.08,1.36,0.12,3.18,-1,0.72,-1.34,1.64,-0.22,2.86,-0.2,1.3,2.08,1.38,1.7,0.62,2.12,2.06,0.1,2.64,3.34,1.9,0,1.82,-1.22,0.22,0.4,1.32,0.26,-0.38,0.08,1.42,-0.98,1.64,-0.1,-0.56,1.86,-0.92,1.9,2.06,-0.32,0,1.12,2.4,-1.06,-0.78,1.36,0.92,0.82,1.96,2.9,2.06,1.98,0.48,3.4,0.52,1.72,2.9,1.42,2.44,0.8,-0.56,1.7,3.2,2.58,3.16,1.22,-0.8,2.66,0.04,1.1,-1.26,1.62,0.48,0.3,1.9,1.1,0.44,1.52,1.08,1.12,-0.08,0.74,0.34,0.52,1.68,-0.6,1.16,2.52,0.24,1.88,2.3,2.04,-0.78,-1.28,2.82,-0.28,2.22,2.84,2.5,3.06,2.2,-1.38,2.76,0.76,-0.72,1.14,2.68,0.6,1.74,-1.18,1.86,1.72,-0.48,0.82,-0.04,-0.72,1.08,-0.32,-0.78,1.36,3,-1,1.42,-0.42,2.28,0.24,1.16,2.16,1.52,2.66,-0.76,0.1,2.2,2.18,1.86,-0.1,-0.6,-1,0.7,3.04,1.02,-0.2,0.74,1.88,0.28,1.66,0.94,0.22,1.02,1.26,2.08,0.2,2.02,2.1,1.34,0.86,-0.4,-0.84,0.92,2.16,-1.26,-0.96,1.34,-0.1,0.52,-0.2,0.52,0.04,-0.42,-0.78,-0.44,0.36,-0.26,-1.14,0.58,-0.12,1.92,-0.56,-0.66,-0.02,1.22,0.12,1.24,1.38,0.44,-0.44,-0.46,-1.1,-0.76,-0.96,0.12,0.58,-0.22,-1.2,1.1,0.74,-0.06,-1.12,-0.68,-0.74,1.18,-0.1,-0.62,-0.2,-1.12,0.38,0.42,0.86,-0.18,-0.74,1.74,1.1,1.6,-0.84,0.9,0.98,0.9,1.98,2.36,0.1,-1.28,0.78,1.18,-0.34,-0.62,-0.84,0.6,-0.26,-0.04,0.6,1.48,0.42,2.28,-0.08,0.48,0.72,1.1,0.18,0.9,0.38,0.46,-0.9,-1.06,-0.06,1.9,-0.8,0.82,0.2,1.66,-0.56,-0.88,0.26,-0.46,1.56,0.22,-0.5,0.18,-1.02,0.4,1.06,-0.42,-1.38,1.6,0.22,2.14,0.66,0.22,2.08,0.02,1.8,0.64,1.46,1.1,-0.9,1.22,-0.7,-1.14,1.4,0.44,-0.92,-1.36,0.9,1.34,-1.12,-0.5,-0.1,1.7,-1.1,0.66,-0.4,0.14,0.08,-0.28,-0.36,-0.74,1.06,0.72,2.12,1,0.7,-1.06,-0.02,-0.06,0.28,0.14,2.22,0.78,-0.66,0.66,-1.24,0.28,1.82,1.84,1.84,-1.34,2.22,0.7,0.64,1.36,-0.64,1.4,1.46,1.54,-0.28,-0.14,0.42,0.26,0.14,0.44,-0.4,-0.06,-0.5,-1.3,-0.3,1.16,0.3,1.2,-0.36,-0.16,2,-1.36,0.62,-0.06,1.6,0.44,2.36,0.24,-0.9,1.12,0.82,0.76,-0.82,-0.94,0.94,0.96,-0.72,0,0.58,1.6,-0.64,-0.96,0.42,-0.36,-0.3,1.18,-1.04,0.98,0.9,-1.24,-0.44,1.4,0.28,0.7,1.66,0.54,-0.94,0.38,-0.56,-0.5,-1.16,2.2,0.16,1.9,-0.92]
+	},
+	"nn": [
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [1,8,146,160,162,188,194,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [2,59,66,154,161]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [3,61,85,167,197,207,219]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [4,64,78,119,123,144,148,213]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [5,45,57,58,72,82,98,133,212]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [6,51,58,90,98,149,228,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [7,29,70,85,95,108,157,206]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [1,8,162,164,188,194,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [9,22,36,99,181]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [10,42,47,90,125,196,204,217]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [11,31,43,102,120,121,169,222]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [12,28,30,72,109,115,141,173,176]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [13,54,84,112,166,174,190,199]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [14,17,24,57,140,150,186,227]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [15,23,33,87,103,119,152,155,165]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [16,68,76,77,139,175,179,187,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [14,17,27,57,133,186,227]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [18,19,22,48,62,99,168,208,214]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [18,19,35,52,101,168,172,208]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [20,78,96,139,148,175,177,205,210]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [21,41,104,117,151,182,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [9,18,22,62,99,132,181,214]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [15,23,40,56,87,107,152,165,203]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [14,24,39,50,138,150,186,230]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [25,93,111,113,116,118,192]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [26,41,47,104,124,141,196,211,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [17,27,74,128,133,156,227]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [12,28,72,82,88,105,176,195,212]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [7,29,79,85,108,169,219]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [12,30,54,112,115,117,173]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [11,31,43,63,120,185]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [32,49,60,71,111,126,131,170,192]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [15,33,96,103,119,155,177]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [34,76,134,143,180]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [19,35,37,52,168,178,187]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [9,36,37,99,201]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [35,36,37,99,143,168,178,180,201]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,4],
+			"_ArrayData_": [38,124,125,196]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [24,39,50,103,107,150,152,230]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [23,40,56,65,107,127,159,221]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [21,26,41,104,117,151,173,182,211,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [10,42,69,90,125,217]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [11,31,43,63,120,121,198,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [44,65,85,95,127,157,221,223]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [5,45,57,82,105,153,212]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [46,53,74,122,128]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [10,26,47,51,109,141,196,204,211]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,11],
+			"_ArrayData_": [18,48,62,94,101,132,136,208,214,224,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [32,49,56,60,126,167,197,203]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [24,39,50,103,138,142,152,191]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [6,47,51,72,90,98,109,204]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [19,35,52,92,139,172,179,187,205]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [46,53,74,106,128,163,228]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [13,30,54,112,115,166,193,199]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [55,95,127,153,157,184,206,223,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [23,40,49,56,65,87,197,203,221]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [5,14,17,45,57,133,140,153]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [5,6,58,74,98,106,133,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [2,59,66,102,135,161,169,222]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [32,49,60,71,87,126,165,203,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [3,61,79,135,160,162,167,207,219]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [18,22,48,62,94,132,208,214,224]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [31,43,63,75,147,166,185,198,199]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [4,64,71,119,123,131,155,213,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [40,44,56,65,85,95,197,221]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [2,59,66,135,154,164,188]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [67,81,146,194,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [16,68,76,77,83,100,134,175,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [42,69,90,110,149,228]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [7,70,80,108,114,121,157,206,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [32,60,64,71,87,131,155,170,213,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [5,12,28,51,72,82,98,109,212]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [73,94,138,142,156,200,209,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [27,46,53,58,74,106,128,133,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [63,75,88,114,166,193,198,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [16,34,68,76,77,134,178,180,187]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [16,68,76,77,134,175,178,187,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [4,20,78,119,148,177,210]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [29,61,79,135,169,219]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [70,80,88,105,114,195,206,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [67,81,93,113,146,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [5,28,45,72,82,105,195,212]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [68,83,89,100,137,145,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [13,84,147,166,174,190,199,202]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [3,7,29,44,65,85,95,197,219]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,4],
+			"_ArrayData_": [86,112,151,174]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [15,23,56,60,71,87,155,165,203,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [28,75,80,88,114,115,176,193,195]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [83,89,137,145,148,175,210,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [6,10,42,51,69,90,149,204,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [91,122,158,200,209]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [52,92,96,103,139,172,191,205]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [25,81,93,111,113,146,160,207]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [48,62,73,94,101,136,200,209,224,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [7,44,55,65,85,95,157,223]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [20,33,92,96,103,139,177,191,205]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [97,118,131,170,171,192,231]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [5,6,51,58,72,98,133,212,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [9,18,22,36,37,99,168,201]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [68,83,100,134,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [19,48,94,101,142,172,191,208,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [11,59,102,120,161,169,222]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [15,33,39,50,92,96,103,152,191]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [21,26,41,104,124,182,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [28,45,80,82,105,153,195,206,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [53,58,74,106,149,163,228,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [23,39,40,107,127,152,159,230]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [7,29,70,108,121,169,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [12,47,51,72,109,141,204,211]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [69,110,149,163,228]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [25,32,93,111,126,160,167,192,207]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [13,30,54,86,112,117,151,173,174]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [25,81,93,113,116]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [70,75,80,88,114,198,206,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [12,30,54,88,115,117,176,193]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [25,113,116,118,231]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [21,30,41,112,115,117,151,173]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [25,97,116,118,170,192,231]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [4,15,33,64,78,119,155,165,177,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [11,31,43,102,120,222]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [11,43,70,108,121,169,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [46,91,122,128,156,200,209]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [4,64,123,131,144,171,183,213]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [26,38,104,124,196,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [10,38,42,125,196,217]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [32,49,60,111,126,167,192,197,207]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [40,44,55,107,127,140,159,184,221,223]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [27,46,53,74,122,128,156]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [129,132,136,181,189,214]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [130,137,144,145,148,183]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [32,64,71,97,123,131,170,171,213,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [22,48,62,129,132,136,181,189,214,224]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [5,17,27,57,58,74,98,133]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [34,68,76,77,100,134]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [59,61,66,79,135,162,169,188,219]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [48,94,129,132,136,158,189,209,224]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [83,89,130,137,145,148,175,210,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [24,50,73,138,142,186,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,12],
+			"_ArrayData_": [16,20,52,92,96,139,175,177,179,187,205,210]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [14,57,127,140,150,153,159,184]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [12,26,47,109,141,173,211]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [50,73,101,138,142,172,191,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [34,37,143,180,201]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [4,123,130,144,148,183,213]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [83,89,130,137,145]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [1,67,81,93,146,160,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [63,84,147,166,185,199,202]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [4,20,78,89,130,137,144,148,210]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [6,69,90,106,110,149,163,228,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [14,24,39,140,150,159,186,230]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [21,41,86,112,117,151,182]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [15,23,39,50,103,107,152,230]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [45,55,57,105,140,153,184,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [2,66,154,164,188]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [15,33,64,71,87,119,155,165,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [27,73,122,128,156,186,200,227]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [7,44,55,70,95,157,206,223,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [91,136,158,189,209]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [40,107,127,140,150,159,184,230]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [1,61,93,111,146,160,162,207,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [2,59,102,161,222]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [1,8,61,135,160,162,188]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [53,106,110,149,163,228]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [8,66,154,164,188,194]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [15,23,60,87,119,155,165,203,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [13,54,63,75,84,147,166,193,198,199]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [3,49,61,111,126,167,197,207]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [18,19,35,37,99,168,178,208]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [11,29,59,79,102,108,121,135,169]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [32,71,97,118,131,170,192]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [97,123,131,171,213]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [19,52,92,101,142,172,191,205,208]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [12,30,41,112,117,141,173,211,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [13,84,86,112,174,190]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [16,20,68,77,89,137,139,175,210,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [12,28,88,115,176,193,195]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [20,33,78,96,119,139,177]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [35,37,76,77,168,178,180,187]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [16,52,139,179,187,205]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [34,37,76,143,178,180]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [9,22,129,132,181,214]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [21,41,104,151,182,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,4],
+			"_ArrayData_": [123,130,144,183]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [55,127,140,153,159,184,223]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [31,63,147,185,202]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [14,17,24,138,150,156,186,227]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [16,35,52,76,77,139,178,179,187]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [1,8,66,135,154,162,164,188]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [129,132,136,158,189]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [13,84,174,190,202]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [50,92,96,101,103,142,172,191]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [25,32,97,111,118,126,170,192]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [54,75,88,115,166,176,193]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [1,8,67,164,194,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [28,80,82,88,105,176,195,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [10,26,38,47,124,125,196,204,217]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [3,49,56,65,85,126,167,197,203]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [43,63,75,114,166,198,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [13,54,63,84,147,166,199,202]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [73,91,94,122,156,200,209,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [36,37,99,143,201]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [84,147,185,190,199,202]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [23,49,56,60,87,165,197,203]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [10,47,51,90,109,196,204]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [20,52,92,96,139,172,179,205]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [7,55,70,80,105,114,157,206,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [3,61,93,111,126,160,167,207]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [18,19,48,62,101,168,172,208,214,224]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [73,91,94,122,136,158,200,209,224]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [20,78,89,137,139,148,175,210,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [26,41,47,109,141,173,211,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [5,28,45,72,82,98,212]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [4,64,71,123,131,144,171,213,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [18,22,48,62,129,132,181,208,214,224]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [60,64,71,87,119,131,155,165,213,215]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [43,70,75,108,114,121,198,216]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,5],
+			"_ArrayData_": [10,42,125,196,217]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [21,26,41,104,124,173,182,211,218]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [3,29,61,79,85,135,219]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,10],
+			"_ArrayData_": [16,68,77,83,89,100,137,175,210,220]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [40,44,56,65,127,221,223]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [11,59,102,120,161,222]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [44,55,95,127,157,184,221,223]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [48,62,94,132,136,208,209,214,224]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [55,80,105,153,157,195,206,225]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [48,73,94,101,138,142,200,226]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,6],
+			"_ArrayData_": [14,17,27,156,186,227]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [6,53,69,106,110,149,163,228,232]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,8],
+			"_ArrayData_": [1,8,67,81,146,160,194,229]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,7],
+			"_ArrayData_": [24,39,107,150,152,159,230]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,4],
+			"_ArrayData_": [97,116,118,231]
+		},
+		{
+			"_ArrayType_": "double",
+			"_ArraySize_": [1,9],
+			"_ArrayData_": [6,58,74,90,98,106,149,228,232]
+		}
+	]
+}
