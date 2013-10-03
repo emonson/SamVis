@@ -14,6 +14,9 @@ to write the servers so I can use fast [NumPy][] routines for linear algebra, et
 This work is being done in collaboration with Mauro Maggioni, Miles Crosskey,
 and Sam Gerber at Duke University.
 
+## Directories
+------------
+
 ### HTTP
 
 The HTTP directory contains a project which involves loading in data which have been
