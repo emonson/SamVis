@@ -31,7 +31,7 @@ Moving further with the simplified scatterplot idea, but now for following paths
 in an abstract, potentially nonlinear and high-dimensional space which is represented 
 locally by low-dimensional linear spaces.
 
-### WebSockets
+### WebSocket
 
 Just tests of [Autobahn][] and [ws4py][] websockets implementations for passing
 arrays of data back and forth between client and server. No integration with the 
