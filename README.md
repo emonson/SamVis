@@ -15,7 +15,6 @@ This work is being done in collaboration with Mauro Maggioni, Miles Crosskey,
 and Sam Gerber at Duke University.
 
 ## Directories
-------------
 
 ### HTTP
 
