@@ -100,9 +100,7 @@ var ICICLE = (function(d3, $, g){
 
 	ic.init_icicle_view = function() {
 	
-		// d3.json(site_root + "/treedatafacade.php", function(json) {
 		d3.json(g.data_proxy_root + "/index", function(json) {
-		// d3.json("http://localhost/~emonson/Sam/treedatafacade.php", function(json) {
 		
 			// TODO: Don't need to send 's' as an attribute, partition function calculates
 			//   attribute 'depth'...
@@ -138,7 +136,7 @@ var ICICLE = (function(d3, $, g){
 
 	return ic;
 
-}(d3, jQuery, globals));
+}(d3, jQuery, GLOBALS));
 
 // END ICICLE FUNCTIONS
 // --------------------------

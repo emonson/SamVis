@@ -1,5 +1,7 @@
-var globals = {};
+var GLOBALS = (function($){
 
+	var globals = { version: '0.0.1' };
+		
 	// Make it easier to swtich the server config when switching between machines
 	$.ajax({
 		url:'../server_example.json',
@@ -41,4 +43,7 @@ var globals = {};
 	globals.node_id = 0;
 	globals.bkgd_scale = 1;
 
+	return globals;
+
+}(jQuery));
 

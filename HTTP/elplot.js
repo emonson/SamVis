@@ -236,7 +236,7 @@ var ELPLOT = (function(d3, $, g){
 
 	return el;
 
-}(d3, jQuery, globals));
+}(d3, jQuery, GLOBALS));
 
 // END ELPLOT
 // --------------------------

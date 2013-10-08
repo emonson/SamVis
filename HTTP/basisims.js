@@ -104,7 +104,7 @@ var BASIS_IMS = (function(d3, $, g){
 
 	return bi;
 
-}(d3, jQuery, globals));
+}(d3, jQuery, GLOBALS));
 
 // END BASIS IMAGES
 // --------------------

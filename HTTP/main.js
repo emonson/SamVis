@@ -25,7 +25,7 @@ window.onload = function() {
 	$.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
 	
 	// Do initial scalars retrieval
-	UTILITIES.getScalarsFromServer(globals.scalars_name);
+	UTILITIES.getScalarsFromServer(GLOBALS.scalars_name);
 
 	// Initialize icicle view
 	// NOTE: This is where scales_by_id and ids_by_scale get created
