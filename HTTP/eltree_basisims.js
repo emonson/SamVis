@@ -153,7 +153,6 @@ var ellipse_basis2_color = d3.scale.linear()
 // Get all projected ellipses from the server for now rather than just the displayed ones
 var getBasisImagesFromServer = function() {
 
-	// d3.json(site_root + "/treeallellipsesfacade.php?basis=" + basis_id, function(json) {
 	d3.json(data_proxy_root + "/ellipsebasis?id=" + node_id, function(json) {
 		
 		// TODO: Should be reading width and height off of data itself
@@ -211,7 +210,6 @@ var updateEllipseBasisImages = function() {
 // Utility functions
 
 var getScalarsFromServer = function(s_name) {
-	// d3.json(site_root + "/treescalarsfacade.php?name=" + s_name, function(json) {
 	d3.json(data_proxy_root + "/scalars?name=" + s_name, function(json) {
 	
 		scalardata = json;
@@ -243,7 +241,6 @@ var updateAxes = function() {
 // Get all projected ellipses from the server for now rather than just the displayed ones
 var getReprojectedEllipsesFromServer = function() {
 
-	// d3.json(site_root + "/treeallellipsesfacade.php?basis=" + basis_id, function(json) {
 	d3.json(data_proxy_root + "/allellipses?basis=" + basis_id, function(json) {
 
 		// NOTE: Domains and bounds are being set to _all_ ellipses...

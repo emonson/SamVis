@@ -2,21 +2,14 @@ import cherrypy
 import simplejson
 from ipca_tree import IPCATree
 
-class HelloWorld:
-	
-	# _cp_config = {'tools.gzip.on': True}
+class TreeServer:
 	
 	def __init__(self):
 		
-		# self.tree = IPCATree('../../test/orig2-copy2.ipca')
-		# self.tree.SetLabelFileName('../../test/labels02.data.hdr')
 		self.tree = IPCATree('../../test/mnist12.ipca')
-		# self.tree = IPCATree('../../test/mnist12_d2.ipca')
 		self.tree.SetLabelFileName('../../test/mnist12_labels.data.hdr')
-		# self.tree.SetOriginalDataFileName('../../test/mnist12.data.hdr')
 		
 		self.tree.LoadLabelData()
-		# self.tree.LoadOriginalData()
 		
 		self.maxID = self.tree.GetMaxID()
 		self.basis_id = None
@@ -32,13 +25,8 @@ class HelloWorld:
 		if name:
 			return self.tree.GetScalarsByNameJSON(name)
 		
-	# cherrypy wouldn't also gzip json generated with json_out()...
-	# @cherrypy.tools.json_out()
 	@cherrypy.tools.gzip()
 	def scaleellipses(self, id=None, basis=None):
-		# browser was having trouble accepting gzipped json with application/json type
-		# cherrypy.response.headers['Content-Type'] = "application/json"
-		# cherrypy.response.headers['Content-Encoding'] = "gzip"
 		
 		if id is not None:
 			# parameters come in and get parsed out as strings
@@ -56,9 +44,6 @@ class HelloWorld:
 		
 	@cherrypy.tools.gzip()
 	def allellipses(self, basis=None):
-		# browser was having trouble accepting gzipped json with application/json type
-		# cherrypy.response.headers['Content-Type'] = "application/json"
-		# cherrypy.response.headers['Content-Encoding'] = "gzip"
 		
 		if basis is not None:
 			basis_id = int(basis)
@@ -67,7 +52,6 @@ class HelloWorld:
 				self.tree.SetBasisID_ReprojectAll(basis_id)
 				print "basis_id", basis_id
 	
-		# seems you can also just return the dictionary
 		return self.tree.GetAllEllipses_NoProjectionJSON()
 		
 	@cherrypy.tools.gzip()
@@ -90,8 +74,6 @@ class HelloWorld:
 			node_id = int(id)	
 			bkgd_scale = int(bkgdscale)
 	
-			# seems you can also just return the dictionary
-			print 'context', node_id, bkgd_scale
 			return self.tree.GetContextEllipsesJSON(node_id, bkgd_scale)
 		
 	index.exposed = True
@@ -100,15 +82,14 @@ class HelloWorld:
 	allellipses.exposed = True
 	ellipsebasis.exposed = True
 	contextellipses.exposed = True
-	# scaleellipses._cp_config = {'tools.gzip.on': True}
 
+# Reading server name out of a local file so it's easier to port this code
+# to other machines
 server_filename = '../server_example.json'
 server_opts = simplejson.loads(open(server_filename).read())
 
 cherrypy.config.update({
-		# 'tools.gzip.on' : True,
 		'server.socket_port': server_opts['ipca_port'], 
-		# 'server.socket_host':'127.0.0.1'
 		'server.socket_host':server_opts['server_name']
 		})
-cherrypy.quickstart(HelloWorld())
+cherrypy.quickstart(TreeServer())
