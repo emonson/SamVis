@@ -68,6 +68,19 @@ libs directory, but here are a list of the currently used libraries:
 - [jQuery tiny pubsub](https://gist.github.com/cowboy/661855) for events publish/subscribe
 
 
+## Local Web Server Name Configuration
+
+There is a file called server_example.json in the root of the repository. This
+is the file which sets the local server name for all of the Javascript and Python
+scripts in both the HTTP and path directories. This lets you also set the port
+number used for the IPCA visualizations in HTTP and the simulated path visualizations
+in path. See below for the reverse proxy setup instructions. 
+
+*NOTE:* The scripts will expect the reverse proxy to be at server_name/remote9000/ 
+if you put the port value at 9000. (i.e. that string, "remote", is hard-coded into
+the scripts, so use that actual string in your reverse proxy name)
+
+
 ## Apache Web Server Configuration
 
 The data servers I build using CherryPy run on a different port than the web server
@@ -86,13 +99,18 @@ in the background. In my `/etc/apache2/users/username.conf` file, I add
 lines like this:
 
 ```
-ProxyPass /remote/  http://servername.sub.duke.edu:9000/
-ProxyPass /remote2/  http://servername.sub.duke.edu:9002/
+ProxyPass /remote9000/  http://servername.sub.duke.edu:9000/
+ProxyPass /remote9002/  http://servername.sub.duke.edu:9002/
 ```
 
 which lets me just make a call to something like
-`http://servername.sub.duke.edu/remote/allellipses?basis=1`
-instead of `http://servername.sub.duke.edu:9000/allellipses?basis=1`
+
+`http://servername.sub.duke.edu/remote9000/allellipses?basis=1`
+
+instead of 
+
+`http://servername.sub.duke.edu:9000/allellipses?basis=1`
+
 in my ajax call, which is considered "same origin".
 
 
