@@ -1,4 +1,4 @@
-var GLOBALS = (function($){
+var GLOBALS = (function($,parseUri){
 
 	var globals = { version: '0.0.1' };
 		
@@ -11,6 +11,21 @@ var GLOBALS = (function($){
 			globals.data_proxy_root = "http://" + data.server_name + "/remote" + data.path_port;
 		}
 	});	
+	
+	// Grabbing possible data set names
+	$.ajax({
+		url:globals.data_proxy_root + '/resource_index/datasets',
+		async:false,
+		dataType:'json',
+		success:function(data) {
+			globals.dataset_names = data;
+		}
+	});	
+	
+	// Passing initial data set value through in parameters. default to first in list
+	// TODO: handle no list!!
+	globals.uri = parseUri(location.toString());
+	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[0];
 	
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.time_width = -1;
@@ -38,5 +53,5 @@ var GLOBALS = (function($){
 
 	return globals;
 
-}(jQuery));
+}(jQuery,parseUri));
 

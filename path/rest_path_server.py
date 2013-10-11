@@ -6,17 +6,21 @@ import glob
 
 class ResourceIndex(object):
 
-    def __init__(self, content):
-        self.content = content
+    def __init__(self, server_url, data_names):
+        self.server_url = server_url
+        self.data_names = data_names
 
-    exposed = True
-
-    def GET(self):
+    @cherrypy.expose
+    def index(self):
         return self.to_html()
 
+    @cherrypy.expose
+    def datasets(self):
+        return simplejson.dumps(self.data_names)
+
     def to_html(self):
-        html_item = lambda (name,value): '<div><a href="{value}">{name}</a></div>'.format(**vars())
-        items = map(html_item, self.content.items())
+        html_item = lambda (name): '<div><a href="' + self.server_url + '?data={name}">{name}</a></div>'.format(**vars())
+        items = map(html_item, self.data_names)
         items = ''.join(items)
         return '<html>{items}</html>'.format(**vars())
 
@@ -27,10 +31,7 @@ class PathServer:
 	
 	def __init__(self, path):
 		
-		# self.path = PathObj('data/json_20130601')
-		# self.path = PathObj('data/json_20130813')
-		# self.path = PathObj('data/json_20130913_ex3d')
-		# self.path = PathObj('data/json_20130926_imgex')
+		print 'STARTING UP', path
 		self.path = PathObj(path)
 		
 	@cherrypy.expose
@@ -110,14 +111,30 @@ class PathServer:
 # ------------
 
 class Root(object):
-    pass
-
-root = Root()
-data_dir = 'data'
+	
+	def __init__(self, names_list):
+		
+		self.data_names = names_list
+		
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def index(self):
+		
+		return simplejson.dumps(self.data_names)
+		
 
 # Go through data directory and add methods to root for each data set
+data_dir = 'data'
+vis_page = 'district_path.html'
 data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*')) if os.path.isdir(xx)]
 data_dirnames = [os.path.basename(xx) for xx in data_paths]
+
+# Storing the dataset names in the root so they can easily be passed to the html pages
+root = Root(data_dirnames)
+
+# Storing server name and port in a json file for easy config
+server_filename = '../server_example.json'
+server_opts = simplejson.loads(open(server_filename).read())
 
 # This adds the methods for each data directory
 for ii,name in enumerate(data_dirnames):
@@ -125,20 +142,15 @@ for ii,name in enumerate(data_dirnames):
 	setattr(root, name, PathServer(data_paths[ii]))
 
 # add the resource index, which will list links to the data sets
-root.resource_index = ResourceIndex(dict(zip(data_dirnames,data_paths)))
+base_url = 'http://' + server_opts['server_name'] + '/~' + server_opts['account'] + '/' + server_opts['path_path'] + '/' + vis_page
+root.resource_index = ResourceIndex(server_url=base_url, data_names=data_dirnames)
 
 # Start up server
-server_filename = '../server_example.json'
-server_opts = simplejson.loads(open(server_filename).read())
+cherrypy.config.update({
+		# 'tools.gzip.on' : True,
+		'server.socket_port': server_opts['path_port'], 
+		# 'server.socket_host':'127.0.0.1'
+		'server.socket_host':server_opts['server_name']
+		})
+cherrypy.quickstart(root)
 
-conf = {
-    'global': {
-        'server.socket_host': server_opts['server_name'],
-        'server.socket_port': server_opts['path_port'],
-    },
-    '/': {
-        'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-    }
-}
-
-cherrypy.quickstart(root, '/', conf)

@@ -228,7 +228,7 @@ var DISTRICT = (function(d3, $, g){
 	// PUBLIC methods
 	
 	dis.time_center_click_fcn = function(){
-		d3.json( g.data_proxy_root + '/pathtimedistrict?time=' + g.time_center, function(district_data) {
+		d3.json( g.data_proxy_root + '/' + g.dataset + '/pathtimedistrict?time=' + g.time_center, function(district_data) {
 		var district_id = district_data.district_id;
 		dis.visgen(district_id);
 		});
@@ -413,7 +413,7 @@ var DISTRICT = (function(d3, $, g){
 		// Store old center for transfer routines
 		g.prev_district = g.district_id;
 		
-		d3.json( g.data_proxy_root + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
+		d3.json( g.data_proxy_root + '/' + g.dataset + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
 		
 			// Store data in global object so can filter without retrieving
 			g.ellipse_data = ellipse_data;
@@ -446,8 +446,8 @@ var DISTRICT = (function(d3, $, g){
 		g.prev_district = g.district_id;
 		g.district_id = district_id
 		
-		d3.json( g.data_proxy_root + '/districtcoords?district_id=' + g.district_id + '&depth=' + g.path_depth + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(path_info) {
-			d3.json( g.data_proxy_root + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
+		d3.json( g.data_proxy_root + '/' + g.dataset + '/districtcoords?district_id=' + g.district_id + '&depth=' + g.path_depth + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(path_info) {
+			d3.json( g.data_proxy_root + '/' + g.dataset + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
 			
 			// Store data in global object so can filter without retrieving
 			g.district_id = district_id;
