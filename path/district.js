@@ -413,25 +413,32 @@ var DISTRICT = (function(d3, $, g){
 		// Store old center for transfer routines
 		g.prev_district = g.district_id;
 		
-		d3.json( g.data_proxy_root + '/' + g.dataset + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
-		
-			// Store data in global object so can filter without retrieving
-			g.ellipse_data = ellipse_data;
-			g.R_old = ellipse_data.R_old;
+		d3.json( g.data_proxy_root + '/' + g.dataset + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(error, ellipse_data) {
 			
-			// Scale X and Y scales correctly so they can be equal within unequal width and height
-			scale_to_bounds(g.ellipse_data.bounds);
+			if (error) {
+				return console.warn(error);
+			} 
+			if (ellipse_data) {
+			
+				// Store data in global object so can filter without retrieving
+				g.ellipse_data = ellipse_data;
+				g.R_old = ellipse_data.R_old;
+			
+				// Scale X and Y scales correctly so they can be equal within unequal width and height
+				scale_to_bounds(g.ellipse_data.bounds);
 		
-			// Update ellipse visualization
-			dis.update_ellipses(1000);
+				// Update ellipse visualization
+				dis.update_ellipses(1000);
 
-			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			// g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
+				// Do the manipulation of path coordinates into line segment pairs with ids, etc here
+				// g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
 	
-			// Update path visualization
-			dis.update_paths(1000);
+				// Update path visualization
+				dis.update_paths(1000);
+			
+			} // if error
 		
-		});
+		}); // d3.json(ellipse_data)
 	};
 
 	// Get data for both the paths and ellipses surrounding a certain district
@@ -446,66 +453,82 @@ var DISTRICT = (function(d3, $, g){
 		g.prev_district = g.district_id;
 		g.district_id = district_id
 		
-		d3.json( g.data_proxy_root + '/' + g.dataset + '/districtcoords?district_id=' + g.district_id + '&depth=' + g.path_depth + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(path_info) {
-			d3.json( g.data_proxy_root + '/' + g.dataset + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(ellipse_data) {
+		d3.json( g.data_proxy_root + '/' + g.dataset + '/districtcoords?district_id=' + g.district_id + '&depth=' + g.path_depth + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(error_path, path_info) {
 			
-			// Store data in global object so can filter without retrieving
-			g.district_id = district_id;
-			g.ellipse_data = ellipse_data;
-			g.path_info = path_info;
-			g.R_old = path_info.R_old;
-			
-			// Only reset range values and t_max if this is the first time through
-			// TODO: I don't like this method...
-			// TODO: If I'm testing this way, I need to reset these values to -1 when switching data sets...
-			if (g.time_center < 0 || g.time_width < 0) {
-				g.time_center = 0;
-				g.time_width = 1000;
-				$("#time_center_slider").slider({	'min': 0,
-																	'max': path_info.t_max_idx,
-																	'value': g.time_center});
-				// width slider log scale, but always display actual numbers
-				$("#time_width_slider").slider({	'min': Math.log(2),
-																	'max': Math.log(path_info.t_max_idx),
-																	'step': (Math.log(path_info.t_max_idx)-Math.log(2))/1000,
-																	'value': Math.log(g.time_width)});
-				g.time_center = 0;
-				g.time_width = 1000;
-				g.time_range[0] = g.time_center - g.time_width/2.0;
-				g.time_range[1] = g.time_center + g.time_width/2.0;
-				g.n_districts = ellipse_data.n_districts;
-
-				var idx_ints = [];
-				for (var i=0; i<g.n_districts; i++) { idx_ints.push(i); }
-				c_scale.domain(idx_ints);
-	
-				color_by_time_scale.domain(g.time_range);
-				ptime_scale.domain([0, path_info.t_max_idx]);
-				$( "#time_center" ).val( "0 - " + path_info.t_max_idx )
-				$( "#time_width" ).val( g.time_width )
+			// error will get triggered on null response
+			if (error_path) {
+				console.warn(error_path);
 			}
+			if (path_info) {
 			
-			// Scale X and Y scales correctly so they can be equal within unequal width and height
-			scale_to_bounds(g.ellipse_data.bounds);
+				d3.json( g.data_proxy_root + '/' + g.dataset + '/districtellipses?district_id=' + g.district_id + '&type=' + g.ellipse_type + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(error_ellipse, ellipse_data) {
 			
-			// Update ellipse visualization
-			dis.update_ellipses(1000);
+					// error will get triggered on null response
+					if (error_ellipse) { 
+						console.warn(error_ellipse); 
+					} 
+					if (ellipse_data) {
+			
+						// Store data in global object so can filter without retrieving
+						g.district_id = district_id;
+						g.ellipse_data = ellipse_data;
+						g.path_info = path_info;
+						g.R_old = path_info.R_old;
+			
+						// Only reset range values and t_max if this is the first time through
+						// TODO: I don't like this method...
+						// TODO: If I'm testing this way, I need to reset these values to -1 when switching data sets...
+						if (g.time_center < 0 || g.time_width < 0) {
+							g.time_center = 0;
+							g.time_width = 1000;
+							$("#time_center_slider").slider({	'min': 0,
+																				'max': path_info.t_max_idx,
+																				'value': g.time_center});
+							// width slider log scale, but always display actual numbers
+							$("#time_width_slider").slider({	'min': Math.log(2),
+																				'max': Math.log(path_info.t_max_idx),
+																				'step': (Math.log(path_info.t_max_idx)-Math.log(2))/1000,
+																				'value': Math.log(g.time_width)});
+							g.time_center = 0;
+							g.time_width = 1000;
+							g.time_range[0] = g.time_center - g.time_width/2.0;
+							g.time_range[1] = g.time_center + g.time_width/2.0;
+							g.n_districts = ellipse_data.n_districts;
+
+							var idx_ints = [];
+							for (var i=0; i<g.n_districts; i++) { idx_ints.push(i); }
+							c_scale.domain(idx_ints);
 	
-			// Do the manipulation of path coordinates into line segment pairs with ids, etc here
-			g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
+							color_by_time_scale.domain(g.time_range);
+							ptime_scale.domain([0, path_info.t_max_idx]);
+							$( "#time_center" ).val( "0 - " + path_info.t_max_idx )
+							$( "#time_width" ).val( g.time_width )
+						}
+			
+						// Scale X and Y scales correctly so they can be equal within unequal width and height
+						scale_to_bounds(g.ellipse_data.bounds);
+			
+						// Update ellipse visualization
+						dis.update_ellipses(1000);
+	
+						// Do the manipulation of path coordinates into line segment pairs with ids, etc here
+						g.path_pairs = coords_to_pairs(g.path_info, g.time_range);
 		
-			// Update path visualization
-			dis.update_paths(1000);
+						// Update path visualization
+						dis.update_paths(1000);
 			
-			// Get continuous time blocks for this district at certain depth
-			// TODO: Make the depth an adjustable option for the GUI...
-			g.ptime_pairs = coords_to_time_blocks(g.path_info, 1);
+						// Get continuous time blocks for this district at certain depth
+						// TODO: Make the depth an adjustable option for the GUI...
+						g.ptime_pairs = coords_to_time_blocks(g.path_info, 1);
 			
-			// Update the district path time bar
-			dis.update_path_time();
-			
-			});
-		});
+						// Update the district path time bar
+						dis.update_path_time();
+				
+					} // if error_ellipse		
+				}); // d3.json(ellipse_data)
+				
+			}	// if error_path	
+		}); // d3.json(path_data)
 	};
 
 	return dis;

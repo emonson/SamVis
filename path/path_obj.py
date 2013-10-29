@@ -398,8 +398,11 @@ class PathObj(object):
 		# Two types of data right now
 		if 'sig' in orig_node:
 			sig = N.matrix(orig_node['sig'])
-		else:
+		elif 'diff' in orig_node:
 			sig = N.matrix(orig_node['diff'])
+		else:
+			# TODO: handle this exception someplace...
+			raise NameError('No diffusion variable defined in nodes')
 			
 		# TODO: Should probably sanity check size of sig...
 
@@ -465,23 +468,34 @@ class PathObj(object):
 			result_list.append(int(orig_id))
 
 			return result_list
+			
+		# else if drift not part of original data
+		else:
+			
+			# TODO: Handle this exception or figure out how else to deal with missing drift...
+			raise NameError('No drift data')
 
 	# --------------------
 	def calculate_ellipse_bounds(self, e_params):
 		"""Rough calculation of ellipse bounds by centers +/- max radius for each"""
 		
-		# Ellipse params is a list of tuples (X, Y, RX, RY, Phi, i)
-		params_array = N.array(e_params)
-		X = params_array[:,0]
-		Y = params_array[:,1]
+		if len(e_params) > 0:
+			# Ellipse params is a list of tuples (X, Y, RX, RY, Phi, i)
+			params_array = N.array(e_params)
+			X = params_array[:,0]
+			Y = params_array[:,1]
 		
-		maxR = N.max(params_array[:,2:4], axis=1)
-		minX = N.min(X-maxR)
-		maxX = N.max(X+maxR)
-		minY = N.min(Y-maxR)
-		maxY = N.max(Y+maxR)
+			maxR = N.max(params_array[:,2:4], axis=1)
+			minX = N.min(X-maxR)
+			maxX = N.max(X+maxR)
+			minY = N.min(Y-maxR)
+			maxY = N.max(Y+maxR)
 		
-		return self.pretty_sci_floats([[minX, maxX], [minY, maxY]])
+			return self.pretty_sci_floats([[minX, maxX], [minY, maxY]])
+		
+		# TODO: not sure this is the best default value, or if exception should be raised!
+		else:
+			return [[0.0, 0.0], [0.0, 0.0]]
 	
 	# --------------------
 	def gather_coords_by_district_id(self):

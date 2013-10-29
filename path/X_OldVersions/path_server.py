@@ -1,4 +1,5 @@
 import cherrypy
+import simplejson
 from path_obj import PathObj
 
 class PathServer:
@@ -7,7 +8,11 @@ class PathServer:
 	
 	def __init__(self):
 		
-		self.path = PathObj('data/json_20130813')
+		self.path = PathObj('data/json_20130601')
+		# self.path = PathObj('data/json_20130813')
+		# self.path = PathObj('data/json_20130913_ex3d')
+		# self.path = PathObj('data/json_20130926_imgex')
+		# self.path = PathObj('data/json_20130927_img_d02')
 		
 	@cherrypy.expose
 	def index(self):
@@ -19,111 +24,79 @@ class PathServer:
 
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
-	def rawpathcoords(self):
-		
-		return self.path.GetRawPathCoordList_JSON()
-		
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def netcoords(self):
-		
-		return self.path.GetNetCoordList_JSON()
-		
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def netpathcoords(self):
-		
-		return self.path.GetNetPathCoordList_JSON()
-		
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def globalpathcoords(self):
-		
-		return self.path.GetGlobalPathCoordList_JSON()
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def globalpathpairs(self):
-		
-		return self.path.GetGlobalPathCoordPairs_JSON()
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def districtpathcoords(self, district_id = None):
-		
-		if district_id is not None:
-			dist_id = int(district_id)
-			return self.path.GetDistrictPathCoordInfo_JSON(dist_id)
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def districtpathpairs(self, district_id = None):
-		
-		if district_id is not None:
-			dist_id = int(district_id)
-			return self.path.GetDistrictPathCoordPairs_JSON(dist_id)
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def districtdeepcoords(self, district_id = None, depth=2):
-		
+	def districtcoords(self, district_id = None, depth = 1, previous_id = None, rold = "1.0, 0.0, 0.0, 1.0"):
+				
 		if district_id is not None:
 			dist_id = int(district_id)
 			d = int(depth)
-			return self.path.GetDistrictDeepPathCoordInfo_JSON(dist_id, d)
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def districtdeeplocalcoords(self, district_id = None, depth=2):
-		
-		if district_id is not None:
-			dist_id = int(district_id)
-			d = int(depth)
-			return self.path.GetDistrictDeepPathLocalCoordInfo_JSON(dist_id, d)
+			
+			if previous_id is not None:
+				prev_id = int(previous_id)
+			else:
+				prev_id = dist_id
+				
+			R_old = self.parse_rold(rold)
+			
+			return self.path.GetDistrictDeepPathLocalRotatedCoordInfo_JSON(dist_id, prev_id, d, R_old)
 
 	# ------------
 	# Ellipses
 	
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
-	def allellipses(self):
-		
-		return self.path.GetAllEllipses_JSON()
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def pathellipses(self):
-		
-		return self.path.GetPathEllipses_JSON()
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def pathellipses(self):
-		
-		return self.path.GetPathEllipses_JSON()
-
-	@cherrypy.expose
-	@cherrypy.tools.gzip()
-	def districtellipses(self, district_id = None):
+	def districtellipses(self, district_id = None, type = 'space', previous_id = None, rold = "1.0, 0.0, 0.0, 1.0"):
 		
 		if district_id is not None:
 			dist_id = int(district_id)
-			return self.path.GetDistrictEllipses_JSON(dist_id)
+			
+			if previous_id is not None:
+				prev_id = int(previous_id)
+			else:
+				prev_id = dist_id
+				
+			R_old = self.parse_rold(rold)
+			
+			if type == 'diffusion':
+				return self.path.GetDistrictDiffusionRotatedEllipses_JSON(dist_id, prev_id, R_old)
+			else:
+				return self.path.GetDistrictLocalRotatedEllipses_JSON(dist_id, prev_id, R_old)
 
+	# ------------
+	# Query
+	
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
-	def districtlocalellipses(self, district_id = None):
+	def pathtimedistrict(self, time=None):
 		
-		if district_id is not None:
-			dist_id = int(district_id)
-			return self.path.GetDistrictLocalEllipses_JSON(dist_id)
+		if time is not None:
+			t = int(time)
+			
+			# Get district ID for path at a specified time
+			return self.path.GetDistrictFromPathTime_JSON(t)
 
-
+	# ------------
+	# Utility
+	
+	def parse_rold(self, rold):
+		
+		# Parse comma-separated list of four floats encoded as a string
+		try:
+			a00, a01, a10, a11 = (float(r) for r in rold.split(','))
+			R_old = [[a00, a01], [a10, a11]]
+		except:
+			R_old = [[1.0, 0.0], [0.0, 1.0]]
+		
+		return R_old
+			
 # ------------
+
+server_filename = '../server_example.json'
+server_opts = simplejson.loads(open(server_filename).read())
+
 cherrypy.config.update({
 		# 'tools.gzip.on' : True,
-		'server.socket_port': 9000, 
+		'server.socket_port': server_opts['path_port'], 
 		# 'server.socket_host':'127.0.0.1'
-		'server.socket_host':'152.3.61.80'
+		'server.socket_host':server_opts['server_name']
 		})
 cherrypy.quickstart(PathServer())
