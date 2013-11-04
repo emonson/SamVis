@@ -131,9 +131,9 @@ OS X used to have a check-box in the System Preferences, Sharing pane for
 but you might need to create a ~/Sites directory, and you need to use the
 command line to start up (or restart) Apache.
 
-'sudo apachectl start'
+`sudo apachectl start`
 
-Instead of 'start', you can also use 'restart' or 'stop'.
+Instead of `start`, you can also use `restart` or `stop`.
 
 
 ## Symlink to project path
@@ -143,14 +143,14 @@ entry from what the default typically is: FollowSymLinks. This is so we can put
 a symbolic link in our local Apache site path (listed in the username.conf Directory
 line). From my home directory (in the terminal) I type:
 
-'''
+```
 ln -s /Users/username/Programming/SamVis/HTTP /Users/username/Sites/SamVisHTTP
 ln -s /Users/username/Programming/SamVis/path /Users/username/Sites/SamVisPath
-'''
+```
 
 This way I can access the HTTP directory from
 
-'server.sub.duke.edu/~username/SamVisHTTP'
+`server.sub.duke.edu/~username/SamVisHTTP`
 
 
 ## Additional Example Data
