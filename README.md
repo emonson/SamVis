@@ -83,6 +83,9 @@ the scripts, so use that actual string in your reverse proxy name)
 
 ## Apache Web Server Configuration
 
+*Some of the following will be specific to Mac OS X (10.8) configuration, since
+that's what I'm using for my production environment.*
+
 The data servers I build using CherryPy run on a different port than the web server
 which serves up the HTML pages. This means that an ajax call from the page to the
 data server is considered a cross-domain request, which is not allowed under the
@@ -96,11 +99,18 @@ repository history).
 Then, someone told me I could set up a "reverse proxy" in Apache which
 would create a URL path that would pass things along to the other port
 in the background. In my `/etc/apache2/users/username.conf` file, I add
-lines like this:
+ProxyPass lines like in this example:
 
 ```
-ProxyPass /remote9000/  http://servername.sub.duke.edu:9000/
-ProxyPass /remote9002/  http://servername.sub.duke.edu:9002/
+<Directory "/Users/username/Sites/">
+    Options Indexes MultiViews FollowSymLinks
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+</Directory>
+
+ProxyPass /remote9000/  http://emo2.trinity.duke.edu:9000/
+ProxyPass /remote9002/  http://emo2.trinity.duke.edu:9002/
 ```
 
 which lets me just make a call to something like
@@ -112,6 +122,35 @@ instead of
 `http://servername.sub.duke.edu:9000/allellipses?basis=1`
 
 in my ajax call, which is considered "same origin".
+
+
+## Apache Startup
+
+OS X used to have a check-box in the System Preferences, Sharing pane for
+"Web", which started up the built-in Apache server. Apache is still built in,
+but you might need to create a ~/Sites directory, and you need to use the
+command line to start up (or restart) Apache.
+
+'sudo apachectl start'
+
+Instead of 'start', you can also use 'restart' or 'stop'.
+
+
+## Symlink to project path
+
+Notice that my example Apache configuration file also had an additional "Option"
+entry from what the default typically is: FollowSymLinks. This is so we can put
+a symbolic link in our local Apache site path (listed in the username.conf Directory
+line). From my home directory (in the terminal) I type:
+
+'''
+ln -s /Users/username/Programming/SamVis/HTTP /Users/username/Sites/SamVisHTTP
+ln -s /Users/username/Programming/SamVis/path /Users/username/Sites/SamVisPath
+'''
+
+This way I can access the HTTP directory from
+
+'server.sub.duke.edu/~username/SamVisHTTP'
 
 
 ## Additional Example Data
