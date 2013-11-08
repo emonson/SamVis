@@ -17,6 +17,9 @@ class PathObj(object):
 		self.path_info = None
 		self.sim_opts = None
 		
+		# Trying out caching time from district to all others
+		self.time_from_region = {}
+		
 		# Path coordinates gathered by district ID for faster search
 		self.coords_by_id = None
 		
@@ -57,6 +60,10 @@ class PathObj(object):
 		self.path_info = PR.load_trajectory( os.path.join(self.path_data_dir, 'trajectory.json') )
 		self.sim_opts = PR.load_sim_opts( os.path.join(self.path_data_dir, 'sim_opts.json') )
 		
+		# Fixup path_index and time data structures so they're 1D rather than 2D
+		self.path_info['path_index'] = self.path_info['path_index'].ravel()
+		self.path_info['t'] = self.path_info['t'].ravel()
+		
 		self.path_data_loaded = True
 		
 		# Gather up path coordinates by district ID for faster lookup later
@@ -72,7 +79,51 @@ class PathObj(object):
 		for now. Returns {district_id:ID} JSON"""
 
 		if time is not None:
-			return simplejson.dumps({'district_id':int(self.path_info['path_index'][time,0])})
+			return simplejson.dumps({'district_id':int(self.path_info['path_index'][time])})
+
+	# --------------------
+	def GetTimesFromDistrict_JSON(self, district_id=None):
+		"""Get district ID for path at a given time. NOTE: time is an index, not real time
+		for now. Returns {district_id:ID} JSON"""
+
+		if district_id is not None:
+			# This increments time after leaving the chosen district and until it returns
+			if district_id in self.time_from_region:
+				tfr = self.time_from_region[district_id]
+			else:
+				tfr = self.calculate_time_from_region(district_id)
+				self.time_from_region[district_id] = tfr
+							
+			# What we really want to calculate here, though, is average 1st passage time
+			# to any other district. So, we need to keep track of whether the path has
+			# made it to a district or not, and if not, then put the time into a list,
+			# then start over again each time we get back to the original district
+			visited = {}
+			times = C.defaultdict(list)
+			for t,d in zip(tfr,self.path_info['path_index']):
+				if d == district_id:
+					visited.clear()
+					continue
+				if d not in visited:
+					visited[d] = True
+					times[d].append(t)
+			print tfr[self.path_info['path_index']==2]
+			print times
+			# At least for now going to use -1 as "not visited" average time
+			avg_times = N.zeros_like(self.d_info) - 1
+			for d,vals in times.iteritems():
+				avg_times[d] = N.array(vals).mean()
+			print avg_times
+			avg_times_list = self.pretty_sci_floats(avg_times.tolist())
+			return simplejson.dumps({'avg_time_to_district':avg_times_list})
+
+	# --------------------
+	def GetNetPoints_JSON(self):
+		"""Get the 2D coordinates in some universal coordinate system for an overview.
+		Right now it's just the 1st two dimensions of the netpoints data."""
+
+		netpoints = self.pretty_sci_floats(self.netpoints[:,:2].tolist())
+		return simplejson.dumps({'netpoints':netpoints})
 
 	# --------------------
 	# PATHS
@@ -498,6 +549,69 @@ class PathObj(object):
 			return [[0.0, 0.0], [0.0, 0.0]]
 	
 	# --------------------
+	def calculate_regions_hit_within_time_window(self, tfr, idx_from, time_thresh, idx_to):
+		'''Returns mask for path of indices hit from a given idx that hit idx2 withtin 
+		time threshold t_thresh'''
+
+		# NOTE: Routine relies on path_index being 1d
+		# tfr = calculate_time_from_region(idx_from, 'from')
+
+		# Make a binary mask for parts of the path coming from idx and within
+		# the time window
+		within_time_window = N.logical_and(tfr < time_thresh, tfr > 0)
+
+		# Create a copy of this mask that contains numbers starting with 1
+		# for each continuous section (add a 0 on to the beginning so diff'd array is 
+		# same length as original) Changing to int type so cumsum will work in next op
+		wtw = N.concatenate((N.array([0],dtype='i'), within_time_window.astype('i')))
+		
+		# Apply time mask (default for numpy arrays is element-wise multiplication)
+		# NOTE: this algorithm using cumsum will start segment numbering at 1...!!
+		numbered_segments = N.cumsum( N.diff(wtw)==1 )*within_time_window
+
+		# Now find any segments that contain the target index and get rid of
+		# repeats
+		segments_hit = N.unique(numbered_segments[N.logical_and(within_time_window, self.path_info['path_index']==idx_to)])
+
+		# Expand to whole path segment that have hits in them (return logical array)
+		segments_hit_indices = N.in1d(numbered_segments, segments_hit)
+
+		return segments_hit_indices
+
+	# --------------------
+	def calculate_time_from_region(self, dist_idx, direction='from'):
+		'''Fills an array the same length as p_idx (path_index) with times
+		from a given district index (time in indices, not real time). This can
+		then be filtered and by time and used for looking at paths that go
+		between districts within a certain window, or gathered by district to
+		see the stats of time to other districts'''
+
+		# NOTE: Relies on path_index already being 1d (after ravel())
+
+		t_from_reg = N.zeros_like(self.path_info['path_index'])
+		count = 0
+		past_init = False
+
+		if direction == 'from':
+			idxs = N.arange(len(self.path_info['path_index']))
+		elif direction == 'to':
+			idxs = N.arange(len(self.path_info['path_index']))[::-1]
+		else:
+			return
+
+		for ii in idxs:
+			if self.path_info['path_index'][ii] == dist_idx:
+				# relying here on t_from_reg being initialized with zeros so can skip entry
+				past_init = True
+				count = 0
+			else:
+				if past_init:
+					count = count + 1
+					t_from_reg[ii] = count
+
+		return t_from_reg
+
+	# --------------------
 	def gather_coords_by_district_id(self):
 		
 		if not self.path_data_loaded:
@@ -510,7 +624,7 @@ class PathObj(object):
 		
 		for id in path_district_ids:
 			self.coords_by_id[id] = {}
-			idx_matches = N.nonzero( N.in1d( self.path_info['path_index'].ravel(), N.array([id]) ) )
+			idx_matches = N.nonzero( N.in1d( self.path_info['path_index'], N.array([id]) ) )
 			self.coords_by_id[id]['coords'] = self.path_info['path'][idx_matches]
 			self.coords_by_id[id]['time_idxs'] = idx_matches[0]
 
@@ -655,7 +769,7 @@ if __name__ == "__main__":
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
 	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130913_ex3d'
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130926_imgex'
+	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130927_img_d02'
 	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 

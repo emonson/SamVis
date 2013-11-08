@@ -94,6 +94,23 @@ class PathServer:
 			# Get district ID for path at a specified time
 			return self.path.GetDistrictFromPathTime_JSON(t)
 
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def netpoints(self):
+		
+		# 2D coordinates of overview of district centers
+		return self.path.GetNetPoints_JSON()
+
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def timesfromdistrict(self, district_id=None):
+		
+		if district_id is not None:
+			dist_id = int(district_id)
+			
+			# Average 1st passage times to other districts from this one
+			return self.path.GetTimesFromDistrict_JSON(dist_id)
+
 	# ------------
 	# Utility
 	
