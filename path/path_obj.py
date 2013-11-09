@@ -87,6 +87,13 @@ class PathObj(object):
 		for now. Returns {district_id:ID} JSON"""
 
 		if district_id is not None:
+			# At least for now going to use -1 as "not visited" average time
+			avg_times = N.zeros_like(self.d_info) - 1
+			
+			# First test whether district is ever visited
+			if district_id not in self.path_info['path_index']:
+				return simplejson.dumps({'avg_time_to_district':avg_times.tolist()})
+
 			# This increments time after leaving the chosen district and until it returns
 			if district_id in self.time_from_region:
 				tfr = self.time_from_region[district_id]
@@ -107,10 +114,9 @@ class PathObj(object):
 				if d not in visited:
 					visited[d] = True
 					times[d].append(t)
-			print tfr[self.path_info['path_index']==2]
+			print tfr[self.path_info['path_index']==109]
 			print times
-			# At least for now going to use -1 as "not visited" average time
-			avg_times = N.zeros_like(self.d_info) - 1
+
 			for d,vals in times.iteritems():
 				avg_times[d] = N.array(vals).mean()
 			print avg_times
