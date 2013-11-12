@@ -103,6 +103,13 @@ class PathServer:
 
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
+	def transitiongraph(self):
+		
+		# nodes (with ids and occupation times) and edges (with transition sums)
+		return self.path.GetTransitionGraph_JSON()
+
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
 	def timesfromdistrict(self, district_id=None):
 		
 		if district_id is not None:

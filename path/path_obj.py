@@ -3,6 +3,7 @@ import os
 import numpy as N
 import collections as C
 import path_json_read as PR
+from scipy.sparse import coo_matrix 
 
 # --------------------
 class PathObj(object):
@@ -130,6 +131,23 @@ class PathObj(object):
 
 		netpoints = self.pretty_sci_floats(self.netpoints[:,:2].tolist())
 		return simplejson.dumps({'netpoints':netpoints})
+
+	# --------------------
+	def GetTransitionGraph_JSON(self):
+		"""Get the graph/network corresponding to all path transitions between districts
+		in a format that's easy for D3 to parse."""
+
+		n_nodes = len(self.d_info)
+		edge_start = self.path_info['path_index'][:-1]
+		edge_end = self.path_info['path_index'][1:]
+		edge_mtx = coo_matrix((N.ones_like(edge_start),(edge_start,edge_end)), shape=(n_nodes,n_nodes)).tocsr()
+		# sum of csr almost 2x faster along rows
+		node_time = edge_mtx.sum(axis=1)		
+		edge_coo = edge_mtx.tocoo()
+		
+		graph_nodes = [{'name':int(i), 'time':int(node_time[i,0])} for i in N.unique(N.concatenate((edge_coo.row, edge_coo.col)))]
+		graph_edges = [{'source':int(r), 'target':int(c), 'value':int(v)} for r,c,v in zip(edge_coo.row, edge_coo.col, edge_coo.data) if r != c]
+		return simplejson.dumps({'nodes':graph_nodes, 'links':graph_edges})
 
 	# --------------------
 	# PATHS
