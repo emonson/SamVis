@@ -15,8 +15,8 @@
 }
 
 path.link {
-  fill: #999;
-  fill-opacity: 1.0;
+  fill: saddlebrown;
+  fill-opacity: 0.3;
   stroke: none;
 }
 
@@ -38,8 +38,27 @@ var force = d3.layout.force()
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+	.append("g")
+		.attr("transform", "translate(0,0)");
 
+// Clipping box for paths and ellipses which go outside of bounds
+// since vis is scaled right now to ellipse bounds and not paths
+svg.append("defs").append("clipPath")
+			.attr("id", "clip")
+		.append("rect")
+			.attr("width", width)
+			.attr("height", height);
+	
+// Drift vector layer right under ellipses
+var edgebox = svg.append("g")
+						.attr("clip-path", "url(#clip)");
+
+// Individual g elements in which to place ellipses and paths
+var nodebox = svg.append("g")
+						.attr("clip-path", "url(#clip)");
+
+// d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130927_img_d02/transitiongraph", function(error, graph) {
 d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130813/transitiongraph", function(error, graph) {
   
   force
@@ -47,17 +66,17 @@ d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130813/transitiongraph",
       .links(graph.edges)
       .start();
 
-  var link = svg.selectAll(".link")
+  var link = edgebox.selectAll(".link")
       .data(graph.edges)
     .enter().append("svg:path")
       .attr("class", "link");
 
-  var node = svg.selectAll(".node")
+  var node = nodebox.selectAll(".node")
       .data(graph.nodes)
     .enter().append("circle")
       .attr("class", "node")
       // .attr("r", 5)
-      .attr("r", function(d){ return 0.5*Math.sqrt(d.t); })
+      .attr("r", function(d){ return 0.25*Math.sqrt(d.t); })
       // .style("fill", function(d) { return color(d.group); })
       .call(force.drag);
 
@@ -71,6 +90,7 @@ d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130813/transitiongraph",
 //         .attr("y2", function(d) { return d.target.y; });
     
     link.attr("d", function(d) {
+    	var prec = 5;
     	var tx = d.target.x,
     			ty = d.target.y,
     			sx = d.source.x,
@@ -84,9 +104,9 @@ d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130813/transitiongraph",
     			syplus = sy + vy,
     			syminus = sy - vy;
     	return "M" +
-					tx + "," + ty + "L" +
-					sxplus + "," + syminus + "L" +
-					sxminus + "," + syplus + "Z";
+					tx.toPrecision(prec) + "," + ty.toPrecision(prec) + "L" +
+					sxplus.toPrecision(prec) + "," + syminus.toPrecision(prec) + "L" +
+					sxminus.toPrecision(prec) + "," + syplus.toPrecision(prec) + "Z";
     });
 
 // 		link.attr("d", function(d) {
