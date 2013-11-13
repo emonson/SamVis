@@ -3,67 +3,103 @@
 <style>
 
 .node {
-  stroke: #fff;
-  stroke-width: 1.5px;
+  stroke: #333;
+  stroke-width: 2px;
+  fill: #000;
+  fill-opacity: 0.1;
 }
 
 .link {
   stroke: #999;
-  stroke-opacity: .6;
+  stroke-opacity: 0.5;
 }
+
+path.link {
+  fill: #999;
+  fill-opacity: 1.0;
+  stroke: none;
+}
+
 
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-var width = 960,
-    height = 500;
+var width = 800,
+    height = 800;
 
 var color = d3.scale.category20();
 
 var force = d3.layout.force()
     .charge(-120)
-    .linkDistance(30)
+    .linkDistance(40) // .linkDistance(function(d){return 100/d.value;})
     .size([width, height]);
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
-var gg;
 
 d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130813/transitiongraph", function(error, graph) {
   
-  gg = graph;
-  
   force
       .nodes(graph.nodes)
-      .links(graph.links)
+      .links(graph.edges)
       .start();
 
   var link = svg.selectAll(".link")
-      .data(graph.links)
-    .enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+      .data(graph.edges)
+    .enter().append("svg:path")
+      .attr("class", "link");
 
   var node = svg.selectAll(".node")
       .data(graph.nodes)
     .enter().append("circle")
       .attr("class", "node")
-      .attr("r", 5)
-      .style("fill", function(d) { return color(d.group); })
+      // .attr("r", 5)
+      .attr("r", function(d){ return 0.5*Math.sqrt(d.t); })
+      // .style("fill", function(d) { return color(d.group); })
       .call(force.drag);
 
   node.append("title")
-      .text(function(d) { return d.name; });
+      .text(function(d) { return d.i; });
 
   force.on("tick", function() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+//     link.attr("x1", function(d) { return d.source.x; })
+//         .attr("y1", function(d) { return d.source.y; })
+//         .attr("x2", function(d) { return d.target.x; })
+//         .attr("y2", function(d) { return d.target.y; });
+    
+    link.attr("d", function(d) {
+    	var tx = d.target.x,
+    			ty = d.target.y,
+    			sx = d.source.x,
+    			sy = d.source.y,
+    			v = 0.5*Math.sqrt(d.v);
+    	var d = Math.sqrt((tx-sx)*(tx-sx) + (ty-sy)*(ty-sy)),
+    			vx = v*(ty-sy)/d,
+    			vy = v*(tx-sx)/d;
+    	var sxplus = sx + vx,
+    			sxminus = sx - vx,
+    			syplus = sy + vy,
+    			syminus = sy - vy;
+    	return "M" +
+					tx + "," + ty + "L" +
+					sxplus + "," + syminus + "L" +
+					sxminus + "," + syplus + "Z";
+    });
 
+// 		link.attr("d", function(d) {
+//         var dx = d.target.x - d.source.x,
+//             dy = d.target.y - d.source.y,
+//             dr = 5*Math.sqrt(dx * dx + dy * dy);
+//         return "M" + 
+//             d.source.x + "," + 
+//             d.source.y + "A" + 
+//             dr + "," + dr + " 0 0,1 " + 
+//             d.target.x + "," + 
+//             d.target.y;
+//     });
     node.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
   });

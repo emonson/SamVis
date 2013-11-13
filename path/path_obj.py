@@ -141,13 +141,13 @@ class PathObj(object):
 		edge_start = self.path_info['path_index'][:-1]
 		edge_end = self.path_info['path_index'][1:]
 		edge_mtx = coo_matrix((N.ones_like(edge_start),(edge_start,edge_end)), shape=(n_nodes,n_nodes)).tocsr()
-		# sum of csr almost 2x faster along rows
-		node_time = edge_mtx.sum(axis=1)		
+		# sum of csr almost 2x faster along rows. Changing from N.matrix to N.array and ravel()ing
+		node_time = edge_mtx.sum(axis=1).A.ravel()	
 		edge_coo = edge_mtx.tocoo()
-		
-		graph_nodes = [{'name':int(i), 'time':int(node_time[i,0])} for i in N.unique(N.concatenate((edge_coo.row, edge_coo.col)))]
-		graph_edges = [{'source':int(r), 'target':int(c), 'value':int(v)} for r,c,v in zip(edge_coo.row, edge_coo.col, edge_coo.data) if r != c]
-		return simplejson.dumps({'nodes':graph_nodes, 'links':graph_edges})
+
+		graph_nodes = [{'i':int(i), 't':int(t)} for i,t in enumerate(node_time)]
+		graph_edges = [{'source':int(r), 'target':int(c), 'v':int(v)} for r,c,v in zip(edge_coo.row, edge_coo.col, edge_coo.data) if r != c]
+		return simplejson.dumps({'nodes':graph_nodes, 'edges':graph_edges})
 
 	# --------------------
 	# PATHS
