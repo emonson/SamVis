@@ -65,4 +65,5 @@ window.onload = function() {
 	
 	// Generate initial vis
 	DISTRICT.visgen(district_id);
+	NETWORK.visgen();
 };

@@ -82,6 +82,7 @@ d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130813/transitiongraph",
       .attr("r", function(d){ return 0.25*Math.sqrt(d.t); })
       // .style("fill", function(d) { return color(d.group); })
       .call(force.drag)
+      // keep the node drag mousedown from triggering pan
     	.on("mousedown", function() { d3.event.stopPropagation(); });
 
   node.append("title")
