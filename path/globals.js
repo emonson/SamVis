@@ -37,8 +37,8 @@ var GLOBALS = (function($,parseUri){
 	// Keeping value for type of ellipses to grab/display in globals for now
 	// TODO: should set combo boxes from these or grab combo box defaults and store here...
 	globals.ellipse_type = 'diffusion';
-	globals.ellipse_color = 'domain';
-	globals.path_color = 'domain';
+	globals.ellipse_color = 'gray';
+	globals.path_color = 'brown';
 	
 	// Path and ellipse data
 	globals.path_pairs = {};

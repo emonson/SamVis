@@ -5,11 +5,11 @@ var NETWORK = (function(d3, $, g){
 
 	var net = { version: '0.0.1' };
 
-	var w = 300,
-			h = 300,
+	var w = 350,
+			h = 350,
 			fill = d3.scale.category20();
 
-	var svg = d3.select("body").append("svg")
+	var svg = d3.select("#network_overview").append("svg")
 			.attr("width", w)
 			.attr("height", h)
 		.append("g")
@@ -22,10 +22,12 @@ var NETWORK = (function(d3, $, g){
 			.attr("height", h);
 
 	var vis = svg.append("g");
-
-	var zoom = function() {
+	
+	// TODO: track down why this doesn't work if you declare as
+	// var zoom = function() {...
+	function zoom() {
 		vis.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-	}
+	};
 
 	var force = d3.layout.force()
 			.size([w, h])
@@ -36,6 +38,7 @@ var NETWORK = (function(d3, $, g){
 	net.visgen = function() {
 		
 		d3.json( g.data_proxy_root + '/' + g.dataset + '/transitiongraph', function(error, graph) {
+		// d3.json("http://emo2.trinity.duke.edu/remote9004/json_20130813/transitiongraph", function(error, graph) {
 	
 			force
 					.nodes(graph.nodes)

@@ -16,7 +16,7 @@
 #right_panel {
 	float: left;
 	width: 400px;
-	margin: 10px;
+	margin: 20px;
 }
 
 #footer {
@@ -93,5 +93,6 @@ path.link {
 }
 
 .overlay {
-	fill: white;
+	fill: none;
+	pointer-events: all;
 }
