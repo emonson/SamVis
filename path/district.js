@@ -480,7 +480,7 @@ var DISTRICT = (function(d3, $, g){
 						// TODO: If I'm testing this way, I need to reset these values to -1 when switching data sets...
 						if (g.time_center < 0 || g.time_width < 0) {
 							g.time_center = 0;
-							g.time_width = 1000;
+							g.time_width = 400;
 							$("#time_center_slider").slider({	'min': 0,
 																				'max': path_info.t_max_idx,
 																				'value': g.time_center});
@@ -489,8 +489,6 @@ var DISTRICT = (function(d3, $, g){
 																				'max': Math.log(path_info.t_max_idx),
 																				'step': (Math.log(path_info.t_max_idx)-Math.log(2))/1000,
 																				'value': Math.log(g.time_width)});
-							g.time_center = 0;
-							g.time_width = 1000;
 							g.time_range[0] = g.time_center - g.time_width/2.0;
 							g.time_range[1] = g.time_center + g.time_width/2.0;
 							g.n_districts = ellipse_data.n_districts;

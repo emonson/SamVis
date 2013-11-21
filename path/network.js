@@ -5,8 +5,8 @@ var NETWORK = (function(d3, $, g){
 
 	var net = { version: '0.0.1' };
 
-	var w = 350,
-			h = 350,
+	var w = 300,
+			h = 300,
 			fill = d3.scale.category20();
 
 	var svg = d3.select("#network_overview").append("svg")

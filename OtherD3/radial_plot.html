@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+text {
+  font: 6pt sans-serif;
+  fill: #EDCDAD;
+  baseline-shift: 25%;
+}
+
+rect.bkgd {
+	stroke: none;
+	fill: #F3F1DB;
+}
+
+circle {
+  fill: none;
+  stroke: #BBB;
+  stroke-width: 1.0;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var min_year = 1869,
+		max_year = 2018;
+var data = [[1880, 1940], [1890, 1950], [1900, 1960], [1910, 1970]];
+var years = d3.range(min_year, max_year);
+var noisy_years = d3.range(min_year, max_year)
+										.map(function(t) { return t + 0.2*Math.random(); });
+
+var width = 1800,
+    height = 2400,
+    label_angle = 30,
+    center_x = width/2,
+    center_y = height*(2/3), // origin at the top left
+    corner_dist = Math.sqrt(center_x*center_x + center_y*center_y);
+
+var year_scale = d3.scale.linear()
+    .domain([d3.min(years), years[Math.floor(0.95*years.length)], d3.max(years)])
+    .range([0, 0.92*corner_dist, corner_dist]);
+
+var angle_scale = d3.scale.linear()
+		.domain([0, data.length])
+		.range([-45-label_angle, 45-label_angle]);
+
+var line = d3.svg.line.radial()
+    .radius(function(d,i) { return year_scale(d); })
+    .angle(function(d,i) { return angle_scale(i); });
+
+var bkgd = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var svg = bkgd.append("g")
+	.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+  	.attr("class", "bkgd");
+
+var gr = bkgd.append("g")
+    .attr("class", "r axis")
+    .attr("transform", "translate(" + width / 2 + "," + height * (2/3) + ")rotate("+label_angle+")")
+  .selectAll("g")
+    .data(noisy_years)
+  .enter().append("g");
+
+gr.append("circle")
+    .attr("r", function(d){return year_scale(d);});
+
+gr.append("text")
+    .attr("y", function(d) { return -year_scale(d); })
+    .style("text-anchor", "middle")
+    .text(function(d,i) { return i ? years[i] : ""; });
+    
+</script>
