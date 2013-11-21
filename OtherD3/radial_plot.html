@@ -15,8 +15,13 @@ rect.bkgd {
 
 circle {
   fill: none;
-  stroke: #BBB;
   stroke-width: 1.0;
+}
+
+.lifeline {
+  fill: none;
+  stroke: url(#gradient);
+  stroke-width: 2.0;
 }
 
 </style>
@@ -25,54 +30,118 @@ circle {
 <script>
 
 var min_year = 1869,
-		max_year = 2018;
-var data = [[1880, 1940], [1890, 1950], [1900, 1960], [1910, 1970]];
+		max_year = 2018,
+		spacing_variation = 0.2
+		n_lives = 40;
 var years = d3.range(min_year, max_year);
 var noisy_years = d3.range(min_year, max_year)
-										.map(function(t) { return t + 0.2*Math.random(); });
+										.map(function(t) { return t + spacing_variation*Math.random(); });
+// Create a reverse lookup for the noisy years values by their base year
+var noisy_by_year = {};
+for (var ii=0; ii < noisy_years.length; ii++) {
+	noisy_by_year[years[ii]] = noisy_years[ii];
+}
+
+// Generate sets index, birth year, death year
+var birth_scale = d3.scale.linear()
+			.domain([0, 1])
+			.range([1871, 1970]);
+var life_span_scale = d3.scale.linear()
+			.domain([0, 1])
+			.range([35, 95]);
+var life_spans = [];
+// Only store whole number years so can do lookup for noisy years
+for (var ii=0; ii < n_lives; ii++) {
+	var born = Math.round(birth_scale(Math.random()));
+	var lived = Math.round(life_span_scale(Math.random()));
+	life_spans.push([ii, born, born+lived]); 
+}
 
 var width = 1800,
     height = 2400,
     label_angle = 30,
+    label_radians = 2*Math.PI*(label_angle/360),
     center_x = width/2,
     center_y = height*(2/3), // origin at the top left
     corner_dist = Math.sqrt(center_x*center_x + center_y*center_y);
 
+// Display scales
 var year_scale = d3.scale.linear()
-    .domain([d3.min(years), years[Math.floor(0.95*years.length)], d3.max(years)])
-    .range([0, 0.92*corner_dist, corner_dist]);
+    .domain(d3.extent(years))
+    .range([0, corner_dist]);
 
 var angle_scale = d3.scale.linear()
-		.domain([0, data.length])
-		.range([-45-label_angle, 45-label_angle]);
+		.domain([0, life_spans.length])
+		.range([-Math.PI/4-label_radians, Math.PI/4-label_radians]);
+		
+var angle_scale_degrees = d3.scale.linear()
+		.domain([0, life_spans.length])
+		.range([225-label_angle, 315-label_angle]);
+		
+var ring_color_scale = d3.scale.linear()
+		.domain([0, spacing_variation])
+		.range(["#dadada", "#cacaca"]);
 
-var line = d3.svg.line.radial()
-    .radius(function(d,i) { return year_scale(d); })
-    .angle(function(d,i) { return angle_scale(i); });
-
+// SVG start
 var bkgd = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
+// Gradient will be defined over a fixed number of years
+// Not ideal, but the best I can do right now...
+bkgd.append("linearGradient")
+      .attr("id", "gradient")
+      .attr("gradientUnits", "userSpaceOnUse")
+      .attr("x1", year_scale(noisy_by_year[1870])).attr("y1", 0)
+      .attr("x2", year_scale(noisy_by_year[1940])).attr("y2", 0)
+    .selectAll("stop")
+      .data([
+        {offset: "0%", color: "black", opacity: 1},
+        {offset: "100%", color: "black", opacity: 0}
+      ])
+    .enter().append("stop")
+      .attr("offset", function(d) { return d.offset; })
+      .attr("stop-opacity", function(d) { return d.opacity; })
+      .attr("stop-color", function(d) { return d.color; });
+      
 var svg = bkgd.append("g")
-	.append("rect")
+	.append("svg:rect")
     .attr("width", width)
     .attr("height", height)
   	.attr("class", "bkgd");
 
-var gr = bkgd.append("g")
+var rings = bkgd.append("g")
     .attr("class", "r axis")
-    .attr("transform", "translate(" + width / 2 + "," + height * (2/3) + ")rotate("+label_angle+")")
-  .selectAll("g")
+    .attr("transform", "translate(" + center_x + "," + center_y + ")rotate("+label_angle+")")
+  .selectAll("treerings")
     .data(noisy_years)
   .enter().append("g");
 
-gr.append("circle")
-    .attr("r", function(d){return year_scale(d);});
+rings.append("svg:circle")
+    .attr("r", function(d){return year_scale(d);})
+    .attr("stroke", function(d,i){ return ring_color_scale(d-years[i]); });
 
-gr.append("text")
+rings.append("text")
     .attr("y", function(d) { return -year_scale(d); })
     .style("text-anchor", "middle")
     .text(function(d,i) { return i ? years[i] : ""; });
     
+var bars = bkgd.append("g")
+    .attr("transform", "translate(" + center_x + "," + center_y + ")rotate("+label_angle+")")
+  .selectAll("lifelines")
+    .data(life_spans)
+  .enter().append("g")
+  	.attr("transform", function(d,i){return "rotate("+angle_scale_degrees(i)+")translate("+year_scale(noisy_by_year[d[1]])+")";})
+  .append("svg:line")
+    .attr("class", "lifeline")
+    .attr("y1", 0)
+    .attr("y2", 0)
+    .attr("x1", 0)
+    .attr("x2", function(d){
+    							// Need to peg the years at max and min range for lookup
+    							var birth = d[1] < min_year ? min_year : d[1];
+    							var death = d[2] > max_year-1 ? max_year-1 : d[2];
+    							return year_scale(noisy_by_year[death])-year_scale(noisy_by_year[birth]);
+    						});
+
 </script>
