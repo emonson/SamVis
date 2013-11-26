@@ -115,12 +115,9 @@ class PathObj(object):
 				if d not in visited:
 					visited[d] = True
 					times[d].append(t)
-			print tfr[self.path_info['path_index']==109]
-			print times
 
 			for d,vals in times.iteritems():
 				avg_times[d] = N.array(vals).mean()
-			print avg_times
 			avg_times_list = self.pretty_sci_floats(avg_times.tolist())
 			return simplejson.dumps({'avg_time_to_district':avg_times_list})
 

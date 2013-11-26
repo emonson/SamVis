@@ -6,8 +6,15 @@ var NETWORK = (function(d3, $, g){
 	var net = { version: '0.0.1' };
 
 	var w = 300,
-			h = 300,
-			fill = d3.scale.category20();
+			h = 300;
+	
+	var c_scale = d3.scale.linear()
+									.domain([0, 1])
+									.range(["#F00", "#000"]);
+
+	var zoom = function() {
+		vis.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	};
 
 	var svg = d3.select("#network_overview").append("svg")
 			.attr("width", w)
@@ -23,10 +30,15 @@ var NETWORK = (function(d3, $, g){
 
 	var vis = svg.append("g");
 	
-	// TODO: track down why this doesn't work if you declare as
-	// var zoom = function() {...
-	function zoom() {
-		vis.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	var set_node_fill_color = function(d,i) {
+		switch(g.node_color) {
+// 			case 'domain':
+// 				return c_scale(d[5]);
+// 				break;
+			default:
+				return 'black';
+				break;
+		}
 	};
 
 	// Define the force-directed layout algorithm
@@ -36,13 +48,11 @@ var NETWORK = (function(d3, $, g){
 			.gravity(0.15)
 			.linkDistance(30);
 		
-	var update_force = function() {
-		
+	var update_force = function() {		
 		// Set the data for the force-directed layout
-		force
-				.nodes(g.nodes)
-				.links(g.edges)
-				.start();
+		force.nodes(g.nodes)
+				 .links(g.edges)
+				 .start();
 	};
 	
 	net.visgen = function() {
@@ -65,24 +75,34 @@ var NETWORK = (function(d3, $, g){
 		
 		// Edges
 		var link = vis.selectAll(".link")
-				.data(g.edges, function(d){return d.i;})
-			.enter().append("svg:path")
+				.data(g.edges, function(d){return d.i;});
+		
+		link.enter()
+			.append("svg:path")
 				.attr("class", "link");
+		
+		link.exit()
+			.remove();
 		
 		// Nodes
 		var node = vis.selectAll(".node")
-				.data(g.nodes, function(d){return d.i;})
-			.enter().append("circle")
+				.data(g.nodes, function(d){return d.i;});
+				
+		node.enter()
+			.append("circle")
 				.attr("class", "node")
+				.attr("id", function(d) {return "n_" + d.i;})
 				// .attr("r", 5)
 				.attr("r", function(d){ return 0.25*Math.sqrt(d.t); })
-				// .style("fill", function(d) { return color(d.group); })
+				// .style("fill", set_node_fill_color )
 				.call(force.drag)
 				// keep the node drag mousedown from triggering pan
-				.on("mousedown", function() { d3.event.stopPropagation(); });
-
-		node.append("title")
+				.on("mousedown", function() { d3.event.stopPropagation(); })
+			.append("title")
 				.text(function(d) { return d.i; });
+		
+		node.exit()
+			.remove();
 
 		// Time step update function used in force-directed layout
 		force.on("tick", function() {
@@ -110,9 +130,42 @@ var NETWORK = (function(d3, $, g){
 			node.attr("cx", function(d) { return d.x; })
 					.attr("cy", function(d) { return d.y; });
 	
-		}); // force.on	};
+		}); // force.on
 	};
 	
+	net.update_node_scalars = function() {
+		
+		d3.json( g.data_proxy_root + '/' + g.dataset + '/timesfromdistrict?district_id='+g.district_id, function(error, data) {
+
+			g.nodescalars = data.avg_time_to_district;
+			c_scale.domain([0, d3.mean(g.nodescalars)/2]);
+			net.update_node_colors();
+			net.highlight_selected_node();
+			
+		}); // d3.json()
+		
+	};
+	
+	net.update_node_colors = function() {
+	
+		// Update colors in both visualizations when this returns
+		svg.selectAll(".node")
+				.attr("stroke", function(d,i){return c_scale(g.nodescalars[d.i]);});
+		
+	};
+
+	net.highlight_selected_node = function() {
+		
+		// Unhighlight previously selected node
+		// TODO: use g.prev_district_id
+		d3.select(".nd_selected")
+			.classed("nd_selected", false);
+		
+		// Highlight node corresponding to current selection
+		d3.select("#n_" + g.district_id)
+			.classed("nd_selected", true);
+	};
+
 	return net;
 
 }(d3, jQuery, GLOBALS));

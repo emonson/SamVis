@@ -54,6 +54,8 @@ var GLOBALS = (function($,parseUri){
 	// Network (overview) data
 	globals.nodes = {};
 	globals.edges = {};
+	globals.nodescalars = [];
+	globals.selectColor = "gold";
 
 	return globals;
 
