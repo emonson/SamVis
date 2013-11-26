@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Area Chart (Radial)</title>
+    <script type="text/javascript" src="http://d3js.org/d3.v2.min.js?2.10.0"></script>
+    <style type="text/css">
+
+.area {
+  fill: #FFF;
+}
+
+.line {
+  fill: none;
+  stroke: #CCC;
+  stroke-width: 1px;
+}
+
+.axisline {
+  fill: none;
+  stroke: #955;
+  stroke-width: 3.0px;
+}
+
+.guideline {
+  fill: none;
+  stroke: #DDD;
+  stroke-width: 1.0px;
+}
+
+.subcircle {
+  fill: #966;
+  stroke: none;
+  stroke-width: 0px;
+}
+
+.submedcircle {
+  fill: #FFF;
+  stroke: #966;
+  stroke-width: 0.5px;
+}
+
+.metricname {
+  font: 10px sans-serif;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+function fakename()
+{
+    var text = "";
+    var caps = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var lowers = "abcdefghijklmnopqrstuvwxyz";
+
+    text += caps.charAt(Math.floor(Math.random() * caps.length));
+    lowerlen = Math.floor(5*Math.random()) + 2;
+    for( var i=0; i < lowerlen; i++ )
+        text += lowers.charAt(Math.floor(Math.random() * lowers.length));
+
+    if (Math.random() < 0.4) {
+      text += " ";
+      text += caps.charAt(Math.floor(Math.random() * caps.length));
+      lowerlen = Math.floor(5*Math.random()) + 1;
+      for( var i=0; i < lowerlen; i++ )
+          text += lowers.charAt(Math.floor(Math.random() * lowers.length));
+    }
+    
+    return text;
+}
+
+var r = 660 / 2,
+    bd = 100,
+    npts = 100,
+    data = d3.range(npts).map(function(i) { return 0.1*Math.random() + .8 + Math.sin((360*(i/npts)) / 20 * Math.PI) / 14; }),
+    data_names = d3.range(npts).map(function() { return fakename();});
+
+// Want the line to connect between last and first points...
+data.push(data[0]);
+
+var cat_data = d3.range(10).map(Math.random),
+    color = d3.scale.category20b(),
+    donut = d3.layout.pie(),
+    piearc = d3.svg.arc().innerRadius(r * 1.05).outerRadius(r * 1.05 + 6);
+
+var svg = d3.select("body").append("svg")
+    .data([data])
+    .attr("width", r * 2 + 2 * bd)
+    .attr("height", r * 2 + 2 * bd)
+  .append("g")
+    .attr("transform", "translate(" + (r + bd) + "," + (r + bd) + ")");
+
+var arcs = svg.selectAll("g.arc")
+    .data(donut(cat_data))
+  .enter().append("g")
+    .attr("class", "arc");
+
+arcs.append("path")
+    .attr("fill", function(d, i) { return color(i); })
+    .attr("opacity", "0.4")
+    .attr("d", piearc);
+
+svg.selectAll("guideline")
+      .data(data.slice(0,-1))
+    .enter().append("g")
+      .attr("class", "guide")
+      .attr("transform", function(d, i) { return "rotate(" + (360*(i/npts)-90) + ")"; })
+    .append("line")
+      .attr("class", "guideline")
+      .attr("x1", function(d) {return r*d*0.5 + (30*Math.random()-35);})
+      .attr("y1", 0)
+      .attr("x2", function(d) {return r*d + (30*Math.random()+10);})
+      .attr("y2", 0);
+
+svg.append("path")
+    .attr("class", "area")
+    .attr("d", d3.svg.area.radial()
+      .innerRadius(function(d) {return (r * d) / 2; })
+      .outerRadius(function(d) { return r * d; })
+      .angle(function(d, i) { return (360*(i/npts)) / 180 * Math.PI; })
+      .interpolate('cardinal-closed'));
+
+svg.append("path")
+    .attr("class", "line")
+    .attr("d", d3.svg.line.radial()
+      .radius(function(d) { return (0.5*(r * d)); })
+      .angle(function(d, i) { return (360*(i/npts)) / 180 * Math.PI; })
+      .interpolate('cardinal-closed'));
+
+svg.append("path")
+    .attr("class", "line")
+    .attr("d", d3.svg.line.radial()
+      .radius(function(d) { return (0.75*(r * d)); })
+      .angle(function(d, i) { return (360*(i/npts)) / 180 * Math.PI; })
+      .interpolate('cardinal-closed'));
+
+svg.append("path")
+    .attr("class", "line")
+    .attr("d", d3.svg.line.radial()
+      .radius(function(d) { return (1.0*(r * d)); })
+      .angle(function(d, i) { return (360*(i/npts)) / 180 * Math.PI; })
+      .interpolate('cardinal-closed'));
+
+svg.selectAll("subpop")
+      .data(data.slice(0,-1))
+    .enter().append("g")
+      .attr("class", "subpop")
+      .attr("transform", function(d, i) { return "rotate(" + (360*(i/npts)-90) + ")"; })
+    .append("line")
+      .attr("class", "axisline")
+      .attr("x1", function(d) {return r*d*0.5 + (20*Math.random()-5);})
+      .attr("y1", 0)
+      .attr("x2", function(d) {return r*d + (30*Math.random()-25);})
+      .attr("y2", 0);
+
+svg.selectAll("submax")
+      .data(data.slice(0,-1))
+    .enter().append("g")
+      .attr("class", "submax")
+      .attr("transform", function(d, i) { return "rotate(" + (360*(i/npts)-90) + ")"; })
+    .append("circle")
+      .attr("class", "subcircle")
+      .attr("cx", function(d) {return r*d + 10*Math.random();})
+      .attr("cy", 0)
+      .attr("r", 1.5);
+
+svg.selectAll("submed")
+      .data(data.slice(0,-1))
+    .enter().append("g")
+      .attr("class", "submed")
+      .attr("transform", function(d, i) { return "rotate(" + (360*(i/npts)-90) + ")"; })
+    .append("circle")
+      .attr("class", "submedcircle")
+      .attr("cx", function(d) {return r*d*0.75 + 20*Math.random()-10;})
+      .attr("cy", 0)
+      .attr("r", 2.5);
+
+svg.selectAll("submin")
+      .data(data.slice(0,-1))
+    .enter().append("g")
+      .attr("class", "submin")
+      .attr("transform", function(d, i) { return "rotate(" + (360*(i/npts)-90) + ")"; })
+    .append("circle")
+      .attr("class", "subcircle")
+      .attr("cx", function(d) {return r*d*0.5 - 10*Math.random();})
+      .attr("cy", 0)
+      .attr("r", 1.5);
+
+svg.selectAll("metricname")
+      .data(data_names)
+    .enter().append("g")
+      .attr("class", "metricname")
+      .attr("transform", function(d, i) { return "rotate(" + (360*(i/npts)-90) + ")"; })
+    .append("text")
+      .attr("class", "metrixtext")
+      .attr("dx", function(d, i) { return 360*(i/npts)-180 < 0 ? r*1.05+10 : -r*1.05-10;} )
+      .attr("dy", "0.31em")
+      .attr("text-anchor", function(d, i) { return 360*(i/npts)-180 < 0 ? "start" : "end"; })
+      .attr("transform", function(d, i) { return 360*(i/npts)-180 < 0 ? null : "rotate(180)"; })
+      .text(function(d) { return d; });
+
+    </script>
+  </body>
+</html>
