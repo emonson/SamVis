@@ -50,6 +50,10 @@ var GLOBALS = (function($,parseUri){
 	globals.district_id = -1;
 	globals.prev_district = -1;
 	globals.R_old = "1.0, 0.0, 0.0, 1.0";
+	
+	// Network (overview) data
+	globals.nodes = {};
+	globals.edges = {};
 
 	return globals;
 

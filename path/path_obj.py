@@ -146,7 +146,7 @@ class PathObj(object):
 		edge_coo = edge_mtx.tocoo()
 
 		graph_nodes = [{'i':int(i), 't':int(t)} for i,t in enumerate(node_time)]
-		graph_edges = [{'source':int(r), 'target':int(c), 'v':int(v)} for r,c,v in zip(edge_coo.row, edge_coo.col, edge_coo.data) if r != c]
+		graph_edges = [{'source':int(r), 'target':int(c), 'v':int(v), 'i':int(i)} for i,(r,c,v) in enumerate(zip(edge_coo.row, edge_coo.col, edge_coo.data)) if r != c]
 		return simplejson.dumps({'nodes':graph_nodes, 'edges':graph_edges})
 
 	# --------------------
