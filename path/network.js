@@ -32,9 +32,20 @@ var NETWORK = (function(d3, $, g){
 	
 	var set_node_fill_color = function(d,i) {
 		switch(g.node_color) {
-// 			case 'domain':
-// 				return c_scale(d[5]);
-// 				break;
+			case 'time':
+				return c_scale(g.nodescalars[d.i]);
+				break;
+			default:
+				return 'black';
+				break;
+		}
+	};
+
+	var set_node_stroke_color = function(d,i) {
+		switch(g.node_color) {
+			case 'time':
+				return c_scale(g.nodescalars[d.i]);
+				break;
 			default:
 				return 'black';
 				break;
@@ -94,8 +105,12 @@ var NETWORK = (function(d3, $, g){
 				.attr("id", function(d) {return "n_" + d.i;})
 				// .attr("r", 5)
 				.attr("r", function(d){ return 0.25*Math.sqrt(d.t); })
-				// .style("fill", set_node_fill_color )
+				.attr("fill", set_node_fill_color )
+				.attr("stroke", set_node_stroke_color )
 				.call(force.drag)
+				.on('click', function(d) {
+							$.publish("/network/node_click", d.i);
+						})
 				// keep the node drag mousedown from triggering pan
 				.on("mousedown", function() { d3.event.stopPropagation(); })
 			.append("title")
@@ -133,11 +148,12 @@ var NETWORK = (function(d3, $, g){
 		}); // force.on
 	};
 	
-	net.update_node_scalars = function() {
+	net.update_node_scalars = function(district_id) {
 		
-		d3.json( g.data_proxy_root + '/' + g.dataset + '/timesfromdistrict?district_id='+g.district_id, function(error, data) {
+		d3.json( g.data_proxy_root + '/' + g.dataset + '/timesfromdistrict?district_id='+ district_id, function(error, data) {
 
 			g.nodescalars = data.avg_time_to_district;
+			// NOTE: Rescaling colors with each time range!!!
 			c_scale.domain([0, d3.mean(g.nodescalars)/2]);
 			net.update_node_colors();
 			net.highlight_selected_node();
@@ -150,7 +166,8 @@ var NETWORK = (function(d3, $, g){
 	
 		// Update colors in both visualizations when this returns
 		svg.selectAll(".node")
-				.attr("stroke", function(d,i){return c_scale(g.nodescalars[d.i]);});
+				.attr("fill", set_node_fill_color )
+				.attr("stroke", set_node_stroke_color );
 		
 	};
 

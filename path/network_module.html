@@ -27,6 +27,8 @@
 			// DEBUG -- usually set in district.js
 			GLOBALS.district_id = 190;
 			NETWORK.update_node_scalars();
+			
+			$.subscribe("/network/node_click", NETWORK.update_node_scalars);
 		};
 		
 		</script>

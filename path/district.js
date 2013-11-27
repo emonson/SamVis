@@ -230,7 +230,8 @@ var DISTRICT = (function(d3, $, g){
 	dis.time_center_click_fcn = function(){
 		d3.json( g.data_proxy_root + '/' + g.dataset + '/pathtimedistrict?time=' + g.time_center, function(district_data) {
 		var district_id = district_data.district_id;
-		dis.visgen(district_id);
+		// NOTE: treating time center finding like district click
+		$.publish("/district/ellipse_click", district_id);
 		});
 	};
 

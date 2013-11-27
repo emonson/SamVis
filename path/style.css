@@ -82,8 +82,7 @@ label {
 
 .node {
   stroke-width: 2px;
-  fill: #000;
-  fill-opacity: 0.3;
+  fill-opacity: 0.5;
 }
 
 .nd_selected {

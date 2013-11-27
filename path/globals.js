@@ -56,6 +56,7 @@ var GLOBALS = (function($,parseUri){
 	globals.edges = {};
 	globals.nodescalars = [];
 	globals.selectColor = "gold";
+	globals.node_color = "time";
 
 	return globals;
 
