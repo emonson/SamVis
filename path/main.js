@@ -20,7 +20,17 @@ window.onload = function() {
 					$.publish("/time_width_slider/slide", ui);
 				}  
 	});
+	$('#transit_time_color_scale_slider').slider({
+		min: 0,
+		max: 1000,
+		value: 0,
+		slide: function( event, ui ) {
+					$.publish("/transit_time_color_scale_slider/slide", ui);
+				}  
+	});
 	
+
+
 	// Set combo boxes to default values before setting callback so can change defaults
 	// in globals.js rather than in the html
 	$("#ellipse_type").val(GLOBALS.ellipse_type);
@@ -56,6 +66,7 @@ window.onload = function() {
 	$.subscribe("/district/ellipse_hover", DISTRICT.el_hover);
 	$.subscribe("/time_center_slider/slide", DISTRICT.time_center_slide_fcn);
 	$.subscribe("/time_width_slider/slide", DISTRICT.time_width_slide_fcn);
+	$.subscribe("/transit_time_color_scale_slider/slide", NETWORK.transit_time_color_scale_slide_fcn);
 	$.subscribe("/ellipse_type/change", DISTRICT.ellipse_type_change_fcn);
 	$.subscribe("/ellipse_color/change", DISTRICT.ellipse_color_change_fcn);
 	$.subscribe("/path_color/change", DISTRICT.path_color_change_fcn);

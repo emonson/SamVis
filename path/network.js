@@ -74,7 +74,15 @@ var NETWORK = (function(d3, $, g){
 			// Store network data in global variable stash
 			g.nodes = graph.nodes;
 			g.edges = graph.edges;
-		
+			
+			// DEBUG
+			var time_limit = 25000;
+			// width slider log scale, but always display actual numbers
+			$("#transit_time_color_scale_slider").slider({	'min': Math.log(2),
+																'max': Math.log(time_limit),
+																'step': (Math.log(time_limit)-Math.log(2))/1000,
+																'value': (Math.log(time_limit)-Math.log(2))/10});
+																
 		update_force();
 		net.update_network();
 			
@@ -153,8 +161,6 @@ var NETWORK = (function(d3, $, g){
 		d3.json( g.data_proxy_root + '/' + g.dataset + '/timesfromdistrict?district_id='+ district_id, function(error, data) {
 
 			g.nodescalars = data.avg_time_to_district;
-			// NOTE: Rescaling colors with each time range!!!
-			c_scale.domain([0, d3.mean(g.nodescalars)/2]);
 			net.update_node_colors();
 			net.highlight_selected_node();
 			
@@ -181,6 +187,21 @@ var NETWORK = (function(d3, $, g){
 		// Highlight node corresponding to current selection
 		d3.select("#n_" + g.district_id)
 			.classed("nd_selected", true);
+	};
+
+	net.transit_time_color_scale_slide_fcn = function(ui) {
+	
+		var exp_value = Math.exp(ui.value);
+		$( "#transit_time_color_limit" ).val( Math.round(exp_value) );
+		// values in global variable (logarithmic scale)
+		g.transit_time_color_limit = exp_value;
+		// also update domain of color scale for coloring by time
+		c_scale.domain([0, exp_value]);
+		
+		// Update network visualization
+		net.update_node_colors();
+		net.highlight_selected_node();
+		
 	};
 
 	return net;
