@@ -74,17 +74,11 @@ var NETWORK = (function(d3, $, g){
 			// Store network data in global variable stash
 			g.nodes = graph.nodes;
 			g.edges = graph.edges;
+			// This time max index is redundant with info passed with path
+			g.t_max_idx = graph.t_max_idx
 			
-			// DEBUG
-			var time_limit = 25000;
-			// width slider log scale, but always display actual numbers
-			$("#transit_time_color_scale_slider").slider({	'min': Math.log(2),
-																'max': Math.log(time_limit),
-																'step': (Math.log(time_limit)-Math.log(2))/1000,
-																'value': (Math.log(time_limit)-Math.log(2))/10});
-																
-		update_force();
-		net.update_network();
+			update_force();
+			net.update_network();
 			
 		}); // d3.json()
 		
@@ -161,6 +155,23 @@ var NETWORK = (function(d3, $, g){
 		d3.json( g.data_proxy_root + '/' + g.dataset + '/timesfromdistrict?district_id='+ district_id, function(error, data) {
 
 			g.nodescalars = data.avg_time_to_district;
+			// DEBUG
+			var time_limit = g.t_max_idx,
+					log_2 = Math.log(2),
+					log_t = Math.log(time_limit),
+					log_t_range = log_t - log_2,
+					init_colorlimit = time_limit/100;
+					
+			g.transit_time_color_limit = init_colorlimit;
+			// also update domain of color scale for coloring by time
+			c_scale.domain([0, g.transit_time_color_limit]);
+			// width slider log scale, but always display actual numbers
+			$("#transit_time_color_scale_slider").slider({	'min': log_2,
+																'max': log_t,
+																'step': log_t_range/1000,
+																'value': Math.log(init_colorlimit)});
+			$( "#transit_time_color_limit" ).val( init_colorlimit.toFixed(0) );
+		
 			net.update_node_colors();
 			net.highlight_selected_node();
 			
@@ -192,7 +203,7 @@ var NETWORK = (function(d3, $, g){
 	net.transit_time_color_scale_slide_fcn = function(ui) {
 	
 		var exp_value = Math.exp(ui.value);
-		$( "#transit_time_color_limit" ).val( Math.round(exp_value) );
+		$( "#transit_time_color_limit" ).val( exp_value.toFixed(0) );
 		// values in global variable (logarithmic scale)
 		g.transit_time_color_limit = exp_value;
 		// also update domain of color scale for coloring by time

@@ -144,7 +144,11 @@ class PathObj(object):
 
 		graph_nodes = [{'i':int(i), 't':int(t)} for i,t in enumerate(node_time)]
 		graph_edges = [{'source':int(r), 'target':int(c), 'v':int(v), 'i':int(i)} for i,(r,c,v) in enumerate(zip(edge_coo.row, edge_coo.col, edge_coo.data)) if r != c]
-		return simplejson.dumps({'nodes':graph_nodes, 'edges':graph_edges})
+		t_max_idx = self.path_info['path'].shape[0] - 1
+		
+		# Redundant max time info that's also sent with path, but using it here for network
+		# transition time scalars
+		return simplejson.dumps({'nodes':graph_nodes, 'edges':graph_edges, 't_max_idx':t_max_idx})
 
 	# --------------------
 	# PATHS
