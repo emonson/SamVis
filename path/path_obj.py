@@ -198,7 +198,7 @@ class PathObj(object):
 			return_obj = {}
 			
 			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
-			if (prev_district is not None) and (prev_district > 0) and (prev_district < len(self.d_info)):
+			if (prev_district is not None) and (prev_district >= 0) and (prev_district < len(self.d_info)):
 				if R_old is not None:
 					
 					# TODO: should put nice out if Rold doesn't form well...
@@ -234,7 +234,7 @@ class PathObj(object):
 		if (dest_district is not None) and (dest_district >= 0) and (dest_district < len(self.d_info)) and self.path_data_loaded:
 
 			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
-			if (prev_district is not None) and (prev_district > 0) and (prev_district < len(self.d_info)) and (R_old is not None):
+			if (prev_district is not None) and (prev_district >= 0) and (prev_district < len(self.d_info)) and (R_old is not None):
 					
 				# NOTE:  cherrypy routine parses R_old out from string to 2x2 list of lists, send that directly
 				district_path_info = self.GetDistrictDeepPathLocalRotatedCoordInfo(dest_district, prev_district, depth, R_old)
@@ -254,7 +254,7 @@ class PathObj(object):
 		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
 			
 			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
-			if (previous_id is not None) and (previous_id > 0) and (previous_id < len(self.d_info)):
+			if (previous_id is not None) and (previous_id >= 0) and (previous_id < len(self.d_info)):
 				if R_old is not None:
 					
 					# TODO: should put nice out if Rold doesn't form well...
@@ -309,7 +309,7 @@ class PathObj(object):
 		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
 			
 			# Apply an orthogonal transformation to eliminate rotation of coordinate systems betweeen districts
-			if (previous_id is not None) and (previous_id > 0) and (previous_id < len(self.d_info)):
+			if (previous_id is not None) and (previous_id >= 0) and (previous_id < len(self.d_info)):
 				if R_old is not None:
 					
 					# TODO: should put nice out if Rold doesn't form well...

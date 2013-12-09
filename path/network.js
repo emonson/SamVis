@@ -18,17 +18,31 @@ var NETWORK = (function(d3, $, g){
 
 	var svg = d3.select("#network_overview").append("svg")
 			.attr("width", w)
-			.attr("height", h)
-		.append("g")
+			.attr("height", h);
+	
+	var svg2 = svg.append("g")
 			.call(d3.behavior.zoom().scaleExtent([0.25, 8]).on("zoom", zoom))
 		.append("g");
 
-	svg.append("rect")
+	var rect = svg2.append("rect")
 			.attr("class", "overlay")
 			.attr("width", w)
 			.attr("height", h);
 
-	var vis = svg.append("g");
+	var vis = svg2.append("g");
+	
+	net.set_width = function(width) {
+		svg.attr("width", width);
+		rect.attr("width", width);
+		var sz = force.size();
+		force.size([width, sz[1]]);
+	};
+	net.set_height = function(height) {
+		svg.attr("height", height);
+		rect.attr("height", height);
+		var sz = force.size();
+		force.size([sz[0], height]);
+	};
 	
 	var set_node_fill_color = function(d,i) {
 		switch(g.node_color) {
@@ -111,6 +125,8 @@ var NETWORK = (function(d3, $, g){
 				.attr("stroke", set_node_stroke_color )
 				.call(force.drag)
 				.on('click', function(d) {
+							// TODO: not sure if this is the best place to handle this id setting...
+							g.district_id = d.i;
 							$.publish("/network/node_click", d.i);
 						})
 				// keep the node drag mousedown from triggering pan
@@ -155,23 +171,29 @@ var NETWORK = (function(d3, $, g){
 		d3.json( g.data_proxy_root + '/' + g.dataset + '/timesfromdistrict?district_id='+ district_id, function(error, data) {
 
 			g.nodescalars = data.avg_time_to_district;
-			// DEBUG
-			var time_limit = g.t_max_idx,
-					log_2 = Math.log(2),
-					log_t = Math.log(time_limit),
-					log_t_range = log_t - log_2,
-					init_colorlimit = time_limit/100;
+			
+			if (g.t_max_idx < 0) {
+				g.t_max_idx = data.t_max_idx;
+			}
+
+			if (g.transit_time_color_limit < 0) {
+				var time_limit = g.t_max_idx,
+						log_2 = Math.log(2),
+						log_t = Math.log(time_limit),
+						log_t_range = log_t - log_2,
+						init_colorlimit = time_limit/100;
 					
-			g.transit_time_color_limit = init_colorlimit;
-			// also update domain of color scale for coloring by time
-			c_scale.domain([0, g.transit_time_color_limit]);
-			// width slider log scale, but always display actual numbers
-			$("#transit_time_color_scale_slider").slider({	'min': log_2,
-																'max': log_t,
-																'step': log_t_range/1000,
-																'value': Math.log(init_colorlimit)});
-			$( "#transit_time_color_limit" ).val( init_colorlimit.toFixed(0) );
-		
+				g.transit_time_color_limit = init_colorlimit;
+				// also update domain of color scale for coloring by time
+				c_scale.domain([0, g.transit_time_color_limit]);
+				// width slider log scale, but always display actual numbers
+				$("#transit_time_color_scale_slider").slider({	'min': log_2,
+																	'max': log_t,
+																	'step': log_t_range/1000,
+																	'value': Math.log(init_colorlimit)});
+				$( "#transit_time_color_limit" ).val( init_colorlimit.toFixed(0) );
+			}
+			
 			net.update_node_colors();
 			net.highlight_selected_node();
 			
