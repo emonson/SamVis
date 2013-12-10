@@ -47,7 +47,13 @@ var NETWORK = (function(d3, $, g){
 	var set_node_fill_color = function(d,i) {
 		switch(g.node_color) {
 			case 'time':
-				return c_scale(g.nodescalars[d.i]);
+				var tval = g.nodescalars[d.i];
+				if ((d.i == g.district_id) || (tval > 0)) {
+					return c_scale(tval);
+				} else {
+					// value if never visited (tval == -1)
+					return '#000';
+				}
 				break;
 			default:
 				return 'black';
@@ -58,7 +64,13 @@ var NETWORK = (function(d3, $, g){
 	var set_node_stroke_color = function(d,i) {
 		switch(g.node_color) {
 			case 'time':
-				return c_scale(g.nodescalars[d.i]);
+				var tval = g.nodescalars[d.i];
+				if ((d.i == g.district_id) || (tval > 0)) {
+					return c_scale(tval);
+				} else {
+					// value if never visited (tval == -1)
+					return '#000';
+				}
 				break;
 			default:
 				return 'black';
@@ -106,7 +118,19 @@ var NETWORK = (function(d3, $, g){
 		
 		link.enter()
 			.append("svg:path")
-				.attr("class", "link");
+				.attr("class", function(d){ 
+						switch (g.edge_type) {
+							case 'overlapping_symmetric_wedges':
+								return "link";
+								break; 
+							case 'asymmetric_clockwise_wedges':
+								return d.source.i < d.target.i ? "linkto" : "linkfrom";
+								break;
+							default:
+								return "link"; 
+								break;
+						}
+					});
 		
 		link.exit()
 			.remove();
@@ -154,10 +178,25 @@ var NETWORK = (function(d3, $, g){
 						sxminus = sx - vx,
 						syplus = sy + vy,
 						syminus = sy - vy;
-				return "M" +
-						tx.toPrecision(prec) + "," + ty.toPrecision(prec) + "L" +
-						sxplus.toPrecision(prec) + "," + syminus.toPrecision(prec) + "L" +
-						sxminus.toPrecision(prec) + "," + syplus.toPrecision(prec) + "Z";
+				switch (g.edge_type) {
+					case 'overlapping_symmetric_wedges':
+						return "M" +
+								tx.toPrecision(prec) + "," + ty.toPrecision(prec) + "L" +
+								sxplus.toPrecision(prec) + "," + syminus.toPrecision(prec) + "L" +
+								sxminus.toPrecision(prec) + "," + syplus.toPrecision(prec) + "Z";
+						break; 
+					case 'asymmetric_clockwise_wedges':
+						return "M" +
+								tx.toPrecision(prec) + "," + ty.toPrecision(prec) + "L" +
+								sx.toPrecision(prec) + "," + sy.toPrecision(prec) + "L" +
+								sxminus.toPrecision(prec) + "," + syplus.toPrecision(prec) + "Z";
+						break;
+					default:
+						return "M" +
+								tx.toPrecision(prec) + "," + ty.toPrecision(prec) + "L" +
+								sx.toPrecision(prec) + "," + sy.toPrecision(prec) + "Z";
+						break;
+				}
 			});
 		
 			node.attr("cx", function(d) { return d.x; })
@@ -171,6 +210,7 @@ var NETWORK = (function(d3, $, g){
 		d3.json( g.data_proxy_root + '/' + g.dataset + '/timesfromdistrict?district_id='+ district_id, function(error, data) {
 
 			g.nodescalars = data.avg_time_to_district;
+			g.node_time_lists = data.time_lists;
 			
 			if (g.t_max_idx < 0) {
 				g.t_max_idx = data.t_max_idx;
@@ -204,9 +244,15 @@ var NETWORK = (function(d3, $, g){
 	net.update_node_colors = function() {
 	
 		// Update colors in both visualizations when this returns
+		
+		// DEBUG -- this is necessary to remove the title children used for debugging
+		// svg.selectAll(".node").select("title").remove();
+		
 		svg.selectAll(".node")
 				.attr("fill", set_node_fill_color )
 				.attr("stroke", set_node_stroke_color );
+			// .append("title")
+			// 	.text(function(d) { return g.nodescalars[d.i] + " " + g.node_time_lists[d.i]; });
 		
 	};
 

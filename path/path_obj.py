@@ -90,6 +90,8 @@ class PathObj(object):
 		if district_id is not None:
 			# At least for now going to use -1 as "not visited" average time
 			avg_times = N.zeros_like(self.d_info) - 1
+			# DEBUG
+			# time_lists = ['']*len(self.d_info)
 			
 			# First test whether district is ever visited
 			if district_id not in self.path_info['path_index']:
@@ -105,21 +107,36 @@ class PathObj(object):
 			# What we really want to calculate here, though, is average 1st passage time
 			# to any other district. So, we need to keep track of whether the path has
 			# made it to a district or not, and if not, then put the time into a list,
-			# then start over again each time we get back to the original district
+			# then start over again each time we get back to the original district.
+			# Note: the tfr (times from region) array will be filled with zeros before
+			# the first encounter with the origin district.
+			# TODO: Really need to filter this somehow to get rid of huge passage times
+			#   which result from going far away and coming back to a district. For now
+			#   solving that by taking median rather than average, but not a great solution...
 			visited = {}
 			times = C.defaultdict(list)
 			for t,d in zip(tfr,self.path_info['path_index']):
 				if d == district_id:
 					visited.clear()
 					continue
-				if d not in visited:
+				if (d not in visited) and (t > 0):
 					visited[d] = True
 					times[d].append(t)
 
 			for d,vals in times.iteritems():
-				avg_times[d] = N.array(vals).mean()
+				# MEDIAN -- to reduce the effect of outliers
+				avg_time = N.median(vals)
+				# MEAN
+				# avg_time = N.array(vals).mean()
+				avg_times[d] = avg_time
+				# DEBUG passing along whole time lists
+				# avg_time_str = "%.3g" % avg_time
+				# time_lists[d] = str(self.pretty_sci_floats(vals)) + " median( " + avg_time_str + " )"
 			avg_times_list = self.pretty_sci_floats(avg_times.tolist())
-			return simplejson.dumps({'avg_time_to_district':avg_times_list})
+			t_max_idx = self.path_info['path'].shape[0] - 1
+			return simplejson.dumps({'avg_time_to_district':avg_times_list, 't_max_idx':t_max_idx})
+			# DEBUG
+			# return simplejson.dumps({'avg_time_to_district':avg_times_list, 'time_lists':time_lists, 't_max_idx':t_max_idx})
 
 	# --------------------
 	def GetNetPoints_JSON(self):
@@ -609,7 +626,9 @@ class PathObj(object):
 		from a given district index (time in indices, not real time). This can
 		then be filtered and by time and used for looking at paths that go
 		between districts within a certain window, or gathered by district to
-		see the stats of time to other districts'''
+		see the stats of time to other districts. Note that the beginning of
+		the array will be filled with zeros before the 1st encounter with
+		the source (if 'from', target if 'to') district.'''
 
 		# NOTE: Relies on path_index already being 1d (after ravel())
 

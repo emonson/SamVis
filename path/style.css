@@ -98,6 +98,36 @@ path.link {
   stroke: none;
 }
 
+path.linkto {
+  fill: saddlebrown;
+  fill-opacity: 0.5;
+  stroke: black;
+  stroke-width: 0.25pt;
+  stroke-opacity: 0.5;
+}
+
+path.linkfrom {
+  fill: saddlebrown;
+  fill-opacity: 0.5;
+  stroke: black;
+  stroke-width: 0.25pt;
+  stroke-opacity: 0.5;
+}
+
+/* 
+path.linkto {
+  fill: #40a38a;
+  fill-opacity: 1.0;
+  stroke: none;
+}
+
+path.linkfrom {
+  fill: #e27a3f;
+  fill-opacity: 1.0;
+  stroke: none;
+}
+ */
+
 .overlay {
 	fill: none;
 	pointer-events: all;

@@ -59,6 +59,13 @@ var GLOBALS = (function($,parseUri){
 	globals.node_color = "time";
 	globals.t_max_idx = -1;
 	globals.transit_time_color_limit = -1;
+	globals.edge_types = ['overlapping_symmetric_wedges',
+												'asymmetric_clockwise_wedges'];
+												// TODO: 'pushing_symmetric_wedges'
+												// TODO: 'thick_lines'
+	globals.edge_type = globals.edge_types[1];
+	// DEBUG
+	globals.node_time_lists = [];
 
 	return globals;
 
