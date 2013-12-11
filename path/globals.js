@@ -60,12 +60,17 @@ var GLOBALS = (function($,parseUri){
 	globals.t_max_idx = -1;
 	globals.transit_time_color_limit = -1;
 	globals.edge_types = ['overlapping_symmetric_wedges',
-												'asymmetric_clockwise_wedges'];
-												// TODO: 'pushing_symmetric_wedges'
+												'asymmetric_clockwise_wedges',
+												'pushing_symmetric_wedges'];
 												// TODO: 'thick_lines'
-	globals.edge_type = globals.edge_types[1];
+	globals.edge_type = globals.edge_types[2];
 	// DEBUG
-	globals.node_time_lists = [];
+	// globals.node_time_lists = [];
+	globals.node_size_schemes = ['constant',
+															 'time'];
+	globals.node_size_scheme = globals.node_size_schemes[1];
+	globals.min_node_size = 1;
+	globals.fixed_node_size = 7;
 
 	return globals;
 

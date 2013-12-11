@@ -9,8 +9,16 @@ var NETWORK = (function(d3, $, g){
 			h = 300;
 	
 	var c_scale = d3.scale.linear()
-									.domain([0, 1])
 									.range(["#F00", "#000"]);
+	
+	// Node size scale. Will take the sqrt of time spent in district or transitions
+	// out, but need to then use this to scale up to constant size and make minimal size.
+	// Domain set after get network data.
+	var node_sz_scale = d3.scale.linear()
+									.range([g.min_node_size, g.fixed_node_size]);
+	// NOTE: Range of edge sizes needs to start at 0 for proportional distance rendering methods...
+	var edge_sz_scale = d3.scale.linear()
+									.range([0, g.fixed_node_size]);
 
 	var zoom = function() {
 		vis.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
@@ -78,11 +86,45 @@ var NETWORK = (function(d3, $, g){
 		}
 	};
 
+	var set_node_size = function(d){ 
+						if (d.t == 0) {
+							return 0;
+						}
+						switch (g.node_size_scheme) {
+							case 'time':
+								return node_sz_scale(Math.sqrt(d.t)); 
+								break;
+							case 'constant':
+								return g.fixed_node_size;
+								break;
+							default:
+								return g.fixed_node_size;
+								break;
+							}
+						};
+
+	var set_node_class = function(d){ 
+						switch (g.edge_type) {
+							case 'overlapping_symmetric_wedges':
+								return "link";
+								break; 
+							case 'asymmetric_clockwise_wedges':
+								return d.source.i < d.target.i ? "linkto" : "linkfrom";
+								break;
+							case 'pushing_symmetric_wedges':
+								return d.v >= d.vt ? "linkto" : "linkfrom";
+								break;
+							default:
+								return "link"; 
+								break;
+						}
+					};
+
 	// Define the force-directed layout algorithm
 	var force = d3.layout.force()
 			.size([w, h])
 			.charge(-120)
-			.gravity(0.15)
+			.gravity(0.2)
 			.linkDistance(30);
 		
 	var update_force = function() {		
@@ -100,8 +142,13 @@ var NETWORK = (function(d3, $, g){
 			// Store network data in global variable stash
 			g.nodes = graph.nodes;
 			g.edges = graph.edges;
+			g.node_time_max = graph.node_time_max;
+			g.edge_v_max = graph.vmax;
 			// This time max index is redundant with info passed with path
-			g.t_max_idx = graph.t_max_idx
+			g.t_max_idx = graph.t_max_idx;
+			
+			node_sz_scale.domain([0, Math.sqrt(g.node_time_max)]);
+			edge_sz_scale.domain([0, Math.sqrt(g.edge_v_max)]);
 			
 			update_force();
 			net.update_network();
@@ -118,19 +165,7 @@ var NETWORK = (function(d3, $, g){
 		
 		link.enter()
 			.append("svg:path")
-				.attr("class", function(d){ 
-						switch (g.edge_type) {
-							case 'overlapping_symmetric_wedges':
-								return "link";
-								break; 
-							case 'asymmetric_clockwise_wedges':
-								return d.source.i < d.target.i ? "linkto" : "linkfrom";
-								break;
-							default:
-								return "link"; 
-								break;
-						}
-					});
+				.attr("class", set_node_class);
 		
 		link.exit()
 			.remove();
@@ -144,7 +179,7 @@ var NETWORK = (function(d3, $, g){
 				.attr("class", "node")
 				.attr("id", function(d) {return "n_" + d.i;})
 				// .attr("r", 5)
-				.attr("r", function(d){ return 0.25*Math.sqrt(d.t); })
+				.attr("r", set_node_size)
 				.attr("fill", set_node_fill_color )
 				.attr("stroke", set_node_stroke_color )
 				.call(force.drag)
@@ -170,14 +205,23 @@ var NETWORK = (function(d3, $, g){
 						ty = d.target.y,
 						sx = d.source.x,
 						sy = d.source.y,
-						v = 0.5*Math.sqrt(d.v);
+						vs = 2.0*edge_sz_scale(Math.sqrt(d.v)),
+						vt = 2.0*edge_sz_scale(Math.sqrt(d.vt)),
+						fs = vs/(vs+vt),
+						ft = vt/(vs+vt);
 				var d = Math.sqrt((tx-sx)*(tx-sx) + (ty-sy)*(ty-sy)),
-						vx = v*(ty-sy)/d,
-						vy = v*(tx-sx)/d;
+						vx = vs*(ty-sy)/d,
+						vy = vs*(tx-sx)/d,
+						stx = fs*(tx-sx)
+						sty = fs*(ty-sy);
 				var sxplus = sx + vx,
 						sxminus = sx - vx,
 						syplus = sy + vy,
-						syminus = sy - vy;
+						syminus = sy - vy,
+						stxplus = sx + stx + ft*vx
+						stxminus = sx + stx - ft*vx,
+						styplus = sy + sty + ft*vy
+						styminus = sy + sty - ft*vy;
 				switch (g.edge_type) {
 					case 'overlapping_symmetric_wedges':
 						return "M" +
@@ -190,6 +234,13 @@ var NETWORK = (function(d3, $, g){
 								tx.toPrecision(prec) + "," + ty.toPrecision(prec) + "L" +
 								sx.toPrecision(prec) + "," + sy.toPrecision(prec) + "L" +
 								sxminus.toPrecision(prec) + "," + syplus.toPrecision(prec) + "Z";
+						break;
+					case 'pushing_symmetric_wedges':
+						return "M" +
+								sxminus.toPrecision(prec) + "," + syplus.toPrecision(prec) + "L" +
+								stxminus.toPrecision(prec) + "," + styplus.toPrecision(prec) + "L" +
+								stxplus.toPrecision(prec) + "," + styminus.toPrecision(prec) + "L" +
+								sxplus.toPrecision(prec) + "," + syminus.toPrecision(prec) + "Z";
 						break;
 					default:
 						return "M" +

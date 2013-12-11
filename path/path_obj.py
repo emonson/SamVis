@@ -73,7 +73,18 @@ class PathObj(object):
 
 	# --------------------
 	# QUERY
-		
+	
+	# TODO: All path networks return all the points whether they were visited or not,
+	#   which makes the DOM bigger (a bunch of zero radius nodes), but makes the code on
+	#   the JS end cleaner because we don't have to use JS to wire up the network, we can
+	#   use the built-in d3 methods instead (which rely on indices of nodes matching up with
+	#   source/target designations), and then all the data binding works out automatically, too.
+	#   What would be better is to always be filtering both networks and scalars for net nodes
+	#   on this Python end by the districts that were actually visited before they're returned
+	#   to d3. This would mean reducing the edge mtx before calculating node ids and edge
+	#   source/target ids, and filtering any outgoing scalars. This would reduce the DOM,
+	#   the amount of data being sent over HTTP, etc.
+	
 	# --------------------
 	def GetDistrictFromPathTime_JSON(self, time=None):
 		"""Get district ID for path at a given time. NOTE: time is an index, not real time
@@ -157,15 +168,19 @@ class PathObj(object):
 		edge_mtx = coo_matrix((N.ones_like(edge_start),(edge_start,edge_end)), shape=(n_nodes,n_nodes)).tocsr()
 		# sum of csr almost 2x faster along rows. Changing from N.matrix to N.array and ravel()ing
 		node_time = edge_mtx.sum(axis=1).A.ravel()	
+		node_time_max = int(N.max(node_time))
+		v_max = int(edge_mtx.max())
 		edge_coo = edge_mtx.tocoo()
 
 		graph_nodes = [{'i':int(i), 't':int(t)} for i,t in enumerate(node_time)]
-		graph_edges = [{'source':int(r), 'target':int(c), 'v':int(v), 'i':int(i)} for i,(r,c,v) in enumerate(zip(edge_coo.row, edge_coo.col, edge_coo.data)) if r != c]
+		# vt is the value of the edge coming from the target back towards the source
+		# which we need for some edge rendering schemes
+		graph_edges = [{'source':int(r), 'target':int(c), 'v':int(v), 'vt':int(edge_mtx[c,r]), 'i':int(i)} for i,(r,c,v) in enumerate(zip(edge_coo.row, edge_coo.col, edge_coo.data)) if r != c]
 		t_max_idx = self.path_info['path'].shape[0] - 1
 		
 		# Redundant max time info that's also sent with path, but using it here for network
 		# transition time scalars
-		return simplejson.dumps({'nodes':graph_nodes, 'edges':graph_edges, 't_max_idx':t_max_idx})
+		return simplejson.dumps({'nodes':graph_nodes, 'edges':graph_edges, 't_max_idx':t_max_idx, 'node_time_max':node_time_max, 'vmax':v_max})
 
 	# --------------------
 	# PATHS

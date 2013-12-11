@@ -108,7 +108,7 @@ path.linkto {
 
 path.linkfrom {
   fill: saddlebrown;
-  fill-opacity: 0.5;
+  fill-opacity: 0.25;
   stroke: black;
   stroke-width: 0.25pt;
   stroke-opacity: 0.5;
@@ -118,13 +118,17 @@ path.linkfrom {
 path.linkto {
   fill: #40a38a;
   fill-opacity: 1.0;
-  stroke: none;
+  stroke: black;
+  stroke-width: 0.25pt;
+  stroke-opacity: 0.5;
 }
 
 path.linkfrom {
   fill: #e27a3f;
   fill-opacity: 1.0;
-  stroke: none;
+  stroke: black;
+  stroke-width: 0.25pt;
+  stroke-opacity: 0.5;
 }
  */
 
