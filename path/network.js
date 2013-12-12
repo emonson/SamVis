@@ -184,8 +184,6 @@ var NETWORK = (function(d3, $, g){
 				.attr("stroke", set_node_stroke_color )
 				.call(force.drag)
 				.on('click', function(d) {
-							// TODO: not sure if this is the best place to handle this id setting...
-							g.district_id = d.i;
 							$.publish("/network/node_click", d.i);
 						})
 				// keep the node drag mousedown from triggering pan

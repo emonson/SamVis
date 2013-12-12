@@ -446,14 +446,6 @@ var DISTRICT = (function(d3, $, g){
 	// and update visualizations for both
 	dis.visgen = function(district_id) {
 		
-		// Initialize first time through
-		if (g.district_id < 0) {
-			g.district_id = district_id;
-		}
-		// Store old center for transfer routines
-		g.prev_district = g.district_id;
-		g.district_id = district_id
-		
 		d3.json( g.data_proxy_root + '/' + g.dataset + '/districtcoords?district_id=' + g.district_id + '&depth=' + g.path_depth + '&previous_id=' + g.prev_district + "&rold=" + g.R_old, function(error_path, path_info) {
 			
 			// error will get triggered on null response
@@ -481,7 +473,7 @@ var DISTRICT = (function(d3, $, g){
 						// TODO: If I'm testing this way, I need to reset these values to -1 when switching data sets...
 						if (g.time_center < 0 || g.time_width < 0) {
 							g.time_center = 0;
-							g.time_width = 400;
+							g.time_width = 200;
 							$("#time_center_slider").slider({	'min': 0,
 																				'max': path_info.t_max_idx,
 																				'value': g.time_center});

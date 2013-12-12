@@ -60,9 +60,26 @@ window.onload = function() {
 		$.publish("/path_color/change", type);
 	});
 
+	// Routing all district ellipse and node clicks through this routine
+	// so district_id and prev_district get recorded properly
+	var district_click_pre_actions = function (district_id) {
+		// Initialize first time through
+		if (GLOBALS.district_id < 0) {
+			GLOBALS.district_id = district_id;
+		}
+		// Store old center for transfer routines
+		GLOBALS.prev_district = GLOBALS.district_id;
+		GLOBALS.district_id = district_id
+		$.publish("/unknown/district_click", district_id);	
+	};
 	
-	$.subscribe("/district/ellipse_click", DISTRICT.visgen);
-	$.subscribe("/district/ellipse_click", NETWORK.update_node_scalars);
+	// Route all district clicks through prep stage
+	$.subscribe("/district/ellipse_click", district_click_pre_actions);
+	$.subscribe("/network/node_click", district_click_pre_actions);
+	// then respond to clicks by specific vis afterwards
+	$.subscribe("/unknown/district_click", NETWORK.update_node_scalars);
+	$.subscribe("/unknown/district_click", DISTRICT.visgen);
+
 	$.subscribe("/district/ellipse_hover", DISTRICT.el_hover);
 	$.subscribe("/time_center_slider/slide", DISTRICT.time_center_slide_fcn);
 	$.subscribe("/time_width_slider/slide", DISTRICT.time_width_slide_fcn);
@@ -72,8 +89,6 @@ window.onload = function() {
 	$.subscribe("/path_color/change", DISTRICT.path_color_change_fcn);
 	$.subscribe("/time_center_button/click", DISTRICT.time_center_click_fcn);
 	
-	$.subscribe("/network/node_click", NETWORK.update_node_scalars);
-	$.subscribe("/network/node_click", DISTRICT.visgen);
 	
 	// HACK: initial district to center on
 	var district_id = 22;

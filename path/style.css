@@ -24,13 +24,13 @@
 }
 
 ellipse {
-	// fill: gray;
+	/* fill: gray; */
 	fill-opacity: 0.15;
 }
 
 ellipse:hover {
 	fill-opacity: 0.25;
-	// fill: gold;
+	/* fill: gold; */
 }
 
 p {
@@ -85,7 +85,7 @@ label {
 
 .node {
   stroke-width: 2px;
-  fill-opacity: 0.5;
+  fill-opacity: 0.75;
 }
 
 .nd_selected {
