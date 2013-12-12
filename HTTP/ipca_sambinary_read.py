@@ -143,11 +143,66 @@ def checked_filename(filename):
 	
 	return ""
 
+
+def read_sambinary_originaldata(orig_data_file):
+	"""Read the original data used for IPCA. Basically an R binary format, I think..."""
+
+	f = open(orig_data_file, 'r')
+
+	vectype = f.readline().strip()
+	if vectype != 'DenseMatrix':
+		raise IOError, "Data file needs to be a DenseMatrix"
+
+	size = f.readline().strip().split()
+	if size[0] != 'Size:' or size[2] != 'x':
+		raise IOError, "Problem reading data matrix size"
+	m = int(size[1])
+	n = int(size[3])
+
+	elsize = f.readline().strip().split()
+	if elsize[0] != 'ElementSize:':
+		raise IOError, "Problem reading data matrix element size"
+	n_bytes = int(elsize[1])
+
+	rowmaj = f.readline().strip().split()
+	if rowmaj[0] != 'RowMajor:':
+		raise IOError, "Problem reading data matrix row major order"
+	row_major = int(rowmaj[1])
+
+	datafile = f.readline().strip().split()
+	if datafile[0] != 'DataFile:':
+		raise IOError, "Problem reading data matrix file name"
+	data_file = os.path.abspath(os.path.join(os.path.dirname(orig_data_file),datafile[1]))
+
+	f.close()
+
+	fd = open(data_file, 'rb')
+	# orig_data = N.fromstring(fd.read(8*m*n), dtype=N.dtype('d8'), count=m*n).reshape(m,n)
+	orig_data = N.fromfile(fd, dtype=N.dtype('d8'), count=m*n).reshape(m,n)
+	fd.close()
+	
+	# Real data center
+	# data_center = orig_data.mean(axis=1)
+
+	# For now just calculate min and max here after centering data
+	# m = orig_data.shape[0]
+	# orig_data = orig_data - data_center.reshape(m,1)
+	
+	# orig_min = N.matrix(orig_data.min(axis=1))
+	# orig_max = N.matrix(orig_data.max(axis=1))
+	# Results in m x 2 matrix
+	# orig_data_bounds = N.concatenate((orig_min, orig_max), axis=0).T
+	
+	return orig_data
+
+
 # --------------------
 if __name__ == "__main__":
 
 	tdf = '../../test/mnist12.ipca'
 	ldf = '../../test/mnist12_labels.data.hdr'
-		
+	df = '../../test/mnist12.data.hdr'		
+	
 	tree_root, nodes_by_id = read_sambinary_ipcadata(tdf)
 	labels = read_sambinary_labeldata(ldf)
+	orig_data = read_sambinary_originaldata(df)
