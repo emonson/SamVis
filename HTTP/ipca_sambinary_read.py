@@ -132,6 +132,16 @@ def read_sambinary_labeldata(label_data_filename):
 	
 	return labels
 
+def checked_filename(filename):
+	if filename and type(filename) == str:
+		return  os.path.abspath(filename)
+	else:
+		raise IOError, "filename needs to be a non-empty string"
+
+	if not os.path.isfile(self.label_file):
+		raise IOError, "input file does not exist"
+	
+	return ""
 
 # --------------------
 if __name__ == "__main__":

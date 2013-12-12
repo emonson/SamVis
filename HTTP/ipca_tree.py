@@ -50,13 +50,7 @@ class IPCATree(object):
 	def SetLabelFileName(self, filename):
 		"""Set file name manually for label file."""
 
-		if filename and type(filename) == str:
-			self.label_file = os.path.abspath(filename)
-		else:
-			raise IOError, "filename needs to be a non-empty string"
-
-		if not os.path.isfile(self.label_file):
-			raise IOError, "input file does not exist"
+		self.label_file = IR.checked_filename(filename)
 
 	# --------------------
 	def LoadLabelData(self):
@@ -76,13 +70,7 @@ class IPCATree(object):
 	def SetTreeFileName(self, filename):
 		"""Set file name manually for IPCA file. Can also do this in constructor."""
 
-		if filename and type(filename) == str:
-			self.tree_data_file = os.path.abspath(filename)
-		else:
-			raise IOError, "filename needs to be a non-empty string"
-
-		if not os.path.isfile(self.tree_data_file):
-			raise IOError, "input file does not exist"
+		self.tree_data_file = IR.checked_filename(filename)
 
 	# --------------------
 	def LoadTreeData(self):
