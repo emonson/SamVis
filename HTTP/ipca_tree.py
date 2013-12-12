@@ -1,10 +1,9 @@
-import struct
+import ipca_sambinary_read as IR
 import numpy as N
 import collections as C
 import pprint
 import simplejson
 import os
-import io
 
 # http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
 class PrettyPrecision2SciFloat(float):
@@ -65,26 +64,8 @@ class IPCATree(object):
 		if not self.label_file:
 			raise IOError, "No label file set: Use SetLabelFileName('labelfile.data.hdr')"
 		
-		f = open(self.label_file, 'r')
-		vectype = f.readline().strip()
-		if vectype != 'DenseVector':
-			raise IOError, "Label file needs to be a DenseVector"
-		
-		size = f.readline().strip().split()
-		if size[0] != 'Size:':
-			raise IOError, "Problem reading label vector size"
-		n_elements = int(size[1])
-		
-		elsize = f.readline().strip().split()
-		if elsize[0] != 'ElementSize:':
-			raise IOError, "Problem reading label vector element size"
-		n_bytes = int(elsize[1])
-		
-		f.close()
-		
-		fb = open(os.path.splitext(self.label_file)[0], 'rb')
-		self.labels = N.fromfile(fb, dtype=N.dtype('i' + str(n_bytes)), count=n_elements)
-		fb.close()
+		# Read labels from binary file
+		self.labels = IR.read_sambinary_labeldata(self.label_file)
 		
 		# If the data is already loaded, compute mean labels
 		# TODO: Really need to do something more robust for data/label loading order...
@@ -115,97 +96,8 @@ class IPCATree(object):
 
 		print 'Trying to load data set from .ipca file... ', self.tree_data_file
 
-		f = io.open(self.tree_data_file, 'rb', buffering=65536)
-
-		# Tree header
-		dt = N.dtype([('epsilon', N.dtype('f8')), 
-									('d', N.dtype('u4')), 
-									('m', N.dtype('u4')), 
-									('minPoints', N.dtype('i4'))])
-		header = N.frombuffer(f.read(8+4+4+4), dtype=dt, count=1)
-		epsilon = header['epsilon']
-		d = header['d']
-		m = header['m']
-		minPoints = header['minPoints']
-
-		self.tree_root = None
-		self.nodes_by_id = []
-		nodes = C.deque()
-		cur = None
-
-		id = 0
-
-# 		try:
-		r_nPhi = f.read(4)
-		while r_nPhi:
-			nPhi = int(N.frombuffer(r_nPhi, N.dtype('i4'), count=1))
-			
-			phi = N.matrix(N.frombuffer(f.read(8*nPhi*m), N.dtype('f8'), count=nPhi*m).reshape(nPhi,m))
-			sigma = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nPhi)
-			center = N.frombuffer(f.read(8*m), N.dtype('f8'), count=m)
-			mse = N.frombuffer(f.read(8*(d+1)), N.dtype('f8'), count=(d+1))
-			dir = N.frombuffer(f.read(8*m), N.dtype('f8'), count=m)
-			
-			a = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
-			nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
-			
-			pts = N.frombuffer(f.read(4*nPoints), N.dtype('i4'), count=nPoints)
-			
-			r = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
-			isLeaf = bool(N.frombuffer(f.read(1), N.dtype('b1'), count=1))
-	
-			node = {}
-			node['id'] = id
-			node['children'] = C.deque()
-	
-			if cur == None:
-				self.tree_root = node
-
-			node['r'] = r
-			node['phi'] = phi
-			node['sigma'] = sigma
-			node['dir'] = dir
-			node['a'] = a
-			node['mse'] = mse
-			node['center'] = center
-			node['indices'] = pts
-			node['npoints'] = nPoints
-			node['sigma2'] = sigma*sigma
-
-			# if previously read node is not empty. 
-			# i.e. if node != root
-			if cur != None:
-	
-				# if just-read node is not a leaf
-				if not isLeaf:
-					# put just-read node in the deque to be visited later
-					nodes.append(node)
-		
-				# if children array of cur (previously read) is full
-				# (I think an alternative to this if not dealing with a binary tree
-				#		would be to keep track of everyone's parent node ID and check here 
-				#		whether cur is the parent of node)
-				if len(cur['children']) == 2:
-					cur = nodes.popleft()
-		
-				# fill up cur's children list
-				node['parent_id'] = cur['id']
-				cur['children'].append(node)
-		
-			else:
-				cur = node
-	
-			# Keep a copy arranged by ID, too (relying on sequential IDs)
-			self.nodes_by_id.append(node)
-			
-			r_nPhi = f.read(4)
-			id = id + 1
-		
-# 		except:
-# 			raise IOError, "Can't load data from file %s" % (self.tree_data_file,)
-		
-# 		finally:
-		f.close()
+		# Read data from binary file
+		self.tree_root, self.nodes_by_id = IR.read_sambinary_ipcadata(self.tree_data_file)
 			
 		self.post_process_nodes(self.tree_root)
 
