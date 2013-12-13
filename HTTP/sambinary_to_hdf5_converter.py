@@ -41,9 +41,10 @@ with h5py.File(outfile, 'w') as f:
 	#   of the cover tree and add it in as a dataset to full_tree, too.
 	
 	# Make a first pass through nodes_by_id and write out node data
+	nodes_g = full_tree_g.create_group("nodes")
 	for node in nodes_by_id:
 		
-		node_g = full_tree_g.create_group(str(node['id']))
+		node_g = nodes_g.create_group(str(node['id']))
 	
 		node_g['id'] = node['id']
 		if 'parent_id' in node:
@@ -69,8 +70,8 @@ with h5py.File(outfile, 'w') as f:
 			for child in node['children']:
 				child_id = child['id']
 				# Create hard link
-				full_tree_g[str(id) + '/children/' + str(child_id)] = full_tree_g[str(child_id)]
+				nodes_g[str(id) + '/children/' + str(child_id)] = nodes_g[str(child_id)]
 
 	# And write hard link to tree root
-	full_tree_g['tree_root'] = full_tree_g[str(tree_root['id'])]
+	full_tree_g['tree_root'] = nodes_g[str(tree_root['id'])]
 
