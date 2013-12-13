@@ -35,6 +35,10 @@ with h5py.File(outfile, 'w') as f:
 	# node will be included in case we want to traverse the tree in a standard way
 	print 'starting full tree writing'
 	full_tree_g = f.create_group("full_tree")
+	full_tree_g['n_nodes'] = len(nodes_by_id)
+	
+	# TODO: Create the n_nodes x 5 array with the tree description in the format
+	#   of the cover tree and add it in as a dataset to full_tree, too.
 	
 	# Make a first pass through nodes_by_id and write out node data
 	for node in nodes_by_id:
