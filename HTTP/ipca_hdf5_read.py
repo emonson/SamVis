@@ -10,53 +10,44 @@ def read_hdf5_ipcadata(tree_data_filename):
 	
 	with h5py.File(tree_data_filename, 'r') as f:
 		
-		# TODO: This routine not done...!!
+		# Make a first pass through nodes_by_id and grab node data
+		n_nodes = int(f['/full_tree/n_nodes'][...])
+		nodes_by_id = [{}]*n_nodes
+		nodes_g = f['/full_tree/nodes']
 		
-		# Tree
-		# Storing main copy of the tree nodes in a flat set of groups under full_tree group
-		# named by ID. They'll contain hard links to children, and a hard link to the root
-		# node will be included in case we want to traverse the tree in a standard way
-		print 'starting full tree writing'
-		full_tree_g = f.create_group("full_tree")
-		full_tree_g['n_nodes'] = len(nodes_by_id)
-	
-		# TODO: Create the n_nodes x 5 array with the tree description in the format
-		#   of the cover tree and add it in as a dataset to full_tree, too.
-	
-		# Make a first pass through nodes_by_id and write out node data
-		nodes_g = full_tree_g.create_group("nodes")
-		for node in nodes_by_id:
 		
-			node_g = nodes_g.create_group(str(node['id']))
-	
-			node_g['id'] = node['id']
-			if 'parent_id' in node:
-				node_g['parent_id'] = node['parent_id']
-			node_g['r'] = node['r']
-			node_g['a'] = node['a']
-			node_g['npoints'] = node['npoints']
-			node_g.create_dataset('phi', data=node['phi'])
-			node_g.create_dataset('sigma', data=node['sigma'])
-			node_g.create_dataset('dir', data=node['dir'])
-			node_g.create_dataset('mse', data=node['mse'])
-			node_g.create_dataset('center', data=node['center'])
-			node_g.create_dataset('indices', data=node['indices'])
-			node_g.create_dataset('sigma2', data=node['sigma2'])
-		
-			node_children_g = node_g.create_group('children')
+		for id_str, node_g in nodes_g.iteritems():
+			
+			# Get the ID from the group name
+			id = int(id_str)
+			# Could also just grab the ID
+			# id = int(node_g['id'])
+			
+			for d_name in node_g:
+				d_class = node_g.get(d_name, getclass=True)
+				if isinstance(d_class, h5py.Dataset):
+					dataset = node_g[d_name]
+					data = N.empty(dataset.shape, dtype=dataset.dtype)
+					dataset.read_direct(data)
+					nodes_by_id[id][d_name] = data
 	
 		# Make a second pass through to put in hard links to children now that they all exist
-		print 'starting full tree children writing'
-		for node in nodes_by_id:
-			id = node['id']
-			if 'children' in node:
-				for child in node['children']:
-					child_id = child['id']
-					# Create hard link
-					nodes_g[str(id) + '/children/' + str(child_id)] = nodes_g[str(child_id)]
-
-		# And write hard link to tree root
-		full_tree_g['tree_root'] = nodes_g[str(tree_root['id'])]
+		for id_str, node_g in nodes_g.iteritems():
+			
+			if 'children' in node_g:
+				# Remove the group path slash to get the ID
+				id = int(id_str)
+				children_g = node_g['children']
+				nodes_by_id[id]['children'] = []
+				
+				# Put reference to existing nodes in 'children' list
+				for n_name, n_g in children_g.iteritems():
+					cid = n_g['id']
+					nodes_by_id[id]['children'].append(nodes_by_id[cid])
+					
+		# Get the tree root by id from the hard link
+		tree_root_id = f['/full_tree/tree_root/id']
+		tree_root = nodes_by_id[tree_root_id]
 	
 	return tree_root, nodes_by_id
 	
@@ -119,7 +110,8 @@ if __name__ == "__main__":
 
 	hdf = '../../test/test1_mnist12.hdf5'		
 	
-	# tree_root, nodes_by_id = read_hdf5_ipcadata(hdf)
+	tree_root, nodes_by_id = read_hdf5_ipcadata(hdf)
+	print tree_root['id'], tree_root.keys()
 	labels, label_descriptions = read_hdf5_labeldata(hdf)
 	print labels
 	print label_descriptions
