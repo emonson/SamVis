@@ -4,6 +4,24 @@ import numpy as N
 import collections as C
 import os
 
+import time
+
+# http://stackoverflow.com/questions/8889083/how-to-time-execution-time-of-a-batch-of-code-in-python
+def time_this(f):
+
+    def timed(*args, **kw):
+
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+
+        print 'func:%r args:[%r, %r] took: %2.4f sec' % \
+          (f.__name__, args, kw, te-ts)
+        return result
+
+    return timed
+
+@time_this
 def read_sambinary_ipcadata(tree_data_filename):
 	""" Read IPCA tree and data from Sam's binary file format which he dumps variables
 	from his tree in C++. Return root of tree (which is just a bunch of dictionaries
