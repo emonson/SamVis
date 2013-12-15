@@ -11,21 +11,19 @@ def read_hdf5_ipcadata(tree_data_filename):
 	with h5py.File(tree_data_filename, 'r') as f:
 		
 		# Make a first pass through nodes_by_id and grab node data
-		n_nodes = int(f['/full_tree/n_nodes'][...])
+		n_nodes = f['/full_tree/n_nodes'][()]
 		nodes_by_id = [{}]*n_nodes
 		nodes_g = f['/full_tree/nodes']
 		
 		
 		for id_str, node_g in nodes_g.iteritems():
 			
-			# Get the ID from the group name
-			id = int(id_str)
 			# Could also just grab the ID
-			# id = int(node_g['id'])
+			id = node_g['id'][()]
 			
 			for d_name in node_g:
 				d_class = node_g.get(d_name, getclass=True)
-				if isinstance(d_class, h5py.Dataset):
+				if d_class == h5py.Dataset:
 					dataset = node_g[d_name]
 					data = N.empty(dataset.shape, dtype=dataset.dtype)
 					dataset.read_direct(data)
@@ -42,11 +40,11 @@ def read_hdf5_ipcadata(tree_data_filename):
 				
 				# Put reference to existing nodes in 'children' list
 				for n_name, n_g in children_g.iteritems():
-					cid = n_g['id']
+					cid = n_g['id'][()]
 					nodes_by_id[id]['children'].append(nodes_by_id[cid])
 					
 		# Get the tree root by id from the hard link
-		tree_root_id = f['/full_tree/tree_root/id']
+		tree_root_id = f['/full_tree/tree_root']['id'][()]
 		tree_root = nodes_by_id[tree_root_id]
 	
 	return tree_root, nodes_by_id
@@ -111,7 +109,8 @@ if __name__ == "__main__":
 	hdf = '../../test/test1_mnist12.hdf5'		
 	
 	tree_root, nodes_by_id = read_hdf5_ipcadata(hdf)
-	print tree_root['id'], tree_root.keys()
+	print tree_root.keys()
+	print nodes_by_id[20].keys()
 	labels, label_descriptions = read_hdf5_labeldata(hdf)
 	print labels
 	print label_descriptions
