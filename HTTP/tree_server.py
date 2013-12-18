@@ -85,7 +85,7 @@ class TreeServer:
 
 # Reading server name out of a local file so it's easier to port this code
 # to other machines
-server_filename = '../server_example.json'
+server_filename = '../server_conf.json'
 server_opts = simplejson.loads(open(server_filename).read())
 
 cherrypy.config.update({

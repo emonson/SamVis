@@ -1,0 +1,8 @@
+{
+  "server_name":"servername.sub.school.edu",
+  "account":"username",
+  "path_path":"SamVis/path",
+  "ipca_path":"SamVis/HTTP",
+  "ipca_port":9002,
+  "path_port":9004
+}

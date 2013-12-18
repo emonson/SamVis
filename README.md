@@ -70,11 +70,23 @@ libs directory, but here are a list of the currently used libraries:
 
 ## Local Web Server Name Configuration
 
-There is a file called server_example.json in the root of the repository. This
-is the file which sets the local server name for all of the Javascript and Python
-scripts in both the HTTP and path directories. This lets you also set the port
-number used for the IPCA visualizations in HTTP and the simulated path visualizations
-in path. See below for the reverse proxy setup instructions. 
+There is a file called server\_conf\_example.json in the root of the
+repository. This is an example of the file which sets the local server
+name for all of the Javascript and Python scripts in both the HTTP and
+path directories..
+
+Make a copy of `server\_conf\_example.json` and call it `server\_conf.json`.
+The latter is included in this project's `.gitignore` file, so changes you make
+to your server configuration won't get recognized as changes to the project
+source, plus your server-specific configuration values won't get overwritten
+when you pull changes to the repository.
+
+This config also lets you set the port number used for the IPCA visualizations
+in `HTTP` and the simulated path visualizations in the `path` directory. 
+The `ipca_path` and `path_path` variables should reflect the symlink name
+you set up in your Sites directory. See the "Symlink to project path" section
+below. In that example the variables would be set as `SamVis/path` and `SamVis/HTTP`
+respectively. Also see below for the reverse proxy setup instructions. 
 
 *NOTE:* The scripts will expect the reverse proxy to be at server_name/remote9000/ 
 if you put the port value at 9000. (i.e. that string, "remote", is hard-coded into
@@ -98,7 +110,8 @@ repository history).
 
 Then, someone told me I could set up a "reverse proxy" in Apache which
 would create a URL path that would pass things along to the other port
-in the background. In my `/etc/apache2/users/username.conf` file, I add
+in the background. In my `/etc/apache2/users/username.conf` file 
+(substitute your own username on your machine), I add
 ProxyPass lines like in this example:
 
 ```
@@ -109,17 +122,17 @@ ProxyPass lines like in this example:
     Allow from all
 </Directory>
 
-ProxyPass /remote9000/  http://emo2.trinity.duke.edu:9000/
-ProxyPass /remote9002/  http://emo2.trinity.duke.edu:9002/
+ProxyPass /remote9000/  http://servername.sub.school.edu:9000/
+ProxyPass /remote9002/  http://servername.sub.school.edu:9002/
 ```
 
 which lets me just make a call to something like
 
-`http://servername.sub.duke.edu/remote9000/allellipses?basis=1`
+`http://servername.sub.school.edu/remote9000/allellipses?basis=1`
 
 instead of 
 
-`http://servername.sub.duke.edu:9000/allellipses?basis=1`
+`http://servername.sub.school.edu:9000/allellipses?basis=1`
 
 in my ajax call, which is considered "same origin".
 
@@ -150,7 +163,7 @@ ln -s /Users/username/Programming/SamVis/path /Users/username/Sites/SamVisPath
 
 This way I can access the HTTP directory from
 
-`server.sub.duke.edu/~username/SamVisHTTP`
+`servername.sub.school.edu/~username/SamVis/HTTP`
 
 
 ## Additional Example Data

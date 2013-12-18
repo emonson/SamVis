@@ -1,4 +1,7 @@
 # Ignore all python binary files
 *.pyc
 
+# The server config file that's actually used in the apps
+server_conf.json
+
 .DS_Store

@@ -157,7 +157,7 @@ data_dirnames = [os.path.basename(xx) for xx in data_paths]
 root = Root(data_dirnames)
 
 # Storing server name and port in a json file for easy config
-server_filename = '../server_example.json'
+server_filename = '../server_conf.json'
 server_opts = simplejson.loads(open(server_filename).read())
 
 # This adds the methods for each data directory

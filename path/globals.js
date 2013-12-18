@@ -4,7 +4,7 @@ var GLOBALS = (function($,parseUri){
 		
 	// Make it easier to swtich the server config when switching between machines
 	$.ajax({
-		url:'../server_example.json',
+		url:'../server_conf.json',
 		async:false,
 		dataType:'json',
 		success:function(data) {
