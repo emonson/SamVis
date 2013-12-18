@@ -75,7 +75,7 @@ repository. This is an example of the file which sets the local server
 name for all of the Javascript and Python scripts in both the HTTP and
 path directories..
 
-Make a copy of `server\_conf\_example.json` and call it `server\_conf.json`.
+Make a copy of `server_conf_example.json` and call it `server_conf.json`.
 The latter is included in this project's `.gitignore` file, so changes you make
 to your server configuration won't get recognized as changes to the project
 source, plus your server-specific configuration values won't get overwritten
