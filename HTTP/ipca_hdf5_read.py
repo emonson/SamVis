@@ -50,7 +50,8 @@ def read_hdf5_ipcadata(tree_data_filename):
 						d_item.read_direct(data)
 						node_data[d_name] = data
 					else:
-						node_data[d_name] = d_item[()]
+						# Return native python type with asscalar() so scalars are JSON serializable
+						node_data[d_name] = N.asscalar(d_item[()])
 			
 			nodes_by_id[node_data['id']] = node_data
 	
@@ -88,7 +89,7 @@ def read_hdf5_labeldata(label_data_filename):
 			labels[lname] = label_data
 			label_descriptions[lname] = ld.attrs['description']
 			
-	return labels, label_descriptions
+	return labels #, label_descriptions
 
 
 def checked_filename(filename):

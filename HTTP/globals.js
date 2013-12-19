@@ -14,7 +14,7 @@ var GLOBALS = (function($){
 	
 	// Arrays to hold all nodes scalar data
 	globals.scalardata = [];
-	globals.scalars_name = 'labels';
+	globals.scalars_name = 'digit_id';
 	// Convenience tree data structures -- may not always need these...
 	globals.scales_by_id = [];
 	globals.ids_by_scale = {};

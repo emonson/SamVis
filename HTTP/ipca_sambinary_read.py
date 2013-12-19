@@ -42,7 +42,7 @@ def read_sambinary_ipcadata(tree_data_filename):
 	minPoints = header['minPoints']
 
 	tree_root = None
-	nodes_by_id = []
+	nodes_by_id = {}
 	nodes = C.deque()
 	cur = None
 
@@ -108,8 +108,8 @@ def read_sambinary_ipcadata(tree_data_filename):
 		else:
 			cur = node
 
-		# Keep a copy arranged by ID, too (relying on sequential IDs)
-		nodes_by_id.append(node)
+		# Keep a copy indexed by ID, too
+		nodes_by_id[id] = node
 		
 		r_nPhi = f.read(4)
 		id = id + 1
@@ -148,7 +148,7 @@ def read_sambinary_labeldata(label_data_filename):
 	labels = N.fromfile(fb, dtype=N.dtype('i' + str(n_bytes)), count=n_elements)
 	fb.close()
 	
-	return labels
+	return {'digit_id':labels}
 
 def checked_filename(filename):
 	if filename and type(filename) == str:

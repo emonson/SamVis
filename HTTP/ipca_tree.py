@@ -1,4 +1,5 @@
 import ipca_sambinary_read as IR
+import ipca_hdf5_read as IH
 import numpy as N
 import collections as C
 import pprint
@@ -50,7 +51,7 @@ class IPCATree(object):
 	def SetLabelFileName(self, filename):
 		"""Set file name manually for label file."""
 
-		self.label_file = IR.checked_filename(filename)
+		self.label_file = IH.checked_filename(filename)
 
 	# --------------------
 	def LoadLabelData(self):
@@ -60,6 +61,7 @@ class IPCATree(object):
 		
 		# Read labels from binary file
 		self.labels = IR.read_sambinary_labeldata(self.label_file)
+		# self.labels = IH.read_hdf5_labeldata(self.label_file)
 		
 		# If the data is already loaded, compute mean labels
 		# TODO: Really need to do something more robust for data/label loading order...
@@ -71,6 +73,7 @@ class IPCATree(object):
 		"""Set file name manually for IPCA file. Can also do this in constructor."""
 
 		self.tree_data_file = IR.checked_filename(filename)
+		# self.tree_data_file = IH.checked_filename(filename)
 
 	# --------------------
 	def LoadTreeData(self):
@@ -86,6 +89,7 @@ class IPCATree(object):
 
 		# Read data from binary file
 		self.tree_root, self.nodes_by_id = IR.read_sambinary_ipcadata(self.tree_data_file)
+		# self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(self.tree_data_file)
 			
 		self.post_process_nodes(self.tree_root)
 
@@ -159,7 +163,9 @@ class IPCATree(object):
 		# This will be a list of lists
 		nodes_by_scale = []
 		
-		for node in nodes_by_id:
+		# TODO: since nodes_by_id is now a dictionary rather than a list, need
+		#  to make sure this doesn't need to be traversed in any particular order...
+		for id, node in nodes_by_id.iteritems():
 			scale = node[scale_key]
 			
 			if scale > (len(nodes_by_scale) - 1):
@@ -173,9 +179,11 @@ class IPCATree(object):
 	def post_process_mean_labels(self):
 		"""Modifies self.nodes_by_id in place finding mean label value"""
 		
-		for node in self.nodes_by_id:
+		for id, node in self.nodes_by_id.iteritems():
 			indices = node['indices']
-			node['label'] = N.mean(self.labels[indices])
+			node['labels'] = {}
+			for lname,larray in self.labels.iteritems():
+				node['labels'][lname] = N.mean(larray[indices])
 	
 	# --------------------
 	def calculate_node_ellipse(self, node_id):
@@ -241,30 +249,35 @@ class IPCATree(object):
 		when needed, like after labels update. Children and parent keys required,
 		so they're not in the key string map (originals assumed to be 'children' and 'parent_id')"""
 		
-		# NOTE: Cheating a bit by relying on nodes_by_id being in breadth-first order so
-		#		children's parents already exist as the array is being populated.
-		#		If this becomes a problem, need to build by traversing tree.
+		# Doing a two-pass strategy for constructing the tree. Fill in basic lite_nodes_by_id
+		# first, with all object-local fields, then take another pass through, filling in the
+		# children after being assured all nodes exist.
 		
 		# This is only for helping fill in children. Not keeping it around.
-		lite_nodes_by_id = []
+		lite_nodes_by_id = {}
 		
-		for node in self.nodes_by_id:
+		# First pass with object-local fields
+		for id,node in self.nodes_by_id.iteritems():
 			lite_node = {}
-			if 'children' in node:
-				lite_node[children_key] = []
-			lite_nodes_by_id.append(lite_node)
-			
-			if 'parent_id' in node:
-				parent_id = node['parent_id']
-				# NOTE: Not copying parent id to lite tree for now!
+			# NOTE: Not copying parent id to lite tree for now!
+			# if 'parent_id' in node:
 				# lite_node[parent_id_key] = parent_id
-				lite_nodes_by_id[parent_id][children_key].append(lite_node)
-			else:
-				# This assignment of root node keeps whole lite tree
-				self.lite_tree_root = lite_node
-			
+			# All other values copied over
 			for k,v in key_dict.items():
 				lite_node[v] = node[k]
+			
+			lite_nodes_by_id[id] = lite_node
+		
+		# Second pass for children list
+		for id,node in self.nodes_by_id.iteritems():
+			if 'children' in node:
+				lite_nodes_by_id[id][children_key] = []
+				for child in node['children']:
+					cid = child['id']
+					lite_nodes_by_id[id][children_key].append(lite_nodes_by_id[cid])
+		
+		# This assignment of root node keeps whole lite tree
+		self.lite_tree_root = lite_nodes_by_id[self.tree_root['id']]
 
 	# --------------------
 	def SetBasisID(self, id):
@@ -283,7 +296,7 @@ class IPCATree(object):
 				self.V = self.nodes_by_id[id]['phi'][:2,:].T
 				
 				self.all_ellipse_params = []
-				for node in self.nodes_by_id:
+				for id,node in self.nodes_by_id.iteritems():
 					self.all_ellipse_params.append(self.calculate_node_ellipse(node['id']))
 
 	# --------------------
@@ -449,11 +462,11 @@ class IPCATree(object):
 		"""Take in scalar "name" and get out JSON of scalars for all nodes by id"""
 		
 		if name:
-			if name == 'labels':
-				labels = []
-				for node in self.nodes_by_id:
-					labels.append(node['label'])
-				return simplejson.dumps(N.round(N.array(labels), 2).tolist())
+			if name in self.labels:
+				labels = N.zeros((len(self.nodes_by_id),))
+				for id,node in self.nodes_by_id.iteritems():
+					labels[id] = node['labels'][name]
+				return simplejson.dumps(N.round(labels, 2).tolist())
 		
 	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):
@@ -497,8 +510,10 @@ if __name__ == "__main__":
 	# data_file = askopenfilename()
 # 	data_file = '/Users/emonson/Programming/Sam/test/orig2-copy2.ipca'
 # 	label_file = '/Users/emonson/Programming/Sam/test/labels02.data.hdr'
-	tree_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
-	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
+	# tree_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
+	tree_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
+	# label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
+	label_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
 	# data_file = '/Users/emonson/Programming/Sam/test/mnist12.data.hdr'
 
 	# DataSource loads .ipca file and can generate data from it for other views
@@ -507,7 +522,7 @@ if __name__ == "__main__":
 	tree.LoadLabelData()
 	# tree.SetOriginalDataFileName(data_file)
 	# tree.LoadOriginalData()
-	tree.GetScaleEllipsesJSON(900)
+	# tree.GetScaleEllipsesJSON(900)
 	
 	# print tree.GetLiteTreeJSON()
 

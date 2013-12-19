@@ -42,7 +42,7 @@ with h5py.File(outfile, 'w') as f:
 	
 	# Make a first pass through nodes_by_id and write out node data
 	nodes_g = full_tree_g.create_group("nodes")
-	for node in nodes_by_id:
+	for id,node in nodes_by_id.iteritems():
 		
 		node_g = nodes_g.create_group(str(node['id']))
 	
@@ -64,7 +64,7 @@ with h5py.File(outfile, 'w') as f:
 	
 	# Make a second pass through to put in hard links to children now that they all exist
 	print 'starting full tree children writing'
-	for node in nodes_by_id:
+	for id,node in nodes_by_id.iteritems():
 		id = node['id']
 		if 'children' in node:
 			for child in node['children']:

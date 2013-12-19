@@ -12,7 +12,7 @@ $.ajax({
 	
 // Arrays to hold all nodes scalar data
 var scalardata = [];
-var scalars_name = 'labels';
+var scalars_name = 'digit_id';
 // Convenience tree data structures -- may not always need these...
 var scales_by_id = [];
 var ids_by_scale = {};

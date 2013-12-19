@@ -6,8 +6,13 @@ class TreeServer:
 	
 	def __init__(self):
 		
+		# SamBinary data
 		self.tree = IPCATree('../../test/mnist12.ipca')
 		self.tree.SetLabelFileName('../../test/mnist12_labels.data.hdr')
+		
+		# HDF data
+		# self.tree = IPCATree('../../test/test1_mnist12.hdf5')
+		# self.tree.SetLabelFileName('../../test/test1_mnist12.hdf5')
 		
 		self.tree.LoadLabelData()
 		
