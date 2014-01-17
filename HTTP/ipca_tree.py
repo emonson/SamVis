@@ -88,7 +88,8 @@ class IPCATree(object):
 		print 'Trying to load data set from .ipca file... ', self.tree_data_file
 
 		# Read data from binary file
-		self.tree_root, self.nodes_by_id = IR.read_sambinary_ipcadata(self.tree_data_file)
+		# self.tree_root, self.nodes_by_id = IR.read_sambinary_ipcadata(self.tree_data_file)
+		self.tree_root, self.nodes_by_id = IR.read_sambinary_v3_ipcadata(self.tree_data_file)
 		# self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(self.tree_data_file)
 			
 		self.post_process_nodes(self.tree_root)
@@ -510,11 +511,19 @@ if __name__ == "__main__":
 	# data_file = askopenfilename()
 # 	data_file = '/Users/emonson/Programming/Sam/test/orig2-copy2.ipca'
 # 	label_file = '/Users/emonson/Programming/Sam/test/labels02.data.hdr'
+	
+	# v2 sambinary
 	# tree_file = '/Users/emonson/Programming/Sam/test/mnist12.ipca'
-	tree_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
 	# label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
-	label_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
 	# data_file = '/Users/emonson/Programming/Sam/test/mnist12.data.hdr'
+
+	# v3 sambinary
+	tree_file = '/Users/emonson/Programming/Sam/test/mnist12_v3.ipca'
+	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
+
+	# HDF5
+	# tree_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
+	# label_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
 
 	# DataSource loads .ipca file and can generate data from it for other views
 	tree = IPCATree(tree_file)

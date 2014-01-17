@@ -121,8 +121,159 @@ def read_sambinary_ipcadata(tree_data_filename):
 	f.close()
 	
 	return tree_root, nodes_by_id
-	
 
+
+@time_this
+def read_sambinary_v3_ipcadata(tree_data_filename):
+	""" Read IPCA tree and data from Sam's binary file format which he dumps variables
+	from his tree in C++. Return root of tree (which is just a bunch of dictionaries
+	linked to each other through children and parent) and list of same node element objects
+	but ordered by id rather than in a tree structure."""
+	
+	f = io.open(tree_data_filename, 'rb', buffering=65536)
+
+	# Tree header
+	dt = N.dtype([('epsilon', N.dtype('f8')), 
+								('m', N.dtype('u4')), 
+								('minPoints', N.dtype('i4'))])
+	header = N.frombuffer(f.read(8+4+4), dtype=dt, count=1)
+	epsilon = header['epsilon']
+	m = header['m']
+	minPoints = header['minPoints']
+
+	tree_root = None
+	nodes_by_id = {}
+	nodes = C.deque()
+	cur = None
+
+	id = 0
+
+# 		try:
+	r_nPhi = f.read(4)
+	while r_nPhi:
+#       int nPhi = 0;
+#       file.read( (char*) &nPhi, sizeof(int) );
+# 
+#       int nKids = 0;
+#       file.read( (char*) &nKids, sizeof(int) );
+# 
+#       for(int i=0; i<nKids; i++){
+#         int i1 = 0;
+#         file.read( (char*) &i1, sizeof(int) );
+#         int i2 = 0;
+#         file.read( (char*) &i2, sizeof(int) );
+#         childmap[i1] = i2;
+#       }
+# 
+#       
+#       phi =  DenseMatrix<TPrecision>(m, nPhi);
+#       file.read((char*)phi.data(), nPhi*m*sizeof(TPrecision));
+# 
+#       sigma = DenseVector<TPrecision> (nPhi);
+#       file.read((char*)sigma.data(), nPhi*sizeof(TPrecision));
+# 
+#       center = DenseVector<TPrecision>(m);
+#       file.read((char*)center.data(), m*sizeof(TPrecision));
+# 
+#       mse = DenseVector<TPrecision>(nPhi+1);
+#       file.read((char*)mse.data(), (nPhi+1)*sizeof(TPrecision));
+# 
+#       dir = DenseMatrix<TPrecision>(m, nPhi);
+#       file.read((char*)dir.data(), m*nPhi*sizeof(TPrecision));
+# 
+#       a = DenseVector<TPrecision>(nPhi);
+#       file.read((char*)a.data(), sizeof(TPrecision)*nPhi );
+# 
+#       int nPoints;
+#       file.read( (char*) &nPoints, sizeof(int) );
+#       indices.resize(nPoints);
+#       file.read((char*)indices.data(), nPoints*sizeof(int) );
+# 
+#       file.read((char*) &radius, sizeof(TPrecision) );
+# 
+# 
+# 
+#       sigma2 = DenseVector<TPrecision>( sigma.N() );
+#       for(int i=0; i<sigma.N(); i++){
+#         sigma2(i) = sigma(i) * sigma(i);
+#       } 
+#       return nKids;
+#     };
+
+		nPhi = int(N.frombuffer(r_nPhi, N.dtype('i4'), count=1))
+		nKids = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
+		childmap = {}
+		for ii in range(nKids):
+			i1 = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
+			i2 = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
+			childmap[i1] = i2
+			
+		phi = N.matrix(N.frombuffer(f.read(8*nPhi*m), N.dtype('f8'), count=nPhi*m).reshape(nPhi,m))
+		sigma = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nPhi)
+		center = N.frombuffer(f.read(8*m), N.dtype('f8'), count=m)
+		mse = N.frombuffer(f.read(8*(nPhi+1)), N.dtype('f8'), count=(nPhi+1))
+		dir = N.matrix(N.frombuffer(f.read(8*m*nPhi), N.dtype('f8'), count=m*nPhi).reshape(nPhi,m))
+		
+		a = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nPhi)
+		nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
+		indices = N.frombuffer(f.read(4*nPoints), N.dtype('i4'), count=nPoints)
+		r = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
+
+		node = {}
+		node['id'] = id
+		node['nKids'] = nKids
+		node['children'] = C.deque()
+
+		node['r'] = r
+		node['phi'] = phi
+		node['sigma'] = sigma
+		node['dir'] = dir
+		node['a'] = a
+		node['mse'] = mse
+		node['center'] = center
+		node['indices'] = indices
+		node['npoints'] = nPoints
+		node['sigma2'] = sigma*sigma
+
+		# if previously read node is not empty. 
+		# i.e. if node != root
+		if cur == None:
+			tree_root = node
+			cur = node
+		else:
+			# if just-read node is not a leaf
+			if node['nKids'] > 0:
+				# put just-read node in the deque to be visited later
+				nodes.append(node)
+	
+			# if children array of cur (previously read) is full
+			# (I think an alternative to this if not dealing with a binary tree
+			#		would be to keep track of everyone's parent node ID and check here 
+			#		whether cur is the parent of node)
+			if len(cur['children']) == cur['nKids']:
+				cur = nodes.popleft()
+	
+			# fill up cur's children list
+			node['parent_id'] = cur['id']
+			cur['children'].append(node)
+	
+		# Keep a copy indexed by ID, too
+		nodes_by_id[id] = node
+		
+		r_nPhi = f.read(4)
+		
+		# NOTE: I would prefer some sort of ID saved with each node...
+		id = id + 1
+	
+# 		except:
+# 			raise IOError, "Can't load data from file %s" % (tree_data_file,)
+	
+# 		finally:
+	f.close()
+	
+	return tree_root, nodes_by_id
+	
+	
 def read_sambinary_labeldata(label_data_filename):
 	"""Read IPCA tree label data from Sam's binary format, which is basically an
 	R datastructure, I think..."""
@@ -217,10 +368,11 @@ def read_sambinary_originaldata(orig_data_file):
 # --------------------
 if __name__ == "__main__":
 
-	tdf = '../../test/mnist12.ipca'
+	# tdf = '../../test/mnist12.ipca'
+	tdf = '../../test/mnist12_v3.ipca'
 	ldf = '../../test/mnist12_labels.data.hdr'
 	df = '../../test/mnist12.data.hdr'		
 	
-	tree_root, nodes_by_id = read_sambinary_ipcadata(tdf)
+	tree_root, nodes_by_id = read_sambinary_v3_ipcadata(tdf)
 	labels = read_sambinary_labeldata(ldf)
 	orig_data = read_sambinary_originaldata(df)
