@@ -11,7 +11,8 @@ class TreeServer:
 		# self.tree.SetLabelFileName('../../test/mnist12_labels.data.hdr')
 		
 		# SamBinary v3 data
-		self.tree = IPCATree('../../test/mnist12_v3.ipca')
+		# self.tree = IPCATree('../../test/mnist12_v3.ipca')
+		self.tree = IPCATree('../../test/mnist12_v4.ipca')
 		self.tree.SetLabelFileName('../../test/mnist12_labels.data.hdr')
 		
 		# HDF data

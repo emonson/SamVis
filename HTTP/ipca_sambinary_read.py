@@ -154,6 +154,9 @@ def read_sambinary_v3_ipcadata(tree_data_filename):
 #       int nPhi = 0;
 #       file.read( (char*) &nPhi, sizeof(int) );
 # 
+#       int nSplit = 0;
+#       file.read( (char*) &nSplit, sizeof(int) );
+#       
 #       int nKids = 0;
 #       file.read( (char*) &nKids, sizeof(int) );
 # 
@@ -179,17 +182,17 @@ def read_sambinary_v3_ipcadata(tree_data_filename):
 #       file.read((char*)mse.data(), (nPhi+1)*sizeof(TPrecision));
 # 
 #       dir = DenseMatrix<TPrecision>(m, nPhi);
-#       file.read((char*)dir.data(), m*nPhi*sizeof(TPrecision));
+#       file.read((char*)dir.data(), m*nSplit*sizeof(TPrecision));
 # 
-#       a = DenseVector<TPrecision>(nPhi);
-#       file.read((char*)a.data(), sizeof(TPrecision)*nPhi );
+#       a = DenseVector<TPrecision>(nSplit);
+#       file.read((char*)a.data(), sizeof(TPrecision)*nSplit );
 # 
 #       int nPoints;
 #       file.read( (char*) &nPoints, sizeof(int) );
 #       indices.resize(nPoints);
 #       file.read((char*)indices.data(), nPoints*sizeof(int) );
 # 
-#       file.read((char*) &radius, sizeof(TPrecision) );
+#       file.read((char*) &l2Radius, sizeof(TPrecision) );
 # 
 # 
 # 
@@ -201,6 +204,7 @@ def read_sambinary_v3_ipcadata(tree_data_filename):
 #     };
 
 		nPhi = int(N.frombuffer(r_nPhi, N.dtype('i4'), count=1))
+		nSplit = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
 		nKids = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
 		childmap = {}
 		for ii in range(nKids):
@@ -214,17 +218,18 @@ def read_sambinary_v3_ipcadata(tree_data_filename):
 		mse = N.frombuffer(f.read(8*(nPhi+1)), N.dtype('f8'), count=(nPhi+1))
 		dir = N.matrix(N.frombuffer(f.read(8*m*nPhi), N.dtype('f8'), count=m*nPhi).reshape(nPhi,m))
 		
-		a = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nPhi)
+		a = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nSplit)
 		nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
 		indices = N.frombuffer(f.read(4*nPoints), N.dtype('i4'), count=nPoints)
-		r = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
+		l2Radius = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
 
 		node = {}
 		node['id'] = id
+		node['nSplit'] = nKids
 		node['nKids'] = nKids
 		node['children'] = C.deque()
 
-		node['r'] = r
+		node['l2Radius'] = l2Radius
 		node['phi'] = phi
 		node['sigma'] = sigma
 		node['dir'] = dir
