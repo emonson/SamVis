@@ -216,16 +216,16 @@ def read_sambinary_v3_ipcadata(tree_data_filename):
 		sigma = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nPhi)
 		center = N.frombuffer(f.read(8*m), N.dtype('f8'), count=m)
 		mse = N.frombuffer(f.read(8*(nPhi+1)), N.dtype('f8'), count=(nPhi+1))
-		dir = N.matrix(N.frombuffer(f.read(8*m*nPhi), N.dtype('f8'), count=m*nPhi).reshape(nPhi,m))
+		dir = N.matrix(N.frombuffer(f.read(8*m*nSplit), N.dtype('f8'), count=m*nSplit).reshape(nSplit,m))
 		
-		a = N.frombuffer(f.read(8*nPhi), N.dtype('f8'), count=nSplit)
+		a = N.frombuffer(f.read(8*nSplit), N.dtype('f8'), count=nSplit)
 		nPoints = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
 		indices = N.frombuffer(f.read(4*nPoints), N.dtype('i4'), count=nPoints)
 		l2Radius = float(N.frombuffer(f.read(8), N.dtype('f8'), count=1))
 
 		node = {}
 		node['id'] = id
-		node['nSplit'] = nKids
+		node['nSplit'] = nSplit
 		node['nKids'] = nKids
 		node['children'] = C.deque()
 
