@@ -25,26 +25,36 @@ import numpy as N
 from scipy.sparse import coo_matrix 
 
 def fill_dict_with_arrays(obj):
-	
 	# When ArrayToStruct is set, all arrays are saved in 1D format along with size
 	c = {}
 	for k,v in obj.items():
-		if isinstance(v, dict):
-			# NOTE: skipping sparse (and big!) lmks array for now...
-			if isinstance(k,str) and k.startswith('lmks'):
-				continue
-			if "_ArrayIsSparse_" in v:
-				# TODO: NOT DONE!!
-				c[k] = coo_matrix((N.ones_like(edge_start),(edge_start,edge_end)), shape=(n_nodes,n_nodes)).tocsr()
-			# NOTE: bad name-based test!!
-			if isinstance(k,str) and k.endswith('index'):
-				# changing 1-based indices to 0-based
-				c[k] = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F') - 1
-			else:
-				c[k] = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F')
-		else:
-			c[k] = v
+		item = parse_data_item(k,v)
+		if item is not None:
+			c[k] = item
 	return c
+
+def parse_data_item(k,v):
+	if isinstance(v, dict):
+		# NOTE: skipping sparse (and big!) lmks array for now...
+		if isinstance(k,str) and k.startswith('lmks'):
+			return
+		if ("_ArrayIsSparse_" in v) and (v['_ArrayIsSparse_'] == 1):
+			# Data stored as a list of triplet lists, [row, column, value]
+			rcv = N.array(v['_ArrayData_'])
+			# NOTE: Need to subtract 1 in rows and column indices since Matlab 1-based indices...
+			c = coo_matrix((rcv[:,2],(rcv[:,0]-1,rcv[:,1]-1)), shape=tuple(v['_ArraySize_'])).tocsr()
+		# NOTE: bad name-based test!!
+		elif isinstance(k,str) and k.endswith('index'):
+			# changing 1-based indices to 0-based
+			c = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F') - 1
+		else:
+			c = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F')
+	else:
+		# Just an isolated value (usually just strings)
+		c = v
+	
+	return c
+
 	
 def load_d_info(filename):
 	
@@ -75,15 +85,35 @@ def load_netpoints(filename):
 		d = simplejson.loads(open(filename).read())
 		# NOTE: Hack until I can find out from Miles what the deal is with the new format...
 		if "points" in d:
-			data = N.array(d['points']['_ArrayData_']).reshape(d['points']['_ArraySize_'], order='F')
+			points = N.array(d['points']['_ArrayData_']).reshape(d['points']['_ArraySize_'], order='F')
 		else:
-			data = N.array(d['_ArrayData_']).reshape(d['_ArraySize_'], order='F')
-		return data
+			points = N.array(d['_ArrayData_']).reshape(d['_ArraySize_'], order='F')
+		
+		# Center data
+		if "center_data" in d:
+			# TODO: Need to come up with more general routine here for differnt types of data...
+			center_data = {}
+			
+			# For sparse images these are stores as [n, r*c], which are sparse 1d arrays
+			# when sliced. So, they need to be sliced, then .todense() then reshape, probably
+			# with 'F' order...
+			center_data['data'] = parse_data_item("center_data", d['center_data'])
+
+			if 'datatype' in d:
+				# "image", ...
+				center_data['datatype'] = d['datatype']
+
+			if 'data_info' in d:
+				# image dimensions (flatten to get rid of 2d-ness)
+				center_data['data_info'] = parse_data_item("data_info", d['data_info']).flatten()
+		
+		# TODO: Not returning center_data yet. Need to figure out how to deal with it...
+		return points
 	
 # --------------------
 if __name__ == "__main__":
 
-	d_info = load_d_info('data/d_info.json')
-	netpoints = load_netpoints('data/netpoints.json')
-	path = load_trajectory('data/trajectory.json')
-	sim_opts = load_sim_opts('data/sim_opts.json')
+	d_info = load_d_info('data/json_20130927_img_d02/d_info.json')
+	netpoints, center_data = load_netpoints('data/json_20130927_img_d02/netpoints.json')
+	path = load_trajectory('data/json_20130927_img_d02/trajectory.json')
+	sim_opts = load_sim_opts('data/json_20130927_img_d02/sim_opts.json')
