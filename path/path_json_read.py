@@ -22,6 +22,7 @@
 import simplejson
 import os
 import numpy as N
+from scipy.sparse import coo_matrix 
 
 def fill_dict_with_arrays(obj):
 	
@@ -30,8 +31,11 @@ def fill_dict_with_arrays(obj):
 	for k,v in obj.items():
 		if isinstance(v, dict):
 			# NOTE: skipping sparse (and big!) lmks array for now...
-			if "_ArrayIsSparse_" in v:
+			if isinstance(k,str) and k.startswith('lmks'):
 				continue
+			if "_ArrayIsSparse_" in v:
+				# TODO: NOT DONE!!
+				c[k] = coo_matrix((N.ones_like(edge_start),(edge_start,edge_end)), shape=(n_nodes,n_nodes)).tocsr()
 			# NOTE: bad name-based test!!
 			if isinstance(k,str) and k.endswith('index'):
 				# changing 1-based indices to 0-based
