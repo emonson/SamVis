@@ -4,4 +4,11 @@
 # The server config file that's actually used in the apps
 server_conf.json
 
+# Extra Mac directory files
 .DS_Store
+
+# Some sort of app-generated files in Sam's system
+*.swp
+
+# This is the name I give CMake build/binary directories
+build
