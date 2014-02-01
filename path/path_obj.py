@@ -1,4 +1,4 @@
-import simplejson
+import json
 import os
 import numpy as N
 import collections as C
@@ -91,7 +91,7 @@ class PathObj(object):
 		for now. Returns {district_id:ID} JSON"""
 
 		if time is not None:
-			return simplejson.dumps({'district_id':int(self.path_info['path_index'][time])})
+			return json.dumps({'district_id':int(self.path_info['path_index'][time])})
 
 	# --------------------
 	def GetTimesFromDistrict_JSON(self, district_id=None):
@@ -106,7 +106,7 @@ class PathObj(object):
 			
 			# First test whether district is ever visited
 			if district_id not in self.path_info['path_index']:
-				return simplejson.dumps({'avg_time_to_district':avg_times.tolist()})
+				return json.dumps({'avg_time_to_district':avg_times.tolist()})
 
 			# This increments time after leaving the chosen district and until it returns
 			if district_id in self.time_from_region:
@@ -145,9 +145,9 @@ class PathObj(object):
 				# time_lists[d] = str(self.pretty_sci_floats(vals)) + " median( " + avg_time_str + " )"
 			avg_times_list = self.pretty_sci_floats(avg_times.tolist())
 			t_max_idx = self.path_info['path'].shape[0] - 1
-			return simplejson.dumps({'avg_time_to_district':avg_times_list, 't_max_idx':t_max_idx})
+			return json.dumps({'avg_time_to_district':avg_times_list, 't_max_idx':t_max_idx})
 			# DEBUG
-			# return simplejson.dumps({'avg_time_to_district':avg_times_list, 'time_lists':time_lists, 't_max_idx':t_max_idx})
+			# return json.dumps({'avg_time_to_district':avg_times_list, 'time_lists':time_lists, 't_max_idx':t_max_idx})
 
 	# --------------------
 	def GetDistrictCenterData_JSON(self, district_id=None):
@@ -160,12 +160,15 @@ class PathObj(object):
 			
 				# NOTE: Only hard-coded test image data for now...
 				datashape = self.netpoints['center_data']['data_info']
-				data = self.netpoints['center_data']['data'][district_id,:].todense().reshape(datashape).tolist()
-			
+				data = self.netpoints['center_data']['data'][district_id,:].todense().reshape(datashape, order='F').tolist()
+
 				# string: 'image', ...
 				datatype = self.netpoints['center_data']['datatype']
-			
-				return simplejson.dumps({'datatype':datatype, 'data':data, 'data_range':(N.min(data), N.max(data))})
+				# N.asscalar() converts from numpy to native python types so can be json serialized
+				datarange = (N.asscalar(N.min(data)), N.asscalar(N.max(data)))
+				
+				output = {'datatype':datatype, 'data':data, 'data_range':datarange, 'data_dims':datashape.tolist()}
+				return json.dumps(output)
 
 	# --------------------
 	def GetNetPoints_JSON(self):
@@ -173,7 +176,7 @@ class PathObj(object):
 		Right now it's just the 1st two dimensions of the netpoints data."""
 
 		netpoints = self.pretty_sci_floats(self.netpoints['points'][:,:2].tolist())
-		return simplejson.dumps({'netpoints':netpoints})
+		return json.dumps({'netpoints':netpoints})
 
 	# --------------------
 	def GetTransitionGraph_JSON(self):
@@ -198,7 +201,7 @@ class PathObj(object):
 		
 		# Redundant max time info that's also sent with path, but using it here for network
 		# transition time scalars
-		return simplejson.dumps({'nodes':graph_nodes, 'edges':graph_edges, 't_max_idx':t_max_idx, 'node_time_max':node_time_max, 'vmax':v_max})
+		return json.dumps({'nodes':graph_nodes, 'edges':graph_edges, 't_max_idx':t_max_idx, 'node_time_max':node_time_max, 'vmax':v_max})
 
 	# --------------------
 	# PATHS
@@ -289,7 +292,7 @@ class PathObj(object):
 				# NOTE:  cherrypy routine parses R_old out from string to 2x2 list of lists, send that directly
 				district_path_info = self.GetDistrictDeepPathLocalRotatedCoordInfo(dest_district, prev_district, depth, R_old)
 			
-				return simplejson.dumps(district_path_info)
+				return json.dumps(district_path_info)
 		
 	# --------------------
 	# ELLIPSES
@@ -347,7 +350,7 @@ class PathObj(object):
 	# --------------------
 	def GetDistrictLocalRotatedEllipses_JSON(self, district_id, previous_id, R_old):
 	
-		return simplejson.dumps(self.GetDistrictLocalRotatedEllipses(district_id, previous_id, R_old))
+		return json.dumps(self.GetDistrictLocalRotatedEllipses(district_id, previous_id, R_old))
 		
 	# --------------------
 	def GetDistrictDiffusionRotatedEllipses(self, district_id = None, previous_id = None, R_old = None):
@@ -407,7 +410,7 @@ class PathObj(object):
 	# --------------------
 	def GetDistrictDiffusionRotatedEllipses_JSON(self, district_id = None, previous_id = None, R_old = None):
 	
-		return simplejson.dumps(self.GetDistrictDiffusionRotatedEllipses(district_id, previous_id, R_old))
+		return json.dumps(self.GetDistrictDiffusionRotatedEllipses(district_id, previous_id, R_old))
 		
 	# --------------------
 	# UTILITY CLASSES

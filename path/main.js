@@ -79,8 +79,10 @@ window.onload = function() {
 	// then respond to clicks by specific vis afterwards
 	$.subscribe("/unknown/district_click", NETWORK.update_node_scalars);
 	$.subscribe("/unknown/district_click", DISTRICT.visgen);
+	$.subscribe("/unknown/district_click", CENTER_IM.getCenterImageFromServer);
 
 	$.subscribe("/district/ellipse_hover", DISTRICT.el_hover);
+	
 	$.subscribe("/time_center_slider/slide", DISTRICT.time_center_slide_fcn);
 	$.subscribe("/time_width_slider/slide", DISTRICT.time_width_slide_fcn);
 	$.subscribe("/transit_time_color_scale_slider/slide", NETWORK.transit_time_color_scale_slide_fcn);

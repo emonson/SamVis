@@ -46,6 +46,9 @@ p {
 #transit_time_color_scale_slider {
 	width: 300px;
 }
+#district_center_image {
+	margin: 20px;
+}
 
 label {
 	font: 11px sans-serif;
