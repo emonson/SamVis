@@ -118,6 +118,19 @@ class PathServer:
 			# Average 1st passage times to other districts from this one
 			return self.path.GetTimesFromDistrict_JSON(dist_id)
 
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
+	def districtcenterdata(self, district_id=None):
+		
+		if district_id is not None:
+			dist_id = int(district_id)
+			
+			# TODO: Make this more general. For now it's just an image for the district center
+			# TODO: Need to figure out a way to detect early on what type of data is associated
+			#   with each district, and tailor the JS visualizations accordingly, and here
+			#   just grab data without knowing what it is.
+			return self.path.GetDistrictCenterData_JSON(dist_id)
+
 	# ------------
 	# Utility
 	

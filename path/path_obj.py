@@ -150,11 +150,29 @@ class PathObj(object):
 			# return simplejson.dumps({'avg_time_to_district':avg_times_list, 'time_lists':time_lists, 't_max_idx':t_max_idx})
 
 	# --------------------
+	def GetDistrictCenterData_JSON(self, district_id=None):
+		"""Return data associated with the center of each district. For now it is an
+		image, but it could also be molecular structure data, etc. JSON"""
+
+		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
+			
+			if 'center_data' in self.netpoints:
+			
+				# NOTE: Only hard-coded test image data for now...
+				datashape = self.netpoints['center_data']['data_info']
+				data = self.netpoints['center_data']['data'][district_id,:].todense().reshape(datashape).tolist()
+			
+				# string: 'image', ...
+				datatype = self.netpoints['center_data']['datatype']
+			
+				return simplejson.dumps({'datatype':datatype, 'data':data, 'data_range':(N.min(data), N.max(data))})
+
+	# --------------------
 	def GetNetPoints_JSON(self):
 		"""Get the 2D coordinates in some universal coordinate system for an overview.
 		Right now it's just the 1st two dimensions of the netpoints data."""
 
-		netpoints = self.pretty_sci_floats(self.netpoints[:,:2].tolist())
+		netpoints = self.pretty_sci_floats(self.netpoints['points'][:,:2].tolist())
 		return simplejson.dumps({'netpoints':netpoints})
 
 	# --------------------
@@ -824,12 +842,16 @@ class PrettyPrecision3SciFloat(float):
 # --------------------
 # --------------------
 if __name__ == "__main__":
+	
+	data_base_path = '/Users/emonson/Programming/SamVis/path/data/'
+	# data_base_path = '/Users/emonson/Programming/Sam/Python/path/data/'
 
-	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130601'
-	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130813'
-	# data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130913_ex3d'
-	data_dir = '/Users/emonson/Programming/Sam/Python/path/data/json_20130927_img_d02'
-	path = PathObj(data_dir)
+	# data_dir = 'json_20130601'
+	# data_dir = 'json_20130813'
+	# data_dir = 'json_20130913_ex3d'
+	data_dir = 'json_20130927_img_d02'
+	
+	path = PathObj(data_base_path + data_dir)
 	# print path.GetWholePathCoordList_JSON()
 
 		

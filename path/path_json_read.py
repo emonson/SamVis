@@ -83,11 +83,14 @@ def load_netpoints(filename):
 
 	if os.path.exists(filename):
 		d = simplejson.loads(open(filename).read())
+		netpoints = {}
+		
 		# NOTE: Hack until I can find out from Miles what the deal is with the new format...
 		if "points" in d:
 			points = N.array(d['points']['_ArrayData_']).reshape(d['points']['_ArraySize_'], order='F')
 		else:
 			points = N.array(d['_ArrayData_']).reshape(d['_ArraySize_'], order='F')
+		netpoints['points'] = points
 		
 		# Center data
 		if "center_data" in d:
@@ -106,14 +109,15 @@ def load_netpoints(filename):
 			if 'data_info' in d:
 				# image dimensions (flatten to get rid of 2d-ness)
 				center_data['data_info'] = parse_data_item("data_info", d['data_info']).flatten()
-		
-		# TODO: Not returning center_data yet. Need to figure out how to deal with it...
-		return points
+			
+			netpoints['center_data'] = center_data
+			
+		return netpoints
 	
 # --------------------
 if __name__ == "__main__":
 
 	d_info = load_d_info('data/json_20130927_img_d02/d_info.json')
-	netpoints, center_data = load_netpoints('data/json_20130927_img_d02/netpoints.json')
+	netpoints = load_netpoints('data/json_20130927_img_d02/netpoints.json')
 	path = load_trajectory('data/json_20130927_img_d02/trajectory.json')
 	sim_opts = load_sim_opts('data/json_20130927_img_d02/sim_opts.json')
