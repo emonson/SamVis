@@ -25,7 +25,7 @@ var GLOBALS = (function($,parseUri){
 	// Passing initial data set value through in parameters. default to first in list
 	// TODO: handle no list!!
 	globals.uri = parseUri(location.toString());
-	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[0];
+	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[globals.dataset_names.length-1];
 	
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.time_width = -1;
