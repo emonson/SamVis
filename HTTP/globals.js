@@ -12,6 +12,21 @@ var GLOBALS = (function($){
 		}
 	});	
 	
+	// Grabbing possible data set names
+	$.ajax({
+		url:globals.data_proxy_root + '/resource_index/datasets',
+		async:false,
+		dataType:'json',
+		success:function(data) {
+			globals.dataset_names = data;
+		}
+	});	
+	
+	// Passing initial data set value through in parameters. default to first in list
+	// TODO: handle no list!!
+	globals.uri = parseUri(location.toString());
+	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[globals.dataset_names.length-1];
+
 	// Arrays to hold all nodes scalar data
 	globals.scalardata = [];
 	globals.scalars_name = 'digit_id';

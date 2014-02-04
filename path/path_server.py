@@ -160,8 +160,12 @@ class Root(object):
 		return simplejson.dumps(self.data_names)
 		
 
+# Storing server name and port in a json file for easy config
+server_filename = '../server_conf.json'
+server_opts = simplejson.loads(open(server_filename).read())
+
 # Go through data directory and add methods to root for each data set
-data_dir = 'data'
+data_dir = server_opts['path_data_dir']
 vis_page = 'district_path.html'
 data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*')) if os.path.isdir(xx)]
 data_dirnames = [os.path.basename(xx) for xx in data_paths]
@@ -169,17 +173,13 @@ data_dirnames = [os.path.basename(xx) for xx in data_paths]
 # Storing the dataset names in the root so they can easily be passed to the html pages
 root = Root(data_dirnames)
 
-# Storing server name and port in a json file for easy config
-server_filename = '../server_conf.json'
-server_opts = simplejson.loads(open(server_filename).read())
-
 # This adds the methods for each data directory
 for ii,name in enumerate(data_dirnames):
 	print name, data_paths[ii]
 	setattr(root, name, PathServer(data_paths[ii]))
 
 # add the resource index, which will list links to the data sets
-base_url = 'http://' + server_opts['server_name'] + '/~' + server_opts['account'] + '/' + server_opts['path_path'] + '/' + vis_page
+base_url = 'http://' + server_opts['server_name'] + '/~' + server_opts['account'] + '/' + server_opts['path_web_path'] + '/' + vis_page
 root.resource_index = ResourceIndex(server_url=base_url, data_names=data_dirnames)
 
 # Start up server

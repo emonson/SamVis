@@ -153,7 +153,7 @@ var ellipse_basis2_color = d3.scale.linear()
 // Get all projected ellipses from the server for now rather than just the displayed ones
 var getBasisImagesFromServer = function() {
 
-	d3.json(data_proxy_root + "/ellipsebasis?id=" + node_id, function(json) {
+	d3.json(data_proxy_root + '/' + g.dataset + "/ellipsebasis?id=" + node_id, function(json) {
 		
 		// TODO: Should be reading width and height off of data itself
 		// TODO: Should be resetting image size if changes...?
@@ -210,7 +210,7 @@ var updateEllipseBasisImages = function() {
 // Utility functions
 
 var getScalarsFromServer = function(s_name) {
-	d3.json(data_proxy_root + "/scalars?name=" + s_name, function(json) {
+	d3.json(data_proxy_root + '/' + g.dataset + "/scalars?name=" + s_name, function(json) {
 	
 		scalardata = json;
 	
@@ -241,7 +241,7 @@ var updateAxes = function() {
 // Get all projected ellipses from the server for now rather than just the displayed ones
 var getReprojectedEllipsesFromServer = function() {
 
-	d3.json(data_proxy_root + "/allellipses?basis=" + basis_id, function(json) {
+	d3.json(data_proxy_root + '/' + g.dataset + "/allellipses?basis=" + basis_id, function(json) {
 
 		// NOTE: Domains and bounds are being set to _all_ ellipses...
 		
@@ -537,7 +537,7 @@ function setIceInstructionsToSelect() {
 
 var init_icicle_view = function() {
 	
-	d3.json(data_proxy_root + "/index", function(json) {
+	d3.json(data_proxy_root + '/' + g.dataset + "/index", function(json) {
 
 		// TODO: Don't need to send 's' as an attribute, partition function calculates
 		//   attribute 'depth'...

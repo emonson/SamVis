@@ -192,7 +192,7 @@ var ELPLOT = (function(d3, $, g){
 	// Get all projected ellipses from the server for now rather than just the displayed ones
 	el.getContextEllipsesFromServer = function() {
 
-		d3.json(g.data_proxy_root + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
+		d3.json(g.data_proxy_root + '/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
 
 			// Flag for keeping track of whether this is the first selection
 			var first_selection = (g.foreground_ellipse_data.length == 0);
