@@ -83,10 +83,26 @@ when you pull changes to the repository.
 
 This config also lets you set the port number used for the IPCA visualizations
 in `HTTP` and the simulated path visualizations in the `path` directory. 
-The `ipca_path` and `path_path` variables should reflect the symlink name
+The `ipca_web_dir` and `path_web_dir` variables should reflect the symlink name
 you set up in your Sites directory. See the "Symlink to project path" section
 below. In that example the variables would be set as `SamVis/path` and `SamVis/HTTP`
 respectively. Also see below for the reverse proxy setup instructions. 
+
+Additionally, you use the `server_conf.json` file to set the path to the data
+for each type of visualization. These paths are relative to the html and JS files
+for each project. It is fine to have this path outside of the directories that
+can be served up by your web server. 
+
+*Data directory and file arrangement:* Right now the projects are set up to
+load multiple datasets into memory so they can be served up when requested. The
+way this is handled is that you set the data directory as stated above. In that
+directory you create sub-directories with unique names for the datasets that will
+be contained in each. For the "path" project there is sample data in the repository.
+For the "HTTP" project there is a download link below with some sample data. Three
+files are expected by the program: `tree.ipca`, which is the output of the GMRA
+CreateIPCATree code in the gmra_src directory; `labels.data`, which is a binary
+array of label integers, and `labels.data.hdr` which is the text header file
+describing the labels data.
 
 *NOTE:* The scripts will expect the reverse proxy to be at server_name/remote9000/ 
 if you put the port value at 9000. (i.e. that string, "remote", is hard-coded into
@@ -166,13 +182,12 @@ This way I can access the HTTP directory from
 `servername.sub.school.edu/~username/SamVis/HTTP`
 
 
-## Additional Example Data
+## IPCA Example Data
 
 The IPCA visualizations in the HTTP directory use data from the [MNIST database of
 handwritten digits](http://yann.lecun.com/exdb/mnist/). Specifically, the set of
 images of handwritten 1s and 2s from the training set was used. You can download
-the preprocessed data files (IPCA output plus labels) from [this repository](http://people.duke.edu/~emonson/MNIST12.zip)
+the preprocessed data files (IPCA output plus labels) from [this zip file](http://people.duke.edu/~emonson/mnist12_v5_d8c1.zip)
 
-As written, the Python server code in HTTP relies on those files being in a directory
-called `test` sitting in the same directory level as this repository. 
-`../../test/mnist12.ipca`, etc.
+See above in the *Local Web Server Name Configuration* section for the expectations 
+of the HTTP project regarding data directory structure.
