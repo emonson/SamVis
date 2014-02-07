@@ -1,6 +1,7 @@
 import ipca_sambinary_read as IR
 import ipca_hdf5_read as IH
 import numpy as N
+from scipy import stats
 import collections as C
 import pprint
 import simplejson
@@ -471,37 +472,57 @@ class IPCATree(object):
 		
 
 	# --------------------
-	def GetAggregatedScalarsByNameJSON(self, name = None, aggregation = 'avg'):
+	def GetAggregatedScalarsByNameJSON(self, name = None, aggregation = 'mean'):
 		"""Take in scalar "name" and aggregation method
 		and get out JSON of scalars for all nodes by id, calculated 'on the fly'.
-		aggregation = 'avg', 'winner', 'hist'..."""
+		aggregation = 'mean', 'mode', 'hist'...
+		NOTE: only works with non-negative integer labels!!"""
 		
 		if name:
 			if name in self.labels:
-				labels = N.zeros((len(self.nodes_by_id),))
-				larray = self.labels[name]
+				labels_array = self.labels[name]
 				
 				# Average of only requested scalar
-				if aggregation == 'avg':
+				if aggregation == 'mean':
+					labels = N.zeros((len(self.nodes_by_id),))
 					for id,node in self.nodes_by_id.iteritems():
 						indices = node['indices']
-						labels[id] = N.mean(larray[indices])
+						labels[id] = N.mean(labels_array[indices])
 					output = N.round(labels,2).tolist()
+					print output
 						
 				# Winner is most highly represented label
 				# TODO: decide on better determiner for ties...
-				elif aggregation == 'winner':
+				elif aggregation == 'mode':
+					labels = N.zeros((len(self.nodes_by_id),), dtype='int')
 					for id,node in self.nodes_by_id.iteritems():
 						indices = node['indices']
-						# TODO: FIX THIS FUNCTION!!
-						labels[id] = N.mean(larray[indices])
-					output = N.round(labels,2).tolist()
+						counts = N.bincount(labels_array[indices])
+						labels[id] = N.argmax(counts)
+					output = labels.tolist()
 				
 				# 'hist'
-					# TODO: ADD HIST!
-				
+				elif aggregation == 'hist':
+					unique_labels = N.unique(labels_array)
+					# want to be able to look up the indices of each of the labels
+					# for cases in which they're not sequential and individual nodes where
+					# not all labels are present
+					reverse_lookup = N.zeros(N.max(unique_labels)+1, dtype='int')-1
+					for ii,ul in enumerate(unique_labels):
+						reverse_lookup[ul] = ii
+					n_bins = len(unique_labels)
+					labels = N.zeros((len(self.nodes_by_id),n_bins),dtype='int')
+					for id,node in self.nodes_by_id.iteritems():
+						indices = node['indices']
+						bincount = N.bincount(labels_array[indices])
+						node_unique_labels = N.nonzero(bincount)
+						label_indices = reverse_lookup[node_unique_labels]
+						labels[id,label_indices] = bincount[node_unique_labels]
+					output = labels.tolist()
+								
 				# default to old average code
 				else:
+					labels = N.zeros((len(self.nodes_by_id),))
 					for id,node in self.nodes_by_id.iteritems():
 						labels[id] = node['labels'][name]
 					output = N.round(labels,2).tolist()
@@ -558,8 +579,8 @@ if __name__ == "__main__":
 	# data_file = '/Users/emonson/Programming/Sam/test/mnist12.data.hdr'
 
 	# v3 sambinary
-	tree_file = '/Users/emonson/Programming/Sam/test/mnist12_v3.ipca'
-	label_file = '/Users/emonson/Programming/Sam/test/mnist12_labels.data.hdr'
+	tree_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/tree.ipca'
+	label_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/labels.data.hdr'
 
 	# HDF5
 	# tree_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'

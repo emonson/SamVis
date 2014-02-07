@@ -56,7 +56,7 @@ class TreeServer:
 		return self.tree.GetLiteTreeJSON()
 		
 	@cherrypy.tools.gzip()
-	def scalars(self, name=None, aggregation='avg'):
+	def scalars(self, name=None, aggregation='mean'):
 		
 		if name:
 			return self.tree.GetAggregatedScalarsByNameJSON(name, aggregation)
