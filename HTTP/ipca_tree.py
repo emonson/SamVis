@@ -469,6 +469,46 @@ class IPCATree(object):
 					labels[id] = node['labels'][name]
 				return simplejson.dumps(N.round(labels, 2).tolist())
 		
+
+	# --------------------
+	def GetAggregatedScalarsByNameJSON(self, name = None, aggregation = 'avg'):
+		"""Take in scalar "name" and aggregation method
+		and get out JSON of scalars for all nodes by id, calculated 'on the fly'.
+		aggregation = 'avg', 'winner', 'hist'..."""
+		
+		if name:
+			if name in self.labels:
+				labels = N.zeros((len(self.nodes_by_id),))
+				larray = self.labels[name]
+				
+				# Average of only requested scalar
+				if aggregation == 'avg':
+					for id,node in self.nodes_by_id.iteritems():
+						indices = node['indices']
+						labels[id] = N.mean(larray[indices])
+					output = N.round(labels,2).tolist()
+						
+				# Winner is most highly represented label
+				# TODO: decide on better determiner for ties...
+				elif aggregation == 'winner':
+					for id,node in self.nodes_by_id.iteritems():
+						indices = node['indices']
+						# TODO: FIX THIS FUNCTION!!
+						labels[id] = N.mean(larray[indices])
+					output = N.round(labels,2).tolist()
+				
+				# 'hist'
+					# TODO: ADD HIST!
+				
+				# default to old average code
+				else:
+					for id,node in self.nodes_by_id.iteritems():
+						labels[id] = node['labels'][name]
+					output = N.round(labels,2).tolist()
+
+				return simplejson.dumps(output)
+
+
 	# --------------------
 	def GetLiteTreeJSON(self, pretty = False):
 		

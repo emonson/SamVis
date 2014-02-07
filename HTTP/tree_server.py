@@ -56,10 +56,10 @@ class TreeServer:
 		return self.tree.GetLiteTreeJSON()
 		
 	@cherrypy.tools.gzip()
-	def scalars(self, name=None):
+	def scalars(self, name=None, aggregation='avg'):
 		
 		if name:
-			return self.tree.GetScalarsByNameJSON(name)
+			return self.tree.GetAggregatedScalarsByNameJSON(name, aggregation)
 		
 	@cherrypy.tools.gzip()
 	def scaleellipses(self, id=None, basis=None):
