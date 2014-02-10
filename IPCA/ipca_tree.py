@@ -63,12 +63,7 @@ class IPCATree(object):
 		# Read labels from binary file
 		self.labels = IR.read_sambinary_labeldata(self.label_file)
 		# self.labels = IH.read_hdf5_labeldata(self.label_file)
-		
-		# If the data is already loaded, compute mean labels
-		# TODO: Really need to do something more robust for data/label loading order...
-		if self.tree_data_loaded and self.nodes_by_id:
-			self.post_process_mean_labels()
-		
+				
 	# --------------------
 	def SetTreeFileName(self, filename):
 		"""Set file name manually for IPCA file. Can also do this in constructor."""
@@ -176,16 +171,6 @@ class IPCATree(object):
 			nodes_by_scale[scale].append(node)
 		
 		return nodes_by_scale
-	
-	# --------------------
-	def post_process_mean_labels(self):
-		"""Modifies self.nodes_by_id in place finding mean label value"""
-		
-		for id, node in self.nodes_by_id.iteritems():
-			indices = node['indices']
-			node['labels'] = {}
-			for lname,larray in self.labels.iteritems():
-				node['labels'][lname] = N.mean(larray[indices])
 	
 	# --------------------
 	def calculate_node_ellipse(self, node_id):
@@ -472,6 +457,12 @@ class IPCATree(object):
 		
 
 	# --------------------
+	def GetScalarNamesJSON(self):
+		"""Return a list of strings of possible scalar label names"""
+		
+		return simplejson.dumps(self.labels.keys())
+
+	# --------------------
 	def GetAggregatedScalarsByNameJSON(self, name = None, aggregation = 'mean'):
 		"""Take in scalar "name" and aggregation method
 		and get out JSON of scalars for all nodes by id, calculated 'on the fly'.
@@ -492,7 +483,7 @@ class IPCATree(object):
 					print output
 						
 				# Winner is most highly represented label
-				# TODO: decide on better determiner for ties...
+				# TODO: decide on some determiner for ties...?
 				elif aggregation == 'mode':
 					labels = N.zeros((len(self.nodes_by_id),), dtype='int')
 					for id,node in self.nodes_by_id.iteritems():
@@ -520,12 +511,9 @@ class IPCATree(object):
 						labels[id,label_indices] = bincount[node_unique_labels]
 					output = labels.tolist()
 								
-				# default to old average code
+				# Error on unsupported aggregation method
 				else:
-					labels = N.zeros((len(self.nodes_by_id),))
-					for id,node in self.nodes_by_id.iteritems():
-						labels[id] = node['labels'][name]
-					output = N.round(labels,2).tolist()
+					return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
 
 				return simplejson.dumps(output)
 
@@ -538,7 +526,6 @@ class IPCATree(object):
 				# 'c' = 'children'
 				# 'v' = 'value'
 				# 's' = 'scale'
-				# 'l' = 'label'
 		if not self.lite_tree_root:
 			self.RegenerateLiteTree()
 		

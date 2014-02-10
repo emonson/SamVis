@@ -56,6 +56,11 @@ class TreeServer:
 		return self.tree.GetLiteTreeJSON()
 		
 	@cherrypy.tools.gzip()
+	def scalarnames(self):
+		
+		return self.tree.GetScalarNamesJSON()
+		
+	@cherrypy.tools.gzip()
 	def scalars(self, name=None, aggregation='mean'):
 		
 		if name:
@@ -115,6 +120,7 @@ class TreeServer:
 	index.exposed = True
 	scaleellipses.exposed = True
 	scalars.exposed = True
+	scalarnames.exposed = True
 	allellipses.exposed = True
 	ellipsebasis.exposed = True
 	contextellipses.exposed = True

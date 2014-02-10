@@ -189,7 +189,7 @@ var ELPLOT = (function(d3, $, g){
 		updateAxes();
 	};
 
-	// Get all projected ellipses from the server for now rather than just the displayed ones
+	// Get projected ellipses from the server
 	el.getContextEllipsesFromServer = function() {
 
 		d3.json(g.data_proxy_root + '/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {

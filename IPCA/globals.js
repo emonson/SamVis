@@ -2,7 +2,7 @@ var GLOBALS = (function($){
 
 	var globals = { version: '0.0.1' };
 		
-	// Make it easier to swtich the server config when switching between machines
+	// Make it easier to swtich the server config when switching between machines (not async)
 	$.ajax({
 		url:'../server_conf.json',
 		async:false,
@@ -12,7 +12,7 @@ var GLOBALS = (function($){
 		}
 	});	
 	
-	// Grabbing possible data set names
+	// Grabbing possible data set names (not async)
 	$.ajax({
 		url:globals.data_proxy_root + '/resource_index/datasets',
 		async:false,
@@ -27,9 +27,20 @@ var GLOBALS = (function($){
 	globals.uri = parseUri(location.toString());
 	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[globals.dataset_names.length-1];
 
+	// Grabbing possible scalars names (not async)
+	$.ajax({
+		url:globals.data_proxy_root + '/' + globals.dataset + '/scalarnames',
+		async:false,
+		dataType:'json',
+		success:function(data) {
+			globals.scalar_names = data;
+		}
+	});	
+	
 	// Arrays to hold all nodes scalar data
 	globals.scalardata = [];
-	globals.scalars_name = 'digit_id';
+	// NOTE: not testing for queryKey in scalar_names array...
+	globals.scalars_name = globals.uri.queryKey.scalars || (globals.scalar_names[0] || "");
 	// Convenience tree data structures -- may not always need these...
 	globals.scales_by_id = [];
 	globals.ids_by_scale = {};

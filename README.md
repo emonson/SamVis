@@ -17,9 +17,9 @@ and Sam Gerber at Duke University.
 
 ## Directories
 
-### HTTP
+### IPCA
 
-The HTTP directory contains a project which involves loading in data which have been
+The IPCA directory contains a project which involves loading in data which have been
 decomposed with a technique call Geometric Multi-Resolution Analysis (GMRA). The 
 visualizations combine an icicle view which represents the hierarchical breakdown 
 of the data (MNIST handwritten 1s and 2s, in this case – see below for data), 
@@ -72,7 +72,7 @@ libs directory, but here are a list of the currently used libraries:
 
 There is a file called server\_conf\_example.json in the root of the
 repository. This is an example of the file which sets the local server
-name for all of the Javascript and Python scripts in both the HTTP and
+name for all of the Javascript and Python scripts in both the IPCA and
 path directories..
 
 Make a copy of `server_conf_example.json` and call it `server_conf.json`.
@@ -82,10 +82,10 @@ source, plus your server-specific configuration values won't get overwritten
 when you pull changes to the repository.
 
 This config also lets you set the port number used for the IPCA visualizations
-in `HTTP` and the simulated path visualizations in the `path` directory. 
+in `IPCA` and the simulated path visualizations in the `path` directory. 
 The `ipca_web_dir` and `path_web_dir` variables should reflect the symlink name
 you set up in your Sites directory. See the "Symlink to project path" section
-below. In that example the variables would be set as `SamVis/path` and `SamVis/HTTP`
+below. In that example the variables would be set as `SamVis/path` and `SamVis/IPCA`
 respectively. Also see below for the reverse proxy setup instructions. 
 
 Additionally, you use the `server_conf.json` file to set the path to the data
@@ -98,7 +98,7 @@ load multiple datasets into memory so they can be served up when requested. The
 way this is handled is that you set the data directory as stated above. In that
 directory you create sub-directories with unique names for the datasets that will
 be contained in each. For the "path" project there is sample data in the repository.
-For the "HTTP" project there is a download link below with some sample data. Three
+For the "IPCA" project there is a download link below with some sample data. Three
 files are expected by the program: `tree.ipca`, which is the output of the GMRA
 CreateIPCATree code in the gmra_src directory; `labels.data`, which is a binary
 array of label integers, and `labels.data.hdr` which is the text header file
@@ -173,21 +173,21 @@ a symbolic link in our local Apache site path (listed in the username.conf Direc
 line). From my home directory (in the terminal) I type:
 
 ```
-ln -s /Users/username/Programming/SamVis/HTTP /Users/username/Sites/SamVisHTTP
+ln -s /Users/username/Programming/SamVis/IPCA /Users/username/Sites/SamVisIPCA
 ln -s /Users/username/Programming/SamVis/path /Users/username/Sites/SamVisPath
 ```
 
-This way I can access the HTTP directory from
+This way I can access the IPCA directory from
 
-`servername.sub.school.edu/~username/SamVis/HTTP`
+`servername.sub.school.edu/~username/SamVis/IPCA`
 
 
 ## IPCA Example Data
 
-The IPCA visualizations in the HTTP directory use data from the [MNIST database of
+The IPCA visualizations in the IPCA directory use data from the [MNIST database of
 handwritten digits](http://yann.lecun.com/exdb/mnist/). Specifically, the set of
 images of handwritten 1s and 2s from the training set was used. You can download
 the preprocessed data files (IPCA output plus labels) from [this zip file](http://people.duke.edu/~emonson/mnist12_v5_d8c1.zip)
 
 See above in the *Local Web Server Name Configuration* section for the expectations 
-of the HTTP project regarding data directory structure.
+of the IPCA project regarding data directory structure.

@@ -1,7 +1,7 @@
 {
   "server_name":"servername.sub.school.edu",
   "account":"username",
-  "ipca_web_path":"SamVis/HTTP",
+  "ipca_web_path":"SamVis/IPCA",
   "path_web_path":"SamVis/path",
   "ipca_port":9002,
   "path_port":9004,

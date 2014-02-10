@@ -24,17 +24,16 @@ window.onload = function() {
 
 	$.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
 	
-	// Do initial scalars retrieval
-	UTILITIES.getScalarsFromServer(GLOBALS.scalars_name);
 
 	// Initialize icicle view
 	// NOTE: This is where scales_by_id and ids_by_scale get created
 	ICICLE.init_icicle_view();
-
-	ICICLE.highlightSelectedRect(17);
-
-	ELPLOT.highlightSelectedEllipse(17);
-	BASIS_IMS.getBasisImagesFromServer(17);
 	ELPLOT.getContextEllipsesFromServer();
+	
+	// Do initial scalars retrieval
+	UTILITIES.getScalarsFromServer(GLOBALS.scalars_name);
 
+	// TODO: Right now don't have it set up so there's a way to wait for the icicle data
+	//   to come back and then highlight an initial selection, which will populate the 
+	//   ellipse plot and grab images...
 };
