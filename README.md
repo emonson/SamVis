@@ -5,11 +5,12 @@ visualizations backed up by servers which load in data and process it on
 demand to send to the clients. The idea is that even if the data is large
 and cumbersome, lightweight visualizations can be used and efficiently delivered
 to the client to explore the data. Right now most of the server code uses [CherryPy][]
-to write the servers so I can use fast [NumPy][] routines for linear algebra, etc.
+to write the servers so I can use fast [NumPy][] and [SciPy][] routines for linear algebra, etc.
 
 [d3.js]: http://d3js.org/ "d3.js"
 [CherryPy]: http://cherrypy.org "CherryPy"
 [NumPy]: http://numpy.org "NumPy"
+[SciPy]: http://www.scipy.org "SciPy"
 
 This work is being done in collaboration with Mauro Maggioni, Miles Crosskey,
 and Sam Gerber at Duke University.
@@ -32,6 +33,14 @@ Moving further with the simplified scatterplot idea, but now for following paths
 in an abstract, potentially nonlinear and high-dimensional space which is represented 
 locally by low-dimensional linear spaces.
 
+### gmra_src
+
+The source code for Sam Gerber's GMRA routines. The only one we use right now
+for this project is CreateIPCATree. You need to use the [CMake][] build system to
+compile.
+
+[CMake]: http://www.cmake.org "CMake"
+
 ### WebSocket
 
 Just tests of [Autobahn][] and [ws4py][] websockets implementations for passing
@@ -41,12 +50,12 @@ main visualizations for now.
 [Autobahn]: http://autobahn.ws "Autobahn"
 [ws4py]: https://github.com/Lawouach/WebSocket-for-Python "ws4py"
 
-
 ## Dependencies
 
 *Python:* The modules required beyond that of the standard library are:
 
-- [numpy](http://www.numpy.org "Numpy")
+- [NumPy][]
+- [SciPy][]
 - [simplejson](https://github.com/simplejson/simplejson)
 - [CherryPy][]
 
@@ -55,9 +64,10 @@ dependencies under OS X 10.8 that I possibly can, including Python, originally
 because I was having trouble bundling Python apps with the system Python.
 
 I've never had any issues installing simplejson or CherryPy using pip. 
-Numpy I sometimes have problems installing using pip, but it works fine
-to clone the [numpy git repository](https://github.com/numpy/numpy.git), then
-do `python setup.py install` in the main directory.
+I sometimes have problems installing both Numpy and SciPy using pip, but it works fine
+to clone the [numpy git repository](https://github.com/numpy/numpy.git), 
+and the [sci git repository](https://github.com/scipy/scipy.git), then
+do `python setup.py install` in the main directory of each.
 
 *Javascript:* All of the javascript dependencies are in the repository in the
 libs directory, but here are a list of the currently used libraries:
@@ -66,6 +76,7 @@ libs directory, but here are a list of the currently used libraries:
 - [jQuery](http://jquery.com)
 - [jQueryUI](http://jqueryui.com) subset including only the slider for now
 - [jQuery tiny pubsub](https://gist.github.com/cowboy/661855) for events publish/subscribe
+- [parseUri](http://blog.stevenlevithan.com/archives/parseuri) for parsing the page URI
 
 
 ## Local Web Server Name Configuration
