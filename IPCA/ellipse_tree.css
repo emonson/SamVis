@@ -41,7 +41,7 @@
 	border: 1px solid #ccc;
 }
 
-p {
+p, label {
 	font-family: sans-serif;
 	font-size: 80%;
 }
@@ -65,6 +65,10 @@ ellipse:hover {
 .axis text {
 	font-family: sans-serif;
 	font-size: 11px;
+}
+
+#tree {
+	margin-top: 20px;
 }
 
 rect {
