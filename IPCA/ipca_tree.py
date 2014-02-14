@@ -480,7 +480,6 @@ class IPCATree(object):
 						indices = node['indices']
 						labels[id] = N.mean(labels_array[indices])
 					output = N.round(labels,2).tolist()
-					print output
 						
 				# Winner is most highly represented label
 				# TODO: decide on some determiner for ties...?
