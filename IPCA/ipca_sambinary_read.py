@@ -151,57 +151,6 @@ def read_sambinary_v3_ipcadata(tree_data_filename):
 # 		try:
 	r_nPhi = f.read(4)
 	while r_nPhi:
-#       int nPhi = 0;
-#       file.read( (char*) &nPhi, sizeof(int) );
-# 
-#       int nSplit = 0;
-#       file.read( (char*) &nSplit, sizeof(int) );
-#       
-#       int nKids = 0;
-#       file.read( (char*) &nKids, sizeof(int) );
-# 
-#       for(int i=0; i<nKids; i++){
-#         int i1 = 0;
-#         file.read( (char*) &i1, sizeof(int) );
-#         int i2 = 0;
-#         file.read( (char*) &i2, sizeof(int) );
-#         childmap[i1] = i2;
-#       }
-# 
-#       
-#       phi =  DenseMatrix<TPrecision>(m, nPhi);
-#       file.read((char*)phi.data(), nPhi*m*sizeof(TPrecision));
-# 
-#       sigma = DenseVector<TPrecision> (nPhi);
-#       file.read((char*)sigma.data(), nPhi*sizeof(TPrecision));
-# 
-#       center = DenseVector<TPrecision>(m);
-#       file.read((char*)center.data(), m*sizeof(TPrecision));
-# 
-#       mse = DenseVector<TPrecision>(nPhi+1);
-#       file.read((char*)mse.data(), (nPhi+1)*sizeof(TPrecision));
-# 
-#       dir = DenseMatrix<TPrecision>(m, nPhi);
-#       file.read((char*)dir.data(), m*nSplit*sizeof(TPrecision));
-# 
-#       a = DenseVector<TPrecision>(nSplit);
-#       file.read((char*)a.data(), sizeof(TPrecision)*nSplit );
-# 
-#       int nPoints;
-#       file.read( (char*) &nPoints, sizeof(int) );
-#       indices.resize(nPoints);
-#       file.read((char*)indices.data(), nPoints*sizeof(int) );
-# 
-#       file.read((char*) &l2Radius, sizeof(TPrecision) );
-# 
-# 
-# 
-#       sigma2 = DenseVector<TPrecision>( sigma.N() );
-#       for(int i=0; i<sigma.N(); i++){
-#         sigma2(i) = sigma(i) * sigma(i);
-#       } 
-#       return nKids;
-#     };
 
 		nPhi = int(N.frombuffer(r_nPhi, N.dtype('i4'), count=1))
 		nSplit = int(N.frombuffer(f.read(4), N.dtype('i4'), count=1))
