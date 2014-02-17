@@ -6,6 +6,7 @@ import collections as C
 import pprint
 import simplejson
 import os
+import math
 
 # http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
 class PrettyPrecision2SciFloat(float):
@@ -407,6 +408,35 @@ class IPCATree(object):
 		return obj
 
 	# --------------------
+	# http://stackoverflow.com/questions/15450192/fastest-way-to-compute-entropy-in-python
+	def entropy(self, labels):
+		""" Computes entropy of label distribution. Originally called entropy2()"""
+
+		n_labels = len(labels)
+
+		if n_labels <= 1:
+			print 'N_LABELS <= 1 !!'
+			return 0
+
+		counts = N.bincount(labels)
+		# Beware integer division here!
+		probs = counts.astype('f') / float(n_labels)
+		n_classes = N.count_nonzero(probs)
+
+		if n_classes <= 1:
+			# print 'N_CLASSES <= 1 !!'
+			return 0
+
+		ent = 0.0
+
+		# Compute standard entropy.
+		for p in probs:
+			ent -= p * math.log(p, n_classes)
+
+		print n_labels, n_classes, counts, probs, ent
+		return ent
+
+  # --------------------
 	def GetEllipseCenterAndFirstTwoBases(self, id = None):
 		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
 	
@@ -444,19 +474,6 @@ class IPCATree(object):
 		return simplejson.dumps(self.pretty_sci_floats(self.GetEllipseCenterAndFirstTwoBases(id)))
 		
 	# --------------------
-	# --------------------
-	def GetScalarsByNameJSON(self, name = None):
-		"""Take in scalar "name" and get out JSON of scalars for all nodes by id"""
-		
-		if name:
-			if name in self.labels:
-				labels = N.zeros((len(self.nodes_by_id),))
-				for id,node in self.nodes_by_id.iteritems():
-					labels[id] = node['labels'][name]
-				return simplejson.dumps(N.round(labels, 2).tolist())
-		
-
-	# --------------------
 	def GetScalarNamesJSON(self):
 		"""Return a list of strings of possible scalar label names"""
 		
@@ -466,7 +483,7 @@ class IPCATree(object):
 	def GetAggregatedScalarsByNameJSON(self, name = None, aggregation = 'mean'):
 		"""Take in scalar "name" and aggregation method
 		and get out JSON of scalars for all nodes by id, calculated 'on the fly'.
-		aggregation = 'mean', 'mode', 'hist'...
+		aggregation = 'mean', 'mode', 'entropy', 'hist'...
 		NOTE: only works with non-negative integer labels!!"""
 		
 		if name:
@@ -479,10 +496,12 @@ class IPCATree(object):
 					for id,node in self.nodes_by_id.iteritems():
 						indices = node['indices']
 						labels[id] = N.mean(labels_array[indices])
-					output = N.round(labels,2).tolist()
+					output = self.pretty_sci_floats(labels.tolist())
+					max = N.asscalar(N.max(labels))
+					min = N.asscalar(N.min(labels))
+					range = self.pretty_sci_floats([min, max])
 						
-				# Winner is most highly represented label
-				# TODO: decide on some determiner for ties...?
+				# Winner is most highly represented label (integer in and out)
 				elif aggregation == 'mode':
 					labels = N.zeros((len(self.nodes_by_id),), dtype='int')
 					for id,node in self.nodes_by_id.iteritems():
@@ -490,6 +509,21 @@ class IPCATree(object):
 						counts = N.bincount(labels_array[indices])
 						labels[id] = N.argmax(counts)
 					output = labels.tolist()
+					max = N.asscalar(N.max(labels))
+					min = N.asscalar(N.min(labels))
+					range = [min, max]
+				
+				# "Standard" entropy
+				elif aggregation == 'entropy':
+					labels = N.zeros((len(self.nodes_by_id),))
+					for id,node in self.nodes_by_id.iteritems():
+						indices = node['indices']
+						labels[id] = self.entropy(labels_array[indices])
+					print labels.tolist()
+					output = self.pretty_sci_floats(labels.tolist())
+					max = N.asscalar(N.max(labels))
+					min = N.asscalar(N.min(labels))
+					range = self.pretty_sci_floats([min, max])
 				
 				# 'hist'
 				elif aggregation == 'hist':
@@ -509,12 +543,14 @@ class IPCATree(object):
 						label_indices = reverse_lookup[node_unique_labels]
 						labels[id,label_indices] = bincount[node_unique_labels]
 					output = labels.tolist()
+					# For a histogram lower bound assumed to be zero, so only computing max
+					range = N.max(labels, axis=0).tolist()
 								
 				# Error on unsupported aggregation method
 				else:
 					return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
 
-				return simplejson.dumps(output)
+				return simplejson.dumps({'labels':output, 'range':range})
 
 
 	# --------------------
