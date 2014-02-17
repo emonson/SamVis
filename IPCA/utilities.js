@@ -11,10 +11,44 @@ var UTILITIES = (function(d3, $, g){
 			
 			// TODO: This doesn't work for histogram yet...
 			g.scalardata = json.labels;
-			g.scalarrange = json.range;
-			// TODO: Need to find a better way to deal with specifying a multi-color ramp...
-			var mean = (g.scalarrange[0] + g.scalarrange[1]) / 2.0;
-			g.cScale.domain([g.scalarrange[0], mean, g.scalarrange[1]]);
+			g.scalardomain = json.domain;
+			
+			// Use different color maps depending on aggregator function
+			switch(g.scalars_aggregator) {
+			
+				case 'mean':
+				
+					var sr_mean = (g.scalardomain[0] + g.scalardomain[1]) / 2.0;
+					g.cScale = d3.scale.linear()
+					    .domain([g.scalardomain[0], sr_mean, g.scalardomain[1]])
+							.range(["#0571B0", "#999999", "#CA0020"]);
+					break;
+					
+				case 'mode':
+				
+					if (g.scalardomain.length <= 10) {
+					 g.cScale = d3.scale.category10()
+					     .domain(g.scalardomain);
+					} else {
+					 g.cScale = d3.scale.category20()
+					     .domain(g.scalardomain);
+					}
+					break;
+				
+				case 'entropy':
+				
+					g.cScale = d3.scale.linear()
+					    .domain(g.scalardomain)
+							.range(["#333", "#C44"])
+							.interpolate(d3.interpolateHsl);;
+					break;
+				
+				default:
+				
+					// interpolateLab, Hsl, Hcl, Rgb
+					g.cScale.domain([0, 1]).range(["red","blue"])
+							.interpolate(d3.interpolateLab);
+			}
 			
 			$.publish("/scalars/updated");
 		});

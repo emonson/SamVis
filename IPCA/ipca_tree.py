@@ -415,16 +415,13 @@ class IPCATree(object):
 		n_labels = len(labels)
 
 		if n_labels <= 1:
-			print 'N_LABELS <= 1 !!'
 			return 0
 
 		counts = N.bincount(labels)
-		# Beware integer division here!
-		probs = counts.astype('f') / float(n_labels)
+		probs = counts / float(n_labels)
 		n_classes = N.count_nonzero(probs)
 
 		if n_classes <= 1:
-			# print 'N_CLASSES <= 1 !!'
 			return 0
 
 		ent = 0.0
@@ -433,7 +430,6 @@ class IPCATree(object):
 		for p in probs:
 			ent -= p * math.log(p, n_classes)
 
-		print n_labels, n_classes, counts, probs, ent
 		return ent
 
   # --------------------
@@ -499,7 +495,7 @@ class IPCATree(object):
 					output = self.pretty_sci_floats(labels.tolist())
 					max = N.asscalar(N.max(labels))
 					min = N.asscalar(N.min(labels))
-					range = self.pretty_sci_floats([min, max])
+					domain = self.pretty_sci_floats([min, max])
 						
 				# Winner is most highly represented label (integer in and out)
 				elif aggregation == 'mode':
@@ -511,7 +507,7 @@ class IPCATree(object):
 					output = labels.tolist()
 					max = N.asscalar(N.max(labels))
 					min = N.asscalar(N.min(labels))
-					range = [min, max]
+					domain = N.unique(labels_array).tolist()
 				
 				# "Standard" entropy
 				elif aggregation == 'entropy':
@@ -519,11 +515,10 @@ class IPCATree(object):
 					for id,node in self.nodes_by_id.iteritems():
 						indices = node['indices']
 						labels[id] = self.entropy(labels_array[indices])
-					print labels.tolist()
 					output = self.pretty_sci_floats(labels.tolist())
 					max = N.asscalar(N.max(labels))
 					min = N.asscalar(N.min(labels))
-					range = self.pretty_sci_floats([min, max])
+					domain = self.pretty_sci_floats([min, max])
 				
 				# 'hist'
 				elif aggregation == 'hist':
@@ -544,13 +539,13 @@ class IPCATree(object):
 						labels[id,label_indices] = bincount[node_unique_labels]
 					output = labels.tolist()
 					# For a histogram lower bound assumed to be zero, so only computing max
-					range = N.max(labels, axis=0).tolist()
+					domain = {'domain':N.unique(labels_array).tolist(), 'max':N.max(labels, axis=0).tolist()}
 								
 				# Error on unsupported aggregation method
 				else:
 					return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
 
-				return simplejson.dumps({'labels':output, 'range':range})
+				return simplejson.dumps({'labels':output, 'domain':domain})
 
 
 	# --------------------

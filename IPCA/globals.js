@@ -39,7 +39,7 @@ var GLOBALS = (function($){
 	
 	// Arrays to hold all nodes scalar data
 	globals.scalardata = [];
-	globals.scalarrange = [0,1];
+	globals.scalardomain = [0,1];
 	// NOTE: not testing for queryKey in scalar_names array...
 	globals.scalars_name = globals.uri.queryKey.scalars || (globals.scalar_names[0] || "");
 	globals.scalar_aggregators = ["mean", "mode","entropy"];
@@ -65,8 +65,9 @@ var GLOBALS = (function($){
 	globals.basisColor = "black";
 	globals.ellipseStrokeWidth = 2;
 	globals.cScale = d3.scale.linear()
-							.domain([0.0, 0.5, 1.0])
-							.range(["#0571B0", "#999999", "#CA0020"]);
+							.domain([0.0, 1.0])
+							.range(["#0571B0", "#CA0020"])
+							.interpolate(d3.interpolateLab);
 
 	// Initial selection. node_id sets the scale for now...
 	globals.node_id = 0;
