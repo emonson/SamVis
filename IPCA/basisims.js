@@ -31,9 +31,6 @@ var BASIS_IMS = (function(d3, $, g){
 				.style("height", img_h + "px");
 	var ellipse_basis1_context = ellipse_basis1_canvas.node().getContext("2d");
 	var ellipse_basis1_image = ellipse_basis1_context.createImageData(img_w_px, img_h_px);
-	var ellipse_basis1_color = d3.scale.linear()
-				.domain([-1, 0, 1])
-				.range(["#A6611A", "#fff", "#018571"]);
 
 	var ellipse_basis2_canvas = d3.select("#ellipse_basis2_image").append("canvas")
 				.attr("width", img_w_px)
@@ -42,7 +39,8 @@ var BASIS_IMS = (function(d3, $, g){
 				.style("height", img_h + "px");
 	var ellipse_basis2_context = ellipse_basis2_canvas.node().getContext("2d");
 	var ellipse_basis2_image = ellipse_basis2_context.createImageData(img_w_px, img_h_px);
-	var ellipse_basis2_color = d3.scale.linear()
+
+	var ellipse_bases_color = d3.scale.linear()
 				.domain([-1, 0, 1])
 				.range(["#A6611A", "#fff", "#018571"]);
 
@@ -54,12 +52,10 @@ var BASIS_IMS = (function(d3, $, g){
 			// TODO: Should be reading width and height off of data itself
 			// TODO: Should be resetting image size if changes...?
 			g.ellipse_center_data = json.center;
-			g.ellipse_basis1_data = json.basis1;
-			g.ellipse_basis2_data = json.basis2;
+			g.ellipse_bases_data = json.bases;
 
 			g.ellipse_center_range = json.center_range;
-			g.ellipse_basis1_range = json.basis1_range;
-			g.ellipse_basis2_range = json.basis2_range;
+			g.ellipse_bases_range = json.bases_range;
 
 			updateEllipseBasisImages();
 		});
@@ -70,32 +66,31 @@ var BASIS_IMS = (function(d3, $, g){
 		// update color ranges
 		ellipse_center_color.domain(g.ellipse_center_range);
 		// TODO: These aren't quite right -- need to even out range on each side of 0...
-		ellipse_basis1_color.domain([g.ellipse_basis1_range[0], 0, g.ellipse_basis1_range[1]]);
-		ellipse_basis2_color.domain([g.ellipse_basis2_range[0], 0, g.ellipse_basis2_range[1]]);
-
-		for (var y = 0, p = -1; y < img_h_px; ++y) {
-			for (var x = 0; x < img_w_px; ++x) {
-				var c0 = d3.rgb(ellipse_center_color(g.ellipse_center_data[y][x]));
-				var c1 = d3.rgb(ellipse_basis1_color(g.ellipse_basis1_data[y][x]));
-				var c2 = d3.rgb(ellipse_basis2_color(g.ellipse_basis2_data[y][x]));
+		ellipse_bases_color.domain([g.ellipse_bases_range[0],0,g.ellipse_bases_range[1]]);
+		
+		for (var y = 0, p = -1; y < g.ellipse_center_data.length; ++y) {
+				var c0 = d3.rgb(ellipse_center_color(g.ellipse_center_data[y]));
 		
 				ellipse_center_image.data[++p] = c0.r;
-				ellipse_basis1_image.data[p] = c1.r;
-				ellipse_basis2_image.data[p] = c2.r;
-		
 				ellipse_center_image.data[++p] = c0.g;
-				ellipse_basis1_image.data[p] = c1.g;
-				ellipse_basis2_image.data[p] = c2.g;
-		
 				ellipse_center_image.data[++p] = c0.b;
-				ellipse_basis1_image.data[p] = c1.b;
-				ellipse_basis2_image.data[p] = c2.b;
-		
 				ellipse_center_image.data[++p] = 255;
-				ellipse_basis1_image.data[p] = 255;
+
+		}
+		// TODO: Need to loop through images!
+			for (var y = 0, p = -1; y < g.ellipse_bases_data[0].length; ++y) {
+				var c1 = d3.rgb(ellipse_bases_color(g.ellipse_bases_data[0][y]));
+				var c2 = d3.rgb(ellipse_bases_color(g.ellipse_bases_data[1][y]));
+		
+				ellipse_basis1_image.data[++p] = c1.r;
+				ellipse_basis2_image.data[p] = c2.r;
+				ellipse_basis1_image.data[++p] = c1.g;
+				ellipse_basis2_image.data[p] = c2.g;
+				ellipse_basis1_image.data[++p] = c1.b;
+				ellipse_basis2_image.data[p] = c2.b;
+				ellipse_basis1_image.data[++p] = 255;
 				ellipse_basis2_image.data[p] = 255;
 
-			}
 		}
 		ellipse_center_context.putImageData(ellipse_center_image, 0, 0);
 		ellipse_basis1_context.putImageData(ellipse_basis1_image, 0, 0);

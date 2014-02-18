@@ -54,11 +54,9 @@ var GLOBALS = (function($){
 	globals.ellipse_bounds = [];
 
 	globals.ellipse_center_data = [];
-	globals.ellipse_basis1_data = [];
-	globals.ellipse_basis2_data = [];
+	globals.ellipse_bases_data = [];
 	globals.ellipse_center_range = [];
-	globals.ellipse_basis1_range = [];
-	globals.ellipse_basis2_range = [];
+	globals.ellipse_bases_range = [];
 
 	// NOTE: These are both here for ellipses and in CSS for rectangles...
 	globals.selectColor = "gold";
