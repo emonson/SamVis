@@ -23,19 +23,13 @@
 	clear: both;
 }
 
-#ellipse_center_image {
+#center_image {
 	float: left;
 	margin: 5px;
 	border: 1px solid #ccc;
 }
 
-#ellipse_basis1_image {
-	float: left;
-	margin: 5px;
-	border: 1px solid #ccc;
-}
-
-#ellipse_basis2_image {
+#basis_images {
 	float: left;
 	margin: 5px;
 	border: 1px solid #ccc;
