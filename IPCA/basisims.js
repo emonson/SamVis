@@ -10,7 +10,7 @@ var BASIS_IMS = (function(d3, $, g){
 	var img_h_px = 28;
 	var img_w = 56;
 	var img_h = 56;
-	var n_bases = 2;
+	var n_bases = 0;
 
 	// TODO: Should be resetting image width and height on each read...?
 	var center_canvas = d3.select("#center_image").append("canvas")
@@ -26,18 +26,34 @@ var BASIS_IMS = (function(d3, $, g){
 	var b_con, basis_contexts = [];
 	var b_im, basis_images = [];
 	
-	for (var bb = 0; bb < n_bases; bb++) {
-		b_can = d3.select("#basis_images").append("canvas")
-					.attr("width", img_w_px)
-					.attr("height", img_h_px)
-					.style("width", img_w + "px")
-					.style("height", img_h + "px");
-		b_con = b_can.node().getContext("2d");
-		b_im = b_con.createImageData(img_w_px, img_h_px);
+	var set_number_of_images = function(num) {
+		var orig_n_images = basis_images.length;
 		
-		basis_contexts.push(b_con);
-		basis_images.push(b_im);
-	}
+		// Don't have enough images
+		if (num > orig_n_images) {
+			for (var bb = orig_n_images; bb < num; bb++) {
+				b_can = d3.select("#basis_images").append("canvas")
+							.attr("width", img_w_px)
+							.attr("height", img_h_px)
+							.style("width", img_w + "px")
+							.style("height", img_h + "px");
+				b_con = b_can.node().getContext("2d");
+				b_im = b_con.createImageData(img_w_px, img_h_px);
+		
+				basis_contexts.push(b_con);
+				basis_images.push(b_im);
+			}
+		}
+		// Have too many images
+		if (num < orig_n_images) {
+			for (var bb = orig_n_images; bb > num; bb--) {
+				// Remove first element
+				d3.select("#basis_images").select("canvas").remove();
+				basis_contexts.shift();
+				basis_images.shift();
+			}
+		}
+	};
 
 	// Image color scales
 	var center_color = d3.scale.linear()
@@ -60,6 +76,13 @@ var BASIS_IMS = (function(d3, $, g){
 
 			g.center_range = json.center_range;
 			g.bases_range = json.bases_range;
+			
+			// Adjust number of basis images if necessary
+			var n = g.bases_data.length;
+			if (n !== n_bases) {
+				set_number_of_images(n);
+				n_bases = n;
+			}
 
 			updateEllipseBasisImages();
 		});

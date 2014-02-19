@@ -32,6 +32,7 @@
 #basis_images {
 	float: left;
 	margin: 5px;
+	width: 300px;
 	border: 1px solid #ccc;
 }
 
