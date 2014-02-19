@@ -29,11 +29,16 @@
 	border: 1px solid #ccc;
 }
 
-#basis_images {
+.basis_im {
 	float: left;
 	margin: 5px;
-	width: 300px;
 	border: 1px solid #ccc;
+}
+
+#basis_images {
+	float: left;
+	width: 300px;
+	border: none;
 }
 
 p, label {

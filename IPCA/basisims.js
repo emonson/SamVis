@@ -35,6 +35,7 @@ var BASIS_IMS = (function(d3, $, g){
 				b_can = d3.select("#basis_images").append("canvas")
 							.attr("width", img_w_px)
 							.attr("height", img_h_px)
+							.attr("class", "basis_im")
 							.style("width", img_w + "px")
 							.style("height", img_h + "px");
 				b_con = b_can.node().getContext("2d");
