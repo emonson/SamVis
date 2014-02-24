@@ -1,7 +1,7 @@
 import ipca_sambinary_read as IR
-import ipca_hdf5_read as IH
+# import ipca_hdf5_read as IH
 import numpy as N
-from scipy import stats
+# from scipy import stats
 import collections as C
 import pprint
 import simplejson
@@ -53,7 +53,8 @@ class IPCATree(object):
 	def SetLabelFileName(self, filename):
 		"""Set file name manually for label file."""
 
-		self.label_file = IH.checked_filename(filename)
+		# self.label_file = IH.checked_filename(filename)
+		self.label_file = IR.checked_filename(filename)
 
 	# --------------------
 	def LoadLabelData(self):
