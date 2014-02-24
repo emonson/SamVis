@@ -429,7 +429,9 @@ class IPCATree(object):
 
 		# Compute standard entropy.
 		for p in probs:
-			ent -= p * math.log(p, n_classes)
+			# NOTE: not sure if this test is right, but I was getting math errors...
+			if p > 0:
+				ent -= p * math.log(p, n_classes)
 
 		return ent
 
