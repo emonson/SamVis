@@ -436,14 +436,11 @@ class IPCATree(object):
 		return ent
 
   # --------------------
-	def GetEllipseCenterAndFirstTwoBases(self, id = None):
+	def GetNodeCenterAndBases(self, id = None):
 		"""Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
 	
 		if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
 			
-			# TODO: change this to 1 x n 'center' plus d x n 'bases'
-			#   This gives flexibility for number of bases, plus images put onto
-			#   canvas are placed linearally anyway, not in 2d...
 			center = self.nodes_by_id[id]['center'].tolist()
 			bases = self.nodes_by_id[id]['phi'].tolist()
 			return_obj = {'center':center, 'center_range':(N.min(center), N.max(center)),
@@ -464,10 +461,10 @@ class IPCATree(object):
 		return simplejson.dumps(self.GetAllEllipses_NoProjection())
 		
 	# --------------------
-	def GetEllipseCenterAndFirstTwoBasesJSON(self, id = None):
+	def GetNodeCenterAndBasesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 
-		return simplejson.dumps(self.pretty_sci_floats(self.GetEllipseCenterAndFirstTwoBases(id)))
+		return simplejson.dumps(self.pretty_sci_floats(self.GetNodeCenterAndBases(id)))
 		
 	# --------------------
 	def GetScalarNamesJSON(self):

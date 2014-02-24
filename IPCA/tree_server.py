@@ -102,7 +102,7 @@ class TreeServer:
 			node_id = int(id)
 	
 			# seems you can also just return the dictionary
-			return self.tree.GetEllipseCenterAndFirstTwoBasesJSON(node_id)
+			return self.tree.GetNodeCenterAndBasesJSON(node_id)
 		
 	@cherrypy.tools.gzip()
 	def contextellipses(self, id=None, bkgdscale='0'):
