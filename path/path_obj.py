@@ -583,6 +583,7 @@ class PathObj(object):
 		
 			drift = drift*T
 			# Sometimes 'r' is a vector and sometimes a single scalar...
+			# TODO: Magic numbers: 0.2 scaling!!
 			if orig_node['r'].shape == (1,1):
 				r_mult = 0.2*N.sqrt(dest_node['t'][0, 0])
 			else:
