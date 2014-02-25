@@ -1,0 +1,27 @@
+{
+	"IC_idx": {
+		"_ArrayType_": "double",
+		"_ArraySize_": [1,1],
+		"_ArrayData_": [0]
+	},
+	"stepsize": {
+		"_ArrayType_": "double",
+		"_ArraySize_": [1,1],
+		"_ArrayData_": [0.2]
+	},
+	"sim_time": {
+		"_ArrayType_": "double",
+		"_ArraySize_": [1,1],
+		"_ArrayData_": [100000]
+	},
+	"save_time": {
+		"_ArrayType_": "double",
+		"_ArraySize_": [1,1],
+		"_ArrayData_": [50]
+	},
+	"loud": {
+		"_ArrayType_": "double",
+		"_ArraySize_": [1,1],
+		"_ArrayData_": [1]
+	}
+}
