@@ -27,6 +27,33 @@ var GLOBALS = (function($,parseUri){
 	globals.uri = parseUri(location.toString());
 	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[globals.dataset_names.length-1];
 	
+	// Now that we have a dataset name, grabbing information about original data type and dimensions
+	$.ajax({
+		url:globals.data_proxy_root + '/' + globals.dataset + '/datainfo',
+		async:false,
+		dataType:'json',
+		success:function(data) {
+			globals.data_type = data.datatype;
+			globals.data_shape = data.shape;
+			globals.data_bounds = data.alldata_bounds;
+			
+			// Now load individual ellipse center visualization based on data type
+			// Load nothing if 
+			switch (globals.data_type) {
+				case 'image':
+					$.getScript('centerim.js', function(data, textStatus, jqxhr) {
+						console.log('image data');
+					});
+					break;
+				case 'function':
+					$.getScript('centerfunc.js', function(data, textStatus, jqxhr) {
+						console.log('function data');
+					});
+					break;
+			}
+		}
+	});	
+	
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.time_width = -1;
 	globals.time_center = -1;

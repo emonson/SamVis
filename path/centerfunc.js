@@ -1,22 +1,22 @@
 // --------------------------
-// Ellipse (district) Center Image
+// Ellipse (district) Center 1D Function plot
 
 var CENTER_VIS = (function(d3, $, g){
 
 	var ci = { version: '0.0.1' };
 
 	// Append vis-specific div
-	d3.select("#district_center_data_vis").append('div').attr('id', 'district_center_image');
+	d3.select("#district_center_data_vis").append('div').attr('id', 'district_center_func');
 
-	// Actual data dimensions
+	// Actual data dimensions (px)
 	var img_h_px = g.data_shape[0];
 	var img_w_px = g.data_shape[1];
 	// Screen dimensions (px)
-	var img_h = 100;
-	var img_w = img_h*(img_w_px/img_h_px);
+	var img_h = 75;
+	var img_w = 150;
 
 	// TODO: Should be resetting image width and height on each read...?
-	var district_center_canvas = d3.select("#district_center_image").append("canvas")
+	var district_center_canvas = d3.select("#district_center_func").append("canvas")
 				.attr("width", img_w_px)
 				.attr("height", img_h_px)
 				.style("width", img_w + "px")
@@ -25,7 +25,7 @@ var CENTER_VIS = (function(d3, $, g){
 	var district_center_image = district_center_context.createImageData(img_w_px, img_h_px);
 	var district_center_color = d3.scale.linear()
 				.domain(g.data_bounds)
-				.range(["#000", "#fff"]);
+				.range(["#000", "#ff0"]);
 
 	// Get basis images from server
 	ci.getCenterDataFromServer = function(id) {

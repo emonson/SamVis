@@ -117,7 +117,10 @@ def load_netpoints(filename):
 # --------------------
 if __name__ == "__main__":
 
-	d_info = load_d_info('data/json_20130927_img_d02/d_info.json')
-	netpoints = load_netpoints('data/json_20130927_img_d02/netpoints.json')
-	path = load_trajectory('data/json_20130927_img_d02/trajectory.json')
-	sim_opts = load_sim_opts('data/json_20130927_img_d02/sim_opts.json')
+	# data_dir = 'data/json_20130927_img_d02'
+	data_dir = 'data/json_20140225_function'
+	
+	d_info = load_d_info( os.path.join(data_dir, 'd_info.json') )
+	netpoints = load_netpoints( os.path.join(data_dir, 'netpoints.json') )
+	path = load_trajectory( os.path.join(data_dir, 'trajectory.json') )
+	sim_opts = load_sim_opts( os.path.join(data_dir, 'sim_opts.json') )

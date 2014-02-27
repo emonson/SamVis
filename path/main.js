@@ -79,7 +79,7 @@ window.onload = function() {
 	// then respond to clicks by specific vis afterwards
 	$.subscribe("/unknown/district_click", NETWORK.update_node_scalars);
 	$.subscribe("/unknown/district_click", DISTRICT.visgen);
-	$.subscribe("/unknown/district_click", CENTER_IM.getCenterImageFromServer);
+	$.subscribe("/unknown/district_click", CENTER_VIS.getCenterDataFromServer);
 
 	$.subscribe("/district/ellipse_hover", DISTRICT.el_hover);
 	

@@ -6,8 +6,10 @@ var BASIS_IMS = (function(d3, $, g){
 	var bi = { version: '0.0.1' };
 
 	// TODO: WARNING: Magic numbers!!!!
+	// Actual data dimensions
 	var img_w_px = 28;
 	var img_h_px = 28;
+	// Screen dimensions
 	var img_w = 56;
 	var img_h = 56;
 	var n_bases = 0;

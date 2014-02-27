@@ -103,6 +103,13 @@ class PathServer:
 
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
+	def datainfo(self):
+		
+		# {datatype:('image', 'function',...), shape:[n_rows, n_cols]}
+		return self.path.GetDataInfo_JSON()
+
+	@cherrypy.expose
+	@cherrypy.tools.gzip()
 	def transitiongraph(self):
 		
 		# nodes (with ids and occupation times) and edges (with transition sums)

@@ -157,18 +157,24 @@ class PathObj(object):
 		if (district_id is not None) and (district_id >= 0) and (district_id < len(self.d_info)) and self.path_data_loaded:
 			
 			if 'center_data' in self.netpoints:
-			
-				# NOTE: Only hard-coded test image data for now...
-				datashape = self.netpoints['center_data']['data_info']
-				data = self.netpoints['center_data']['data'][district_id,:].todense().reshape(datashape, order='F').tolist()
-
-				# string: 'image', ...
+				
 				datatype = self.netpoints['center_data']['datatype']
+				datashape = self.netpoints['center_data']['data_info']
+				
+				if datatype == 'image':
+					
+					data = self.netpoints['center_data']['data'][district_id,:].todense().reshape(datashape, order='F').tolist()
+				
+				elif datatype == 'function':
+
+					data = self.netpoints['center_data']['data'][district_id,:].reshape(datashape, order='F').tolist()
+
 				# N.asscalar() converts from numpy to native python types so can be json serialized
 				datarange = (N.asscalar(N.min(data)), N.asscalar(N.max(data)))
-				
+			
 				output = {'datatype':datatype, 'data':data, 'data_range':datarange, 'data_dims':datashape.tolist()}
 				return json.dumps(output)
+									
 
 	# --------------------
 	def GetNetPoints_JSON(self):
@@ -177,6 +183,17 @@ class PathObj(object):
 
 		netpoints = self.pretty_sci_floats(self.netpoints['points'][:,:2].tolist())
 		return json.dumps({'netpoints':netpoints})
+
+	# --------------------
+	def GetDataInfo_JSON(self):
+		"""Get the ellipse center data type and shape."""
+
+		datatype = self.netpoints['center_data']['datatype']
+		data_info = self.netpoints['center_data']['data_info'].tolist()
+		data = self.netpoints['center_data']['data']
+		bounds = (N.asscalar(data.min()), N.asscalar(data.max()))
+		
+		return json.dumps({'datatype':datatype, 'shape':data_info, 'alldata_bounds':bounds})
 
 	# --------------------
 	def GetTransitionGraph_JSON(self):
@@ -847,15 +864,12 @@ class PrettyPrecision3SciFloat(float):
 # --------------------
 if __name__ == "__main__":
 	
-	data_base_path = '/Users/emonson/Programming/SamVis/path/data/'
-	# data_base_path = '/Users/emonson/Programming/Sam/Python/path/data/'
-
-	# data_dir = 'json_20130601'
-	# data_dir = 'json_20130813'
-	# data_dir = 'json_20130913_ex3d'
-	data_dir = 'json_20130927_img_d02'
+	# data_dir = 'data/json_20130813'
+	# data_dir = 'data/json_20130913_ex3d'
+	# data_dir = 'data/json_20130927_img_d02'
+	data_dir = 'data/json_20140225_function'
 	
-	path = PathObj(data_base_path + data_dir)
+	path = PathObj(data_dir)
 	# print path.GetWholePathCoordList_JSON()
 
 		

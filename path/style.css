@@ -46,7 +46,11 @@ p {
 #transit_time_color_scale_slider {
 	width: 300px;
 }
+
 #district_center_image {
+	margin: 20px;
+}
+#district_center_func {
 	margin: 20px;
 }
 
