@@ -53,6 +53,22 @@ p {
 #district_center_func {
 	margin: 20px;
 }
+#district_center_func .axis path,
+#district_center_func .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+#district_center_func .line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+#district_center_func text {
+	font: 10px sans-serif;
+}
 
 label {
 	font: 11px sans-serif;

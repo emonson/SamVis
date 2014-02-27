@@ -46,9 +46,14 @@ var GLOBALS = (function($,parseUri){
 					});
 					break;
 				case 'function':
-					$.getScript('centerfunc.js', function(data, textStatus, jqxhr) {
-						console.log('function data');
-					});
+					$.getScript('centerfunc.js')  
+					  .done(function( script, textStatus ) {
+							console.log( textStatus + "loaded function script" );
+  					})
+  					.fail(function( jqxhr, settings, exception ) {
+							console.log( jqxhr + settings + exception + "Triggered ajaxError handler." );
+						});
+
 					break;
 			}
 		}

@@ -8,24 +8,45 @@ var CENTER_VIS = (function(d3, $, g){
 	// Append vis-specific div
 	d3.select("#district_center_data_vis").append('div').attr('id', 'district_center_func');
 
-	// Actual data dimensions (px)
-	var img_h_px = g.data_shape[0];
-	var img_w_px = g.data_shape[1];
-	// Screen dimensions (px)
-	var img_h = 75;
-	var img_w = 150;
+	var margin = {top: 10, right: 10, bottom: 20, left: 30},
+			width = 200 - margin.left - margin.right,
+			height = 150 - margin.top - margin.bottom;
 
-	// TODO: Should be resetting image width and height on each read...?
-	var district_center_canvas = d3.select("#district_center_func").append("canvas")
-				.attr("width", img_w_px)
-				.attr("height", img_h_px)
-				.style("width", img_w + "px")
-				.style("height", img_h + "px");
-	var district_center_context = district_center_canvas.node().getContext("2d");
-	var district_center_image = district_center_context.createImageData(img_w_px, img_h_px);
-	var district_center_color = d3.scale.linear()
-				.domain(g.data_bounds)
-				.range(["#000", "#ff0"]);
+	var x = d3.scale.linear()
+			.range([0, width]);
+
+	var y = d3.scale.linear()
+			.range([height, 0]);
+
+	var xAxis = d3.svg.axis()
+			.scale(x)
+			.orient("bottom")
+			.ticks(3);
+
+	var yAxis = d3.svg.axis()
+			.scale(y)
+			.orient("left")
+			.ticks(0);
+
+	var line = d3.svg.line()
+			.x(function(d,i) { return x(i); })
+			.y(function(d) { return y(d); });
+
+	var svg = d3.select("#district_center_func").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	// Since we're using the whole center data set bounds, shouldn't have to update axes
+	svg.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis);
+
+	svg.append("g")
+			.attr("class", "y axis")
+			.call(yAxis);
 
 	// Get basis images from server
 	ci.getCenterDataFromServer = function(id) {
@@ -36,31 +57,27 @@ var CENTER_VIS = (function(d3, $, g){
 			g.district_center_data_dims = json.data_dims;
 			g.district_center_range = json.data_range;
 
-			// TODO: Should be resetting image size if changes...?
-			img_h_px = g.district_center_data_dims[0];
-			img_w_px = g.district_center_data_dims[1];
+			x.domain([0, g.district_center_data[0].length]);
+			y.domain(g.data_bounds);
 
-			updateImage();
+			updatePlot();
 		});
 	};
 
-	var updateImage = function() {
-
-		// update color ranges
-		// district_center_color.domain(g.district_center_range);
-
-		for (var y = 0, p = -1; y < img_h_px; ++y) {
-			for (var x = 0; x < img_w_px; ++x) {
-				var c0 = d3.rgb(district_center_color(g.district_center_data[y][x]));
+	var updatePlot = function() {
 		
-				district_center_image.data[++p] = c0.r;		
-				district_center_image.data[++p] = c0.g;	
-				district_center_image.data[++p] = c0.b;
-				district_center_image.data[++p] = 255;
-
-			}
-		}
-		district_center_context.putImageData(district_center_image, 0, 0);
+		// TODO: Use transition instead of replacing line each time!
+		svg.selectAll(".line").remove();
+		
+		svg.selectAll("g.y.axis").call(yAxis);
+		svg.selectAll("g.x.axis").call(xAxis);
+		
+		// This is hard-coded to only take one data series in a 2d array right now...
+		svg.append("path")
+				.datum(g.district_center_data[0])
+				.attr("class", "line")
+				.attr("d", line);
+		
 	};
 
 	return ci;
