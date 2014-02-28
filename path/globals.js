@@ -37,28 +37,10 @@ var GLOBALS = (function($,parseUri){
 			globals.data_shape = data.shape;
 			globals.data_bounds = data.alldata_bounds;
 			
-			// Now load individual ellipse center visualization based on data type
-			// Load nothing if 
-			switch (globals.data_type) {
-				case 'image':
-					$.getScript('centerim.js', function(data, textStatus, jqxhr) {
-						console.log('image data');
-					});
-					break;
-				case 'function':
-					$.getScript('centerfunc.js')  
-					  .done(function( script, textStatus ) {
-							console.log( textStatus + "loaded function script" );
-  					})
-  					.fail(function( jqxhr, settings, exception ) {
-							console.log( jqxhr + settings + exception + "Triggered ajaxError handler." );
-						});
-
-					break;
-			}
 		}
 	});	
-	
+
+
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.time_width = -1;
 	globals.time_center = -1;
