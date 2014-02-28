@@ -56,11 +56,11 @@ p {
 #district_center_func .axis path,
 #district_center_func .axis line {
   fill: none;
-  stroke: #000;
+  stroke: #333;
   shape-rendering: crispEdges;
 }
 
-#district_center_func .line {
+#district_center_func .plotline {
   fill: none;
   stroke: steelblue;
   stroke-width: 1.5px;
