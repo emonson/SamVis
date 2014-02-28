@@ -36,10 +36,8 @@ var GLOBALS = (function($,parseUri){
 			globals.data_type = data.datatype;
 			globals.data_shape = data.shape;
 			globals.data_bounds = data.alldata_bounds;
-			
 		}
 	});	
-
 
 	// Both ends of time filter slider set to -1 until initialized with real values
 	globals.time_width = -1;

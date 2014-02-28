@@ -43,7 +43,7 @@ var CENTER_VIS = (function(d3, $, g){
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   svg.append("defs").append("clipPath")
-      .attr("id", "clip")
+      .attr("id", "plotlineclip")
     .append("rect")
       .attr("width", width)
       .attr("height", height);
@@ -53,7 +53,7 @@ var CENTER_VIS = (function(d3, $, g){
       .call(yAxis);
 
   var path = svg.append("g")
-      .attr("clip-path", "url(#clip)")
+      .attr("clip-path", "url(#plotlineclip)")
     .append("path")
       .data([data])
       .attr("class", "plotline")

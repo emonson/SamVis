@@ -97,6 +97,11 @@ label {
 	margin-bottom: 40px;
 }
 
+#svgcanvas2_g rect {
+	fill: none;
+	stroke: none;
+}
+
 .pathtime {
 	margin-top: 10px;
 }

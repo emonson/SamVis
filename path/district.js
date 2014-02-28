@@ -29,14 +29,17 @@ var DISTRICT = (function(d3, $, g){
 	var svgcanvas2 = divElem2.append("svg:svg")
 				.attr("width", width)
 				.attr("height", height)
+				.attr("id", "svgcanvas2")
 			.append("g")
-				.attr("transform", "translate(0,0)");
+				.attr("transform", "translate(0,0)")
+				.attr("id", "svgcanvas2_g");
 	
 	// Setting up the base SVG element for the district path time bar
 	var path_time_canvas = pathTimeElem.append("svg:svg")
 				.attr("class", "pathtime")
 				.attr("width", ptime_width)
 				.attr("height", ptime_height)
+				.attr("id", "path_time_canvas")
 			.append("g")
 				.attr("transform", "translate(0,0)");
 	
@@ -71,15 +74,18 @@ var DISTRICT = (function(d3, $, g){
  			
 	// Individual g elements in which to place ellipses and paths
 	var pathbox = svgcanvas2.append("g")
-							.attr("clip-path", "url(#clip)");
+							.attr("clip-path", "url(#clip)")
+							.attr("id", "path_clip_box");
 	
 	// Drift vector layer right under ellipses
 	var driftbox = svgcanvas2.append("g")
-							.attr("clip-path", "url(#clip)");
+							.attr("clip-path", "url(#clip)")
+							.attr("id", "drift_clip_box");
 
 	// Ellipses on top for now because listed second
 	var elbox = svgcanvas2.append("g")
-							.attr("clip-path", "url(#clip)");
+							.attr("clip-path", "url(#clip)")
+							.attr("id", "ellipse_clip_box");
 
 
 	// UTILITY private methods

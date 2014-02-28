@@ -14,7 +14,7 @@ var INDIV = (function($, g){
 				async:false,
 				dataType:'script',
 				success:function(response) {
-					console.log( response + "loaded image script" );
+					console.log( "loaded image script" );
 				},
 				error: function (xhr, ajaxOptions, thrownError) {
 					console.log( xhr + ajaxOptions + thrownError + "Triggered ajaxError handler." );
@@ -27,7 +27,7 @@ var INDIV = (function($, g){
 				async:false,
 				dataType:'script',
 				success:function(response) {
-					console.log( response + "loaded function script" );
+					console.log( "loaded function script" );
 				},
 				error: function (xhr, ajaxOptions, thrownError) {
 					console.log( xhr + ajaxOptions + thrownError + "Triggered ajaxError handler." );
