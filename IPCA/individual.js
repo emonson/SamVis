@@ -1,5 +1,5 @@
 // --------------------------
-// Ellipse (district) Center 1D Function plot
+// Node basis individual visualization loading based on data_type
 
 var INDIV = (function($, g){
 
@@ -7,10 +7,10 @@ var INDIV = (function($, g){
 
 	// Now load individual ellipse center visualization based on data type
 	// Load nothing if 
-	switch (g.data_type) {
+	switch (g.data_info.original_data.dataset_type) {
 		case 'image':
 			$.ajax({
-				url:'http://' + g.uri.host + g.uri.directory + 'centerim.js',
+				url:'http://' + g.uri.host + g.uri.directory + 'basisims.js',
 				async:false,
 				dataType:'script',
 				success:function(response) {
@@ -23,7 +23,7 @@ var INDIV = (function($, g){
 			break;
 		case 'function':
 			$.ajax({
-				url:'http://' + g.uri.host + g.uri.directory + 'centerfunc.js',
+				url:'http://' + g.uri.host + g.uri.directory + 'basispcoords.js',
 				async:false,
 				dataType:'script',
 				success:function(response) {

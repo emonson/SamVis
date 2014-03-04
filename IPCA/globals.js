@@ -29,6 +29,32 @@ var GLOBALS = (function($){
 	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[globals.dataset_names.length-1];
 
 	// Grabbing data infomation (type, bounds, scalar names, etc) (not async)
+	//  data_info.json MNIST example:
+	// 	{
+	// 		"original_data": {
+	// 			"description": "MNIST handwritten digits subset of 1000 1s and 2s",
+	// 			"url": "",
+	// 			"dataset_type": "image",
+	// 			"image_n_rows": 28,
+	// 			"image_n_columns": 28,
+	// 			"labels": {
+	// 				"digit_id": {
+	// 					"filename": "labels.data.hdr",
+	// 					"variable_type": "categorical",
+	// 					"data_type": "i",
+	// 					"description": "integers 0 and 1 corresponding to actual handwritten digits 1 and 2",
+	// 					"key": {
+	// 						"0": "digit1",
+	// 						"1": "digit2"
+	// 					}
+	// 				}
+	// 			}
+	// 		},
+	// 		"full_tree": {
+	// 			"filename": "tree.ipca"
+	// 		}
+	// 	}
+
 	$.ajax({
 		url:globals.data_proxy_root + '/' + globals.dataset + '/datainfo',
 		async:false,

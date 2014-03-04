@@ -440,7 +440,8 @@ class IPCATree(object):
 			c_bounds[ii,:] = (center.min(), center.max())
 			b_bounds[ii,:] = (bases.min(), bases.max())
 
-		results = self.data_info
+		results = {}
+		results['data_info'] = self.data_info
 		results['centers_bounds'] = (N.asscalar(c_bounds[:,0].min()),N.asscalar(c_bounds[:,1].max()))
 		results['bases_bounds'] = (N.asscalar(b_bounds[:,0].min()),N.asscalar(b_bounds[:,1].max()))
 		results['scalar_names'] = self.labels.keys()

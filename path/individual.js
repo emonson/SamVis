@@ -1,5 +1,5 @@
 // --------------------------
-// Ellipse (district) Center 1D Function plot
+// Ellipse (district) Center individual vis loading depending on data type
 
 var INDIV = (function($, g){
 

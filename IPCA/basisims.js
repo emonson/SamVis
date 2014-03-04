@@ -1,17 +1,25 @@
 // --------------------------
-// Basis Images
+// Individual visualization for center and bases for a tree node
+// NOTE: required to have var name NODE_BASIS_VIS and implement 
+// .getBasisDataFromServer()
+//
+// "image" data_type – center and bases images
+//
 
-var BASIS_IMS = (function(d3, $, g){
+var NODE_BASIS_VIS = (function(d3, $, g){
 
-	var bi = { version: '0.0.1' };
+	var nbv = { version: '0.0.1' };
 
-	// TODO: WARNING: Magic numbers!!!!
+	// Lay out attachment DOM elements needed later
+	d3.select("#node_basis_data_vis").append('div').attr('id', 'center_image');
+	d3.select("#node_basis_data_vis").append('div').attr('id', 'basis_images');
+
 	// Actual data dimensions
-	var img_w_px = 28;
-	var img_h_px = 28;
+	var img_w_px = g.data_info.original_data.image_n_columns;
+	var img_h_px = g.data_info.original_data.image_n_rows;
 	// Screen dimensions
 	var img_w = 56;
-	var img_h = 56;
+	var img_h = img_w * (img_h_px / img_w_px);
 	var n_bases = 0;
 
 	// TODO: Should be resetting image width and height on each read...?
@@ -68,12 +76,10 @@ var BASIS_IMS = (function(d3, $, g){
 				.range(["#A6611A", "#fff", "#018571"]);
 
 	// Get basis images from server
-	bi.getBasisImagesFromServer = function(id) {
+	nbv.getBasisDataFromServer = function(id) {
 
 		d3.json(g.data_proxy_root + '/' + g.dataset + "/ellipsebasis?id=" + id, function(json) {
 	
-			// TODO: Should be reading width and height off of data itself
-			// TODO: Should be resetting image size if changes...?
 			g.center_data = json.center;
 			g.bases_data = json.bases;
 
@@ -121,7 +127,7 @@ var BASIS_IMS = (function(d3, $, g){
 		}
 	};
 
-	return bi;
+	return nbv
 
 }(d3, jQuery, GLOBALS));
 

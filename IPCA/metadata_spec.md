@@ -54,7 +54,7 @@ data_info.json for gene expression example:
 		"description": "gene expression data of multiple individuals over 21 genes",
 		"url": "",
 		"labels": {
-			"digit_id": {
+			"tissue_id": {
 				"filename": "labels.data.hdr",
 				"variable_type": "categorical",
 				"data_type": "i",
