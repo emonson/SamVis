@@ -21,7 +21,7 @@ var INDIV = (function($, g){
 				}
 			});	
 			break;
-		case 'function':
+		case 'gene':
 			$.ajax({
 				url:'http://' + g.uri.host + g.uri.directory + 'basispcoords.js',
 				async:false,
