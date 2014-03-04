@@ -42,30 +42,33 @@ class TreeServer:
 		# self.tree = IPCATree('../../test/test1_mnist12.hdf5')
 		# self.tree.SetLabelFileName('../../test/test1_mnist12.hdf5')
 		
-		self.tree = IPCATree(os.path.join(path, 'tree.ipca'))
-		self.tree.SetLabelFileName(os.path.join(path, 'labels.data.hdr'))
+		# Tree now takes a path to the data, loads 'data_info.json' and knows
+		# what else to grab from there
+		self.tree = IPCATree(path)
 		
-		self.tree.LoadLabelData()
-		
-		self.maxID = self.tree.GetMaxID()
 		self.basis_id = None
 		
+	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def index(self):
 		
 		return self.tree.GetLiteTreeJSON()
 		
+	@cherrypy.expose
 	@cherrypy.tools.gzip()
-	def scalarnames(self):
+	def datainfo(self):
 		
-		return self.tree.GetScalarNamesJSON()
-		
+		# {datatype:('image', 'function',...), shape:[n_rows, n_cols]}
+		return self.tree.GetDataInfo_JSON()
+
+	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def scalars(self, name=None, aggregation='mean'):
 		
 		if name:
 			return self.tree.GetAggregatedScalarsByNameJSON(name, aggregation)
 		
+	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def scaleellipses(self, id=None, basis=None):
 		
@@ -83,6 +86,7 @@ class TreeServer:
 			# seems you can also just return the dictionary
 			return self.tree.GetScaleEllipses_NoProjectionJSON(node_id)
 		
+	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def allellipses(self, basis=None):
 		
@@ -95,6 +99,7 @@ class TreeServer:
 	
 		return self.tree.GetAllEllipses_NoProjectionJSON()
 		
+	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def ellipsebasis(self, id=None):
 		
@@ -104,6 +109,7 @@ class TreeServer:
 			# seems you can also just return the dictionary
 			return self.tree.GetNodeCenterAndBasesJSON(node_id)
 		
+	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def contextellipses(self, id=None, bkgdscale='0'):
 		# Specify a node_id that has been selected and supply a background scale.
@@ -117,13 +123,6 @@ class TreeServer:
 	
 			return self.tree.GetContextEllipsesJSON(node_id, bkgd_scale)
 		
-	index.exposed = True
-	scaleellipses.exposed = True
-	scalars.exposed = True
-	scalarnames.exposed = True
-	allellipses.exposed = True
-	ellipsebasis.exposed = True
-	contextellipses.exposed = True
 
 # =====================
 

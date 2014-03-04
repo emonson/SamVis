@@ -105,7 +105,7 @@ class PathServer:
 	@cherrypy.tools.gzip()
 	def datainfo(self):
 		
-		# {datatype:('image', 'function',...), shape:[n_rows, n_cols]}
+		# {datatype:('image', 'gene',...), shape:[n_rows, n_cols], alldata_bounds:[min, max]}}
 		return self.path.GetDataInfo_JSON()
 
 	@cherrypy.expose

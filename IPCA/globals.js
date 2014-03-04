@@ -22,18 +22,22 @@ var GLOBALS = (function($){
 		}
 	});	
 	
-	// Passing initial data set value through in parameters. default to first in list
+	// Passing initial data set value through in parameters
+	// Setting specific data set – default to first in list
 	// TODO: handle no list!!
 	globals.uri = parseUri(location.toString());
 	globals.dataset = globals.uri.queryKey.data || globals.dataset_names[globals.dataset_names.length-1];
 
-	// Grabbing possible scalars names (not async)
+	// Grabbing data infomation (type, bounds, scalar names, etc) (not async)
 	$.ajax({
-		url:globals.data_proxy_root + '/' + globals.dataset + '/scalarnames',
+		url:globals.data_proxy_root + '/' + globals.dataset + '/datainfo',
 		async:false,
 		dataType:'json',
 		success:function(data) {
-			globals.scalar_names = data;
+			globals.data_info = data.data_info;
+			globals.centers_bounds = data.centers_bounds;
+			globals.bases_bounds = data.bases_bounds;
+			globals.scalar_names = data.scalar_names;
 		}
 	});	
 	

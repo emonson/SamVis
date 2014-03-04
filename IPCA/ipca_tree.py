@@ -4,7 +4,7 @@ import numpy as N
 # from scipy import stats
 import collections as C
 import pprint
-import simplejson
+import json
 import os
 import math
 
@@ -16,96 +16,52 @@ class PrettyPrecision2SciFloat(float):
 # --------------------
 class IPCATree(object):
 	
-	def __init__(self, filename = None):
-
+	def __init__(self, datapath = None):
+		"""Loads all tree and node label data. datapath is the path to the directory
+	  in which the data and label files reside. There needs to be a file called
+	  data_info.json which contains the file names, etc."""
+	   
 		self.tree_data_loaded = False
-		self.tree_data_file = None
-		self.label_file = None
-		self.label_data_loaded = False	# not used...
-		self.labels = None
-		self.orig_data_file = None
-		self.orig_data_loaded = False
-		self.orig_data = None
-		self.orig_data_min = None
-		self.orig_data_max = None
-		self.lite_tree_root = None
-		self.nodes_by_id = None
-		self.all_ellipse_params = None
+		
+		# These things defined here because they are not calculated until they're needed
 		self.basis_id = None
+		self.lite_tree_root = None
 
-		# Built so it will automatically load a valid ipca file if given in constructor
-		# Otherwise, call SetTreeFileName('file.ipca') and LoadTreeData() separately
-		
-		if filename:
-# 			try:
-# 				self.SetTreeFileName(filename)
-# 			except:
-# 				print "Problem setting filename"
-# 			
-# 			try:
-# 				self.LoadTreeData()
-# 			except:
-# 				print "Problem loading data"
-			self.SetTreeFileName(filename)
-			self.LoadTreeData()
+		if datapath:
 
-	# --------------------
-	def SetLabelFileName(self, filename):
-		"""Set file name manually for label file."""
-
-		# self.label_file = IH.checked_filename(filename)
-		self.label_file = IR.checked_filename(filename)
-
-	# --------------------
-	def LoadLabelData(self):
-		
-		if not self.label_file:
-			raise IOError, "No label file set: Use SetLabelFileName('labelfile.data.hdr')"
-		
-		# Read labels from binary file
-		self.labels = IR.read_sambinary_labeldata(self.label_file)
-		# self.labels = IH.read_hdf5_labeldata(self.label_file)
-				
-	# --------------------
-	def SetTreeFileName(self, filename):
-		"""Set file name manually for IPCA file. Can also do this in constructor."""
-
-		self.tree_data_file = IR.checked_filename(filename)
-		# self.tree_data_file = IH.checked_filename(filename)
-
-	# --------------------
-	def LoadTreeData(self):
-		"""Routine that does the actual data loading and some format conversion.
-		If a valid file name is given in the constructor, then this routine is called
-		automatically. If you haven't given a file name in the constructor then you'll
-		have to call SetTreeFileName() before calling this."""
-
-		if not self.tree_data_file:
-			raise IOError, "No data file: Use SetTreeFileName('file.ipca') before LoadTreeData()"
-
-		print 'Trying to load data set from .ipca file... ', self.tree_data_file
-
-		# Read data from binary file
-		# self.tree_root, self.nodes_by_id = IR.read_sambinary_ipcadata(self.tree_data_file)
-		self.tree_root, self.nodes_by_id = IR.read_sambinary_v3_ipcadata(self.tree_data_file)
-		# self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(self.tree_data_file)
+			# NOTE: Parsing data_info here for now... May want to move this to reader instead?
 			
-		self.post_process_nodes(self.tree_root)
+			# Read data from binary file
+			self.data_info = IR.read_data_info(datapath)
+			
+			tree_data_file = os.path.join(datapath, self.data_info['full_tree']['filename'])
+			print 'Trying to load data set from .ipca file... ', tree_data_file
+			self.tree_root, self.nodes_by_id = IR.read_sambinary_v3_ipcadata(tree_data_file)
+			# self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(self.tree_data_file)
+			
+			self.post_process_nodes(self.tree_root)
 
-		# Since nodes now have scale (depth) info attached, can make nice 
-		# reference map (lists of lists) indexed first by scale
-		self.nodes_by_scale = self.collect_nodes_by_scale(self.nodes_by_id)
+			# Since nodes now have scale (depth) info attached, can make nice 
+			# reference map (lists of lists) indexed first by scale
+			self.nodes_by_scale = self.collect_nodes_by_scale(self.nodes_by_id)
 		
-		# Using node 0 center as data center
-		self.data_center = self.tree_root['center']
+			# Using node 0 center as data center
+			self.data_center = self.tree_root['center']
 		
-		self.tree_data_loaded = True
+			self.tree_data_loaded = True
 
-		# Now that data is loaded, default projection basis is
-		# root node first two PCA directions
-		# Using Sam's notation for now on matrices / arrays
-		# self.V = self.nodes_by_id[0]['phi'][:2,:].T
-		self.SetBasisID_ReprojectAll(0)
+			# Read labels from binary file(s)
+			self.labels = {}
+			for name, info in self.data_info['original_data']['labels'].iteritems():
+				label_data_file = os.path.join(datapath, info['filename'])
+				self.labels[name] = IR.read_sambinary_labeldata(label_data_file, info['data_type'])
+				# self.labels = IH.read_hdf5_labeldata(self.label_file)
+
+			# Now that data is loaded, default projection basis is
+			# root node first two PCA directions
+			# Using Sam's notation for now on matrices / arrays
+			# self.V = self.nodes_by_id[0]['phi'][:2,:].T
+			self.SetBasisID_ReprojectAll(0)
 		
 	# --------------------
 	def post_process_nodes(self, root_node, child_key='children', scale_key='scale'):
@@ -317,7 +273,7 @@ class IPCATree(object):
 	# --------------------
 	def GetScaleEllipsesJSON(self, id = None):
 	
-		return simplejson.dumps(self.GetScaleEllipses(id))
+		return json.dumps(self.GetScaleEllipses(id))
 		
 	# --------------------
 	def GetContextEllipses(self, id = None, bkgd_scale = None):
@@ -363,7 +319,7 @@ class IPCATree(object):
 	# --------------------
 	def GetContextEllipsesJSON(self, id = None, bkgd_scale = None):
 	
-		return simplejson.dumps(self.GetContextEllipses(id, bkgd_scale))
+		return json.dumps(self.GetContextEllipses(id, bkgd_scale))
 		
 	# --------------------
 	def GetScaleEllipses_NoProjection(self, id = None):
@@ -452,25 +408,43 @@ class IPCATree(object):
 	def GetScaleEllipses_NoProjectionJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
-		return simplejson.dumps(self.GetScaleEllipses_NoProjection(id))
+		return json.dumps(self.GetScaleEllipses_NoProjection(id))
 		
 	# --------------------
 	def GetAllEllipses_NoProjectionJSON(self):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 	
-		return simplejson.dumps(self.GetAllEllipses_NoProjection())
+		return json.dumps(self.GetAllEllipses_NoProjection())
 		
 	# --------------------
 	def GetNodeCenterAndBasesJSON(self, id = None):
 		"""Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 
-		return simplejson.dumps(self.pretty_sci_floats(self.GetNodeCenterAndBases(id)))
+		return json.dumps(self.pretty_sci_floats(self.GetNodeCenterAndBases(id)))
 		
 	# --------------------
-	def GetScalarNamesJSON(self):
-		"""Return a list of strings of possible scalar label names"""
+	def GetDataInfo_JSON(self):
+		"""Get the original data information. This is a slightly enhanced version of
+		the data_info.json file stored on disk with the data."""
 		
-		return simplejson.dumps(self.labels.keys())
+		n_nodes = len(self.nodes_by_id)
+		
+		# centers bounds
+		c_bounds = N.zeros((n_nodes,2))
+		# bases bounds
+		b_bounds = N.zeros((n_nodes,2))
+		
+		for ii in range(n_nodes):
+			center = self.nodes_by_id[ii]['center']
+			bases = self.nodes_by_id[ii]['phi']
+			c_bounds[ii,:] = (center.min(), center.max())
+			b_bounds[ii,:] = (bases.min(), bases.max())
+
+		results = self.data_info
+		results['centers_bounds'] = (N.asscalar(c_bounds[:,0].min()),N.asscalar(c_bounds[:,1].max()))
+		results['bases_bounds'] = (N.asscalar(b_bounds[:,0].min()),N.asscalar(b_bounds[:,1].max()))
+		results['scalar_names'] = self.labels.keys()
+		return json.dumps(results)
 
 	# --------------------
 	def GetAggregatedScalarsByNameJSON(self, name = None, aggregation = 'mean'):
@@ -542,7 +516,7 @@ class IPCATree(object):
 				else:
 					return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
 
-				return simplejson.dumps({'labels':output, 'domain':domain})
+				return json.dumps({'labels':output, 'domain':domain})
 
 
 	# --------------------
@@ -557,9 +531,9 @@ class IPCATree(object):
 			self.RegenerateLiteTree()
 		
 		if pretty:
-			return simplejson.dumps(self.lite_tree_root, indent=2)
+			return json.dumps(self.lite_tree_root, indent=2)
 		else:
-			return simplejson.dumps(self.lite_tree_root)
+			return json.dumps(self.lite_tree_root)
 	
 	# --------------------
 	def WriteLiteTreeJSON(self, filename, pretty = False):
@@ -593,20 +567,20 @@ if __name__ == "__main__":
 	# data_file = '/Users/emonson/Programming/Sam/test/mnist12.data.hdr'
 
 	# v3 sambinary
-	tree_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/tree.ipca'
-	label_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/labels.data.hdr'
-
+	# tree_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/tree.ipca'
+	# label_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/labels.data.hdr'
+	data_path = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2'
+	
 	# HDF5
 	# tree_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
 	# label_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
 
 	# DataSource loads .ipca file and can generate data from it for other views
-	tree = IPCATree(tree_file)
-	tree.SetLabelFileName(label_file)
-	tree.LoadLabelData()
-	# tree.SetOriginalDataFileName(data_file)
-	# tree.LoadOriginalData()
-	# tree.GetScaleEllipsesJSON(900)
+	# tree = IPCATree(tree_file)
+	# tree.SetLabelFileName(label_file)
+	# tree.LoadLabelData()
+	
+	tree = IPCATree(data_path)
 	
 	# print tree.GetLiteTreeJSON()
 
