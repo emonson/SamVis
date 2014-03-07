@@ -73,11 +73,11 @@ var NODE_BASIS_VIS = (function(d3, $, g){
 	// Image color scales
 	var center_color = d3.scale.linear()
 				.domain([0, 255])
-				.range(["#000", "#fff"]);
+				.range(["#3f007d", "#fcfbfd"]);
 				
 	var bases_color = d3.scale.linear()
 				.domain([-1, 0, 1])
-				.range(["#A6611A", "#fff", "#018571"]);
+				.range(["#4575b4", "#ffffbf", "#d73027"]);
 
 	// Get basis images from server
 	nbv.getBasisDataFromServer = function(id) {

@@ -198,7 +198,7 @@ This way I can access the IPCA directory from
 The IPCA visualizations in the IPCA directory use data from the [MNIST database of
 handwritten digits](http://yann.lecun.com/exdb/mnist/). Specifically, the set of
 images of handwritten 1s and 2s from the training set was used. You can download
-the preprocessed data files (IPCA output plus labels) from [this zip file](http://people.duke.edu/~emonson/mnist12_v5_d8c1.zip)
+the preprocessed data files (IPCA output plus labels) from [this zip file](http://people.duke.edu/~emonson/mnist12_v5_d8c2.zip)
 
 See above in the *Local Web Server Name Configuration* section for the expectations 
 of the IPCA project regarding data directory structure.
