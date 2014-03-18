@@ -1,4 +1,4 @@
-## d3.js client visualizations with number crunching data servers behind
+## d3.js client visualizations backed by Python-based data servers
 
 These are a couple related projects which have [d3.js][] front end interactive
 visualizations backed up by servers which load in data and process it on
@@ -52,13 +52,15 @@ main visualizations for now.
 
 ## Dependencies
 
-*Python:* The modules required beyond that of the standard library are:
+### Python
+
+The modules required beyond that of the standard library are:
 
 - [NumPy][]
 - [SciPy][]
 - [CherryPy][]
 
-Right now I'm using [homebrew](http://brew.sh) to install all of the major
+**Homebrew:** Right now I'm using [homebrew](http://brew.sh) to install all of the major
 dependencies under OS X 10.8 that I possibly can, including Python, originally
 because I was having trouble bundling Python apps with the system Python.
 
@@ -68,7 +70,28 @@ to clone the [numpy git repository](https://github.com/numpy/numpy.git),
 and the [sci git repository](https://github.com/scipy/scipy.git), then
 do `python setup.py install` in the main directory of each.
 
-*Javascript:* All of the javascript dependencies are in the repository in the
+**Anaconda:** An attractive alternative for a Python distribution with lots of pre-installed
+modules, including NumPy and SciPy, is [Anaconda](https://store.continuum.io/cshop/anaconda/)
+from [Continuum Analytics](http://www.continuum.io/). It's free and available for all platforms,
+and you can even get free academic licences for some "Add-Ons" to accelerate execution.
+
+Right now Anaconda doesn't come with CherryPy. You can install it with `pip`, but it won't 
+be managed in the same way as the rest of the Anaconda packages. 
+To install it using the `conda` build system you need to do something like this
+using the [conda-recipes](https://github.com/conda/conda-recipes):
+
+```bash
+cd anaconda/
+git clone git@github.com:ContinuumIO/conda-recipes.git
+conda build conda-recipes/cherrypy
+cd conda-bld/
+cd osx-64/
+conda install cherrypy-3.2.4-py27_0.tar.bz2 
+```
+
+### JavaScript
+
+All of the javascript dependencies are in the repository in the
 libs directory, but here are a list of the currently used libraries:
 
 - [d3.js][]
@@ -76,47 +99,6 @@ libs directory, but here are a list of the currently used libraries:
 - [jQueryUI](http://jqueryui.com) subset including only the slider for now
 - [jQuery tiny pubsub](https://gist.github.com/cowboy/661855) for events publish/subscribe
 - [parseUri](http://blog.stevenlevithan.com/archives/parseuri) for parsing the page URI
-
-
-## Local Web Server Name Configuration
-
-There is a file called server\_conf\_example.json in the root of the
-repository. This is an example of the file which sets the local server
-name for all of the Javascript and Python scripts in both the IPCA and
-path directories..
-
-Make a copy of `server_conf_example.json` and call it `server_conf.json`.
-The latter is included in this project's `.gitignore` file, so changes you make
-to your server configuration won't get recognized as changes to the project
-source, plus your server-specific configuration values won't get overwritten
-when you pull changes to the repository.
-
-This config also lets you set the port number used for the IPCA visualizations
-in `IPCA` and the simulated path visualizations in the `path` directory. 
-The `ipca_web_dir` and `path_web_dir` variables should reflect the symlink name
-you set up in your Sites directory. See the "Symlink to project path" section
-below. In that example the variables would be set as `SamVis/path` and `SamVis/IPCA`
-respectively. Also see below for the reverse proxy setup instructions. 
-
-Additionally, you use the `server_conf.json` file to set the path to the data
-for each type of visualization. These paths are relative to the html and JS files
-for each project. It is fine to have this path outside of the directories that
-can be served up by your web server. 
-
-*Data directory and file arrangement:* Right now the projects are set up to
-load multiple datasets into memory so they can be served up when requested. The
-way this is handled is that you set the data directory as stated above. In that
-directory you create sub-directories with unique names for the datasets that will
-be contained in each. For the "path" project there is sample data in the repository.
-For the "IPCA" project there is a download link below with some sample data. Three
-files are expected by the program: `tree.ipca`, which is the output of the GMRA
-CreateIPCATree code in the gmra_src directory; `labels.data`, which is a binary
-array of label integers, and `labels.data.hdr` which is the text header file
-describing the labels data.
-
-*NOTE:* The scripts will expect the reverse proxy to be at server_name/remote9000/ 
-if you put the port value at 9000. (i.e. that string, "remote", is hard-coded into
-the scripts, so use that actual string in your reverse proxy name)
 
 
 ## Apache Web Server Configuration
@@ -160,7 +142,7 @@ instead of
 
 `http://servername.sub.school.edu:9000/allellipses?basis=1`
 
-in my ajax call, which is considered "same origin".
+in my ajax call, the former of which is considered "same origin".
 
 
 ## Apache Startup
@@ -190,6 +172,64 @@ ln -s /Users/username/Programming/SamVis/path /Users/username/Sites/SamVisPath
 This way I can access the IPCA directory from
 
 `servername.sub.school.edu/~username/SamVis/IPCA`
+
+
+## Local Web Server Name Configuration
+
+There is a file called `server_conf_example.json` in the root of the
+repository. This is an example of the file which sets the local server
+name for all of the Javascript and Python scripts in both the IPCA and
+path directories..
+
+Make a copy of `server_conf_example.json` and call it `server_conf.json`.
+The latter is included in this project's `.gitignore` file, so changes you make
+to your server configuration won't get recognized as changes to the project
+source, plus your server-specific configuration values won't get overwritten
+when you pull changes to the repository.
+
+This config also lets you set the port number used for the IPCA visualizations
+in `IPCA` and the simulated path visualizations in the `path` directory. 
+The `ipca_web_dir` and `path_web_dir` variables should reflect the symlink name
+you set up in your Sites directory. See the "Symlink to project path" section
+below. In that example the variables would be set as `SamVis/path` and `SamVis/IPCA`
+respectively. Also see below for the reverse proxy setup instructions. 
+
+Additionally, you use the `server_conf.json` file to set the path to the data
+for each type of visualization. These paths are relative to the html and JS files
+for each project. It is fine to have this path outside of the directories that
+can be served up by your web server. 
+
+*NOTE:* If you put the port value at 9000, the scripts will expect the reverse 
+proxy to be at `http://servername.sub.school.edu/remote9000/` 
+*(i.e. that string, "remote", is hard-coded into
+the scripts, so use that actual string in your reverse proxy name)*
+
+
+## Data directory and files 
+
+Right now the projects are set up to load multiple datasets into memory
+so they can be served up when requested. The way this is handled is that
+you set the data directory as stated above. In that directory you create
+sub-directories with unique names for the datasets that will be
+contained in each. For the "path" project there is sample data in the
+repository. For the "IPCA" project there is a download link below with
+some sample data. 
+
+In the case of the IPCA tree data, there a JSON metadata file format which
+is documented in `IPCA/metadata_spec.md`. *This file must be named data\_info.json.*
+This metadata describes the file names, type of data, names and types of labels, etc,
+since the binary file format we're currently using doesn't store any of this information.
+
+*Resource Index:* When you start up the either the path or IPCA tree
+server it will look for directories in the `ipca_data_dir` and put links
+to visualizations at the address
+
+`http://servername.sub.school.edu/remote9002/resource_index`
+
+where that server name and 9002 port number you've set in the
+`server_conf.json` file. What you'll see is a list of names the same as
+your data directory names, but they'll all be links to visualization
+pages.
 
 
 ## IPCA Example Data
