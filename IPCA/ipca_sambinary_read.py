@@ -178,7 +178,7 @@ def checked_filename(filename):
 	return ""
 
 
-def read_sambinary_originaldata(orig_data_file):
+def read_sambinary_originaldata(orig_data_file, data_type):
 	"""Read the original data used for IPCA. Basically an R binary format, I think..."""
 
 	f = open(orig_data_file, 'r')
@@ -211,8 +211,10 @@ def read_sambinary_originaldata(orig_data_file):
 	f.close()
 
 	fd = open(data_file, 'rb')
-	# orig_data = N.fromstring(fd.read(8*m*n), dtype=N.dtype('d8'), count=m*n).reshape(m,n)
-	orig_data = N.fromfile(fd, dtype=N.dtype('d8'), count=m*n).reshape(m,n)
+	if data_type == 'i':
+		orig_data = N.fromfile(fd, dtype=N.dtype('i' + str(n_bytes)), count=m*n).reshape(m,n, order='F')
+	elif data_type == 'f':
+		orig_data = N.fromfile(fd, dtype=N.dtype('f' + str(n_bytes)), count=m*n).reshape(m,n, order='F')
 	fd.close()
 	
 	# Real data center
@@ -233,11 +235,17 @@ def read_sambinary_originaldata(orig_data_file):
 # --------------------
 if __name__ == "__main__":
 
-	# tdf = '../../test/mnist12.ipca'
-	tdf = '../../test/mnist12_v3.ipca'
-	ldf = '../../test/mnist12_labels.data.hdr'
-	df = '../../test/mnist12.data.hdr'		
+	data_path = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2'
 	
-	tree_root, nodes_by_id = read_sambinary_v3_ipcadata(tdf)
-	labels = read_sambinary_labeldata(ldf)
-	orig_data = read_sambinary_originaldata(df)
+	data_info = read_data_info(data_path)
+	
+	tree_data_file = os.path.join(data_path, data_info['full_tree']['filename'])
+	tree_root, nodes_by_id = read_sambinary_v3_ipcadata(tree_data_file)
+	
+	labels = {}
+	for name, info in data_info['original_data']['labels'].iteritems():
+		label_data_file = os.path.join(data_path, info['filename'])
+		labels[name] = read_sambinary_labeldata(label_data_file, info['data_type'])
+	
+	orig_data_path = os.path.join(data_path, data_info['original_data']['filename'])
+	orig_data = read_sambinary_originaldata(orig_data_path, data_info['original_data']['data_type'])

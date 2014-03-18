@@ -20,6 +20,8 @@ data_info.json for MNIST digits example:
 
 {
 	"original_data": {
+		"filename": "mnist12.data.hdr",
+		"data_type": "uint",
 		"description": "MNIST handwritten digits subset of 1000 1s and 2s",
 		"url": "",
 		"dataset_type": "image",
