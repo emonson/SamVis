@@ -1,5 +1,5 @@
 import cherrypy
-import simplejson
+import json
 from ipca_tree import IPCATree
 import os
 import glob
@@ -16,7 +16,7 @@ class ResourceIndex(object):
 
     @cherrypy.expose
     def datasets(self):
-        return simplejson.dumps(self.data_names)
+        return json.dumps(self.data_names)
 
     def to_html(self):
         html_item = lambda (name): '<div><a href="' + self.server_url + '?data={name}">{name}</a></div>'.format(**vars())
@@ -138,12 +138,12 @@ class Root(object):
 	@cherrypy.tools.gzip()
 	def index(self):
 		
-		return simplejson.dumps(self.data_names)
+		return json.dumps(self.data_names)
 		
 
 # Storing server name and port in a json file for easy config
 server_filename = '../server_conf.json'
-server_opts = simplejson.loads(open(server_filename).read())
+server_opts = json.loads(open(server_filename).read())
 
 # Go through data directory and add methods to root for each data set
 data_dir = server_opts['ipca_data_dir']

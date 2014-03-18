@@ -167,7 +167,7 @@ def read_sambinary_labeldata(label_data_filename, data_type):
 	return labels
 
 def checked_filename(filename):
-	if filename and type(filename) == str:
+	if filename and isinstance(filename, basestring):
 		return  os.path.abspath(filename)
 	else:
 		raise IOError, "filename needs to be a non-empty string"

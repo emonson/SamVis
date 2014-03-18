@@ -19,7 +19,8 @@
 # savejson('',trajectory,'ArrayToStruct',1,'ArrayIndent',0,'FileName','trajectory.json','ForceRootName',0);
 
 
-import simplejson
+import json
+import json
 import os
 import numpy as N
 from scipy.sparse import coo_matrix 
@@ -36,7 +37,7 @@ def fill_dict_with_arrays(obj):
 def parse_data_item(k,v):
 	if isinstance(v, dict):
 		# NOTE: skipping sparse (and big!) lmks array for now...
-		if isinstance(k,str) and k.startswith('lmks'):
+		if isinstance(k, basestring) and k.startswith('lmks'):
 			return
 		if ("_ArrayIsSparse_" in v) and (v['_ArrayIsSparse_'] == 1):
 			# Data stored as a list of triplet lists, [row, column, value]
@@ -44,7 +45,7 @@ def parse_data_item(k,v):
 			# NOTE: Need to subtract 1 in rows and column indices since Matlab 1-based indices...
 			c = coo_matrix((rcv[:,2],(rcv[:,0]-1,rcv[:,1]-1)), shape=tuple(v['_ArraySize_'])).tocsr()
 		# NOTE: bad name-based test!!
-		elif isinstance(k,str) and k.endswith('index'):
+		elif isinstance(k, basestring) and k.endswith('index'):
 			# changing 1-based indices to 0-based
 			c = N.array(v['_ArrayData_']).reshape(v['_ArraySize_'], order='F') - 1
 		else:
@@ -59,7 +60,7 @@ def parse_data_item(k,v):
 def load_d_info(filename):
 	
 	if os.path.exists(filename):
-		d = simplejson.loads(open(filename).read())
+		d = json.loads(open(filename).read())
 		data = []
 		# When ArrayToStruct is set, all arrays are saved in 1D format along with size
 		for chart in d:
@@ -71,7 +72,7 @@ def load_d_info(filename):
 def load_trajectory(filename):
 	
 	if os.path.exists(filename):
-		d = simplejson.loads(open(filename).read())
+		d = json.loads(open(filename).read())
 		data = fill_dict_with_arrays(d)
 		return data
 	
@@ -82,7 +83,7 @@ def load_sim_opts(filename):
 def load_netpoints(filename):
 
 	if os.path.exists(filename):
-		d = simplejson.loads(open(filename).read())
+		d = json.loads(open(filename).read())
 		netpoints = {}
 		
 		# NOTE: Hack until I can find out from Miles what the deal is with the new format...

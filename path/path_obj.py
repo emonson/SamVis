@@ -36,7 +36,7 @@ class PathObj(object):
 	def SetDataDirName(self, dirname):
 		"""Set file name for original data file."""
 
-		if dirname and type(dirname) == str:
+		if dirname and isinstance(dirname, basestring):
 			self.path_data_dir = os.path.abspath(dirname)
 		else:
 			raise IOError, "filename needs to be a non-empty string"

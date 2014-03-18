@@ -56,14 +56,13 @@ main visualizations for now.
 
 - [NumPy][]
 - [SciPy][]
-- [simplejson](https://github.com/simplejson/simplejson)
 - [CherryPy][]
 
 Right now I'm using [homebrew](http://brew.sh) to install all of the major
 dependencies under OS X 10.8 that I possibly can, including Python, originally
 because I was having trouble bundling Python apps with the system Python.
 
-I've never had any issues installing simplejson or CherryPy using pip. 
+I've never had any issues installing CherryPy using pip. 
 I sometimes have problems installing both Numpy and SciPy using pip, but it works fine
 to clone the [numpy git repository](https://github.com/numpy/numpy.git), 
 and the [sci git repository](https://github.com/scipy/scipy.git), then
