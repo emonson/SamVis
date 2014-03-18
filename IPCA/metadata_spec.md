@@ -21,7 +21,7 @@ data_info.json for MNIST digits example:
 {
 	"original_data": {
 		"filename": "mnist12.data.hdr",
-		"data_type": "uint",
+		"data_type": "f",
 		"description": "MNIST handwritten digits subset of 1000 1s and 2s",
 		"url": "",
 		"dataset_type": "image",
@@ -52,6 +52,8 @@ data_info.json for gene expression example:
 
 {
 	"original_data": {
+		"filename": "gene1.data.hdr",
+		"data_type": "f",
 		"dataset_type": "gene",
 		"description": "gene expression data of multiple individuals over 21 genes",
 		"url": "",
