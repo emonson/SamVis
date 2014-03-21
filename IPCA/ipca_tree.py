@@ -13,11 +13,15 @@ class PrettyPrecision2SciFloat(float):
 	def __repr__(self):
 		return '%.2g' % self
 
+class PrettyPrecision3SciFloat(float):
+	def __repr__(self):
+		return '%.3g' % self
+
 # --------------------
 class IPCATree(object):
 	
-	def __init__(self, datapath = None):
-		"""Loads all tree and node label data. datapath is the path to the directory
+	def __init__(self, data_path = None):
+		"""Loads all tree and node label data. data_path is the path to the directory
 	  in which the data and label files reside. There needs to be a file called
 	  data_info.json which contains the file names, etc."""
 	   
@@ -26,15 +30,16 @@ class IPCATree(object):
 		# These things defined here because they are not calculated until they're needed
 		self.basis_id = None
 		self.lite_tree_root = None
+		self.orig_data = None
 
-		if datapath:
+		if data_path:
 
 			# NOTE: Parsing data_info here for now... May want to move this to reader instead?
 			
 			# Read data from binary file
-			self.data_info = IR.read_data_info(datapath)
+			self.data_info = IR.read_data_info(data_path)
 			
-			tree_data_file = os.path.join(datapath, self.data_info['full_tree']['filename'])
+			tree_data_file = os.path.join(data_path, self.data_info['full_tree']['filename'])
 			print 'Trying to load data set from .ipca file... ', tree_data_file
 			self.tree_root, self.nodes_by_id = IR.read_sambinary_v3_ipcadata(tree_data_file)
 			# self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(self.tree_data_file)
@@ -53,15 +58,20 @@ class IPCATree(object):
 			# Read labels from binary file(s)
 			self.labels = {}
 			for name, info in self.data_info['original_data']['labels'].iteritems():
-				label_data_file = os.path.join(datapath, info['filename'])
+				label_data_file = os.path.join(data_path, info['filename'])
 				self.labels[name] = IR.read_sambinary_labeldata(label_data_file, info['data_type'])
 				# self.labels = IH.read_hdf5_labeldata(self.label_file)
+
+			# For now loading original data if the filename field is specified in the metadata
+			if 'filename' in self.data_info['original_data']:
+				orig_data_path = os.path.join(data_path, self.data_info['original_data']['filename'])
+				self.orig_data = IR.read_sambinary_originaldata(orig_data_path, self.data_info['original_data']['data_type'])
 
 			# Now that data is loaded, default projection basis is
 			# root node first two PCA directions
 			# Using Sam's notation for now on matrices / arrays
 			# self.V = self.nodes_by_id[0]['phi'][:2,:].T
-			self.SetBasisID_ReprojectAll(0)
+			# self.SetBasisID_ReprojectAll(0)
 		
 	# --------------------
 	def post_process_nodes(self, root_node, child_key='children', scale_key='scale'):
@@ -163,25 +173,50 @@ class IPCATree(object):
 		
 		# How many sigma ellipses cover
 		s_mult = 2.0
-		result_list = N.round((xm[0], xm[1], s_mult*S[0], s_mult*S[1], phi_deg), 2).tolist()
+		results_tuple = (xm[0], xm[1], s_mult*S[0], s_mult*S[1], phi_deg)
+		print results_tuple
+		result_list = self.pretty_sci_floats(results_tuple)
 		result_list.append(node['id'])
+		print result_list
 		
 		return result_list
 	
 	# --------------------
 	def calculate_ellipse_bounds(self, e_params):
-		"""Rough calculation of ellipse bounds by centers +/- max radius for each"""
+		"""Rough calculation of ellipse bounds by major and minor extrema points of ellipses"""
 		
 		# Ellipse params is a list of tuples (X, Y, RX, RY, Phi, i)
 		params_array = N.array(e_params)
+		print params_array
+		n_ellipses = params_array.shape[0]
 		X = params_array[:,0]
 		Y = params_array[:,1]
+		RX = params_array[:,2]
+		RY = params_array[:,3]
+		PhiR = 2.0*N.pi*params_array[:,4]/360.0
+		PhiRmin = N.pi/2.0 - PhiR
 		
-		maxR = N.max(params_array[:,2:4], axis=1)
-		minX = N.min(X-maxR)
-		maxX = N.max(X+maxR)
-		minY = N.min(Y-maxR)
-		maxY = N.max(Y+maxR)
+		Xs = N.zeros(4*n_ellipses)
+		Ys = N.zeros(4*n_ellipses)
+		
+		# Collect Xs and Ys for each of the 4 ends of each of the ellipses
+		idxs = N.arange(n_ellipses)
+		Xs[0*n_ellipses + idxs] = X + RX * N.cos(PhiR)
+		Ys[0*n_ellipses + idxs] = Y + RX * N.sin(PhiR)
+		Xs[1*n_ellipses + idxs] = X - RX * N.cos(PhiR)
+		Ys[1*n_ellipses + idxs] = Y - RX * N.sin(PhiR)
+		Xs[2*n_ellipses + idxs] = X - RY * N.cos(PhiRmin)
+		Ys[2*n_ellipses + idxs] = Y + RY * N.sin(PhiRmin)
+		Xs[3*n_ellipses + idxs] = X + RY * N.cos(PhiRmin)
+		Ys[3*n_ellipses + idxs] = Y - RY * N.sin(PhiRmin)
+		print Xs
+		print Ys
+		 
+		minX = N.min(Xs)
+		maxX = N.max(Xs)
+		minY = N.min(Ys)
+		maxY = N.max(Ys)
+		print [(minX, maxX), (minY, maxY)]
 		
 		return [(minX, maxX), (minY, maxY)]
 	
@@ -310,7 +345,8 @@ class IPCATree(object):
 							ellipse_params.append(self.calculate_node_ellipse(child_node['id']))
 				
 				for node in self.nodes_by_scale[bkgd_scale]:
-					bkgd_ellipse_params.append(self.calculate_node_ellipse(node['id']))
+					pass
+					# bkgd_ellipse_params.append(self.calculate_node_ellipse(node['id']))
 				bounds = self.calculate_ellipse_bounds(ellipse_params + bkgd_ellipse_params)
 				return_obj = {'foreground':ellipse_params, 'background':bkgd_ellipse_params, 'bounds':bounds}
 
@@ -357,11 +393,11 @@ class IPCATree(object):
 	def pretty_sci_floats(self, obj):
 	
 		if isinstance(obj, float):
-			return PrettyPrecision2SciFloat(obj)
+			return PrettyPrecision3SciFloat(obj)
 		elif isinstance(obj, dict):
 			return dict((k, self.pretty_sci_floats(v)) for k, v in obj.items())
 		elif isinstance(obj, (list, tuple)):
-			return map(self.pretty_sci_floats, obj)             
+			return map(self.pretty_sci_floats, obj)							
 		return obj
 
 	# --------------------

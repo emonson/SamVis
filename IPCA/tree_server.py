@@ -168,7 +168,7 @@ cherrypy.config.update({
 		# 'tools.gzip.on' : True,
 		'server.socket_port': server_opts['ipca_port'], 
 		# 'server.socket_host':'127.0.0.1'
-		'server.socket_host':server_opts['server_name']
+		'server.socket_host':str(server_opts['server_name'])
 		})
 cherrypy.quickstart(root)
 
