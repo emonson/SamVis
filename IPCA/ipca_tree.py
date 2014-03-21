@@ -345,6 +345,7 @@ class IPCATree(object):
 							ellipse_params.append(self.calculate_node_ellipse(child_node['id']))
 				
 				for node in self.nodes_by_scale[bkgd_scale]:
+					# * * * NOTE * * * Not passing any background scales!!
 					pass
 					# bkgd_ellipse_params.append(self.calculate_node_ellipse(node['id']))
 				bounds = self.calculate_ellipse_bounds(ellipse_params + bkgd_ellipse_params)
