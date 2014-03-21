@@ -174,10 +174,10 @@ class IPCATree(object):
 		# How many sigma ellipses cover
 		s_mult = 2.0
 		results_tuple = (xm[0], xm[1], s_mult*S[0], s_mult*S[1], phi_deg)
-		print results_tuple
+		# print results_tuple
 		result_list = self.pretty_sci_floats(results_tuple)
 		result_list.append(node['id'])
-		print result_list
+		# print result_list
 		
 		return result_list
 	
@@ -187,7 +187,7 @@ class IPCATree(object):
 		
 		# Ellipse params is a list of tuples (X, Y, RX, RY, Phi, i)
 		params_array = N.array(e_params)
-		print params_array
+		# print params_array
 		n_ellipses = params_array.shape[0]
 		X = params_array[:,0]
 		Y = params_array[:,1]
@@ -209,14 +209,14 @@ class IPCATree(object):
 		Ys[2*n_ellipses + idxs] = Y + RY * N.sin(PhiRmin)
 		Xs[3*n_ellipses + idxs] = X + RY * N.cos(PhiRmin)
 		Ys[3*n_ellipses + idxs] = Y - RY * N.sin(PhiRmin)
-		print Xs
-		print Ys
+		# print Xs
+		# print Ys
 		 
 		minX = N.min(Xs)
 		maxX = N.max(Xs)
 		minY = N.min(Ys)
 		maxY = N.max(Ys)
-		print [(minX, maxX), (minY, maxY)]
+		# print [(minX, maxX), (minY, maxY)]
 		
 		return [(minX, maxX), (minY, maxY)]
 	

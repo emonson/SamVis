@@ -14,6 +14,9 @@ var ICICLE = (function(d3, $, g){
 	var y_ice = d3.scale.linear().range([0, h_ice]);
 	var color = d3.scale.category20c();
 	var brush_on = false;
+	var ice_partition = null;
+	var ice_data = null;
+	var partition_toggle = true;
 
 	// Icicle view tree layout calculation function
 	// JSON object member keys have simplified names to keep file and transfer size down.
@@ -21,8 +24,14 @@ var ICICLE = (function(d3, $, g){
 	// d.v = d.value (number of leaf members / node)
 	// d.i = d.id
 	var partition_ice = d3.layout.partition()
+			.sort(function(a,b){ return b.i - a.i; })
 			.children(function(d){ return d.c ? d.c : null;})
 			.value(function(d){return d.v ? d.v : null;});
+			
+	var partition_ice_inv = d3.layout.partition()
+			.sort(function(a,b){ return b.i - a.i; })
+			.children(function(d){ return d.c ? d.c : null;})
+			.value(function(d){return d.v ? 1.0/d.v : null;});
 
 	// Icicle view SVG element
 	var vis = d3.select("#tree").append("svg:svg")
@@ -45,6 +54,29 @@ var ICICLE = (function(d3, $, g){
 				.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); });
 	};
 
+	var rescaleIcicleRectangles = function() {
+		
+		ice_partition = do_partition(ice_data);
+		
+		// Change icicle zoom
+		vis.selectAll("rect")
+				.data(ice_partition, function(d){return d.i;})
+			.transition()
+				.duration(750)
+					.attr("x", function(d) { return x_ice(d.x); })
+					.attr("y", function(d) { return y_ice(d.y); })
+					.attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
+					.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); });
+	};
+	
+	var do_partition = function(data) {
+		if (partition_toggle) {
+			return partition_ice(data);
+		} else {
+			return partition_ice_inv(data);
+		}
+	};
+
 	var rect_click = function(d) {
 	
 		// NOTE: If click on a different scale rectangle while scatterplot is
@@ -56,8 +88,13 @@ var ICICLE = (function(d3, $, g){
 		if (d3.event && d3.event.altKey) {
 			x_ice.domain([d.x, d.x + d.dx]);
 			y_ice.domain([d.y, 1]).range([d.y ? 20 : 0, h_ice]);
-		
+			
 			zoomIcicleView(d.i);
+		}
+		if (d3.event && d3.event.shiftKey) {
+			// TODO: Move this to a combo box or button instead of key click!
+			partition_toggle = partition_toggle ? false : true;
+			rescaleIcicleRectangles();
 		}
 		else {
 			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
@@ -104,9 +141,10 @@ var ICICLE = (function(d3, $, g){
 		
 			// TODO: Don't need to send 's' as an attribute, partition function calculates
 			//   attribute 'depth'...
-		
+			ice_data = json;
+			
 			// Before building tree, compile convenience data structures
-			var ice_partition = partition_ice(json);
+			ice_partition = do_partition(ice_data);
 			g.scales_by_id = new Array(ice_partition.length);
 			for (var ii = 0; ii < ice_partition.length; ii++) {
 				var node = ice_partition[ii];
@@ -125,8 +163,8 @@ var ICICLE = (function(d3, $, g){
 					.attr("id", function(d) {return "r_" + d.i;})
 					.attr("x", function(d) { return x_ice(d.x); })
 					.attr("y", function(d) { return y_ice(d.y); })
-					.attr("width", function(d) { return x_ice(d.dx); })
-					.attr("height", function(d) { return y_ice(d.dy); })
+					.attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
+					.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); })
 					.attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); })
 					.on("click", rect_click)
 					.on("dblclick", rect_dblclick)

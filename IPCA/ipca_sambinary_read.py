@@ -231,6 +231,49 @@ def read_sambinary_originaldata(orig_data_file, data_type):
 	
 	return orig_data
 
+def read_sambinary_originaldata_linear(orig_data_file, data_type):
+	"""Read the original data used for IPCA but don't reshape it into 2d like it should be.
+	   Used for data transformations using numpy where array.tofile() would save in C order,
+	   but here we need to reshape in F order to get the original shape."""
+
+	f = open(orig_data_file, 'r')
+
+	vectype = f.readline().strip()
+	if vectype != 'DenseMatrix':
+		raise IOError, "Data file needs to be a DenseMatrix"
+
+	size = f.readline().strip().split()
+	if size[0] != 'Size:' or size[2] != 'x':
+		raise IOError, "Problem reading data matrix size"
+	m = int(size[1])
+	n = int(size[3])
+
+	elsize = f.readline().strip().split()
+	if elsize[0] != 'ElementSize:':
+		raise IOError, "Problem reading data matrix element size"
+	n_bytes = int(elsize[1])
+
+	rowmaj = f.readline().strip().split()
+	if rowmaj[0] != 'RowMajor:':
+		raise IOError, "Problem reading data matrix row major order"
+	row_major = int(rowmaj[1])
+
+	datafile = f.readline().strip().split()
+	if datafile[0] != 'DataFile:':
+		raise IOError, "Problem reading data matrix file name"
+	data_file = os.path.abspath(os.path.join(os.path.dirname(orig_data_file),datafile[1]))
+
+	f.close()
+
+	fd = open(data_file, 'rb')
+	if data_type == 'i':
+		orig_data = N.fromfile(fd, dtype=N.dtype('i' + str(n_bytes)), count=m*n)
+	elif data_type == 'f':
+		orig_data = N.fromfile(fd, dtype=N.dtype('f' + str(n_bytes)), count=m*n)
+	fd.close()
+	
+	return orig_data
+
 
 # --------------------
 if __name__ == "__main__":
