@@ -141,6 +141,23 @@ class IPCATree(object):
 		return nodes_by_scale
 	
 	# --------------------
+	def calculate_node_projected_data(self, node_id):
+		"""Calculate data for this node_id projected into """
+		
+		if self.orig_data is not None:
+			
+			node = self.nodes_by_id[node_id]
+			data_idxs = node['indices']
+			node_data = self.orig_data[:,data_idxs]
+			
+			# Compute projection of this node's data
+			# 2 x n_points
+			projected_data = self.V.T * node_data
+			
+			# return x and y separately from matrix to array
+			return {'x':projected_data.A[0,:], 'y':projected_data.A[1,:]}
+
+	# --------------------
 	def calculate_node_ellipse(self, node_id):
 		"""Calculate tuple containing (X, Y, RX, RY, Phi, i) for a node for a D3 ellipse"""
 		
