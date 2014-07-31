@@ -82,7 +82,7 @@ using the [conda-recipes](https://github.com/conda/conda-recipes):
 
 ```bash
 cd anaconda/
-git clone git@github.com:ContinuumIO/conda-recipes.git
+git clone git@github.com:conda/conda-recipes.git
 conda build conda-recipes/cherrypy
 cd conda-bld/
 cd osx-64/
@@ -165,8 +165,8 @@ a symbolic link in our local Apache site path (listed in the username.conf Direc
 line). From my home directory (in the terminal) I type:
 
 ```
-ln -s /Users/username/Programming/SamVis/IPCA /Users/username/Sites/SamVisIPCA
-ln -s /Users/username/Programming/SamVis/path /Users/username/Sites/SamVisPath
+ln -s /Users/username/Programming/SamVis/IPCA /Users/username/Sites/SamVis/IPCA
+ln -s /Users/username/Programming/SamVis/path /Users/username/Sites/SamVis/Path
 ```
 
 This way I can access the IPCA directory from
