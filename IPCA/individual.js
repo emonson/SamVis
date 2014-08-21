@@ -4,13 +4,13 @@
 var INDIV = (function($, g){
 
 	var ind = { version: '0.0.1' };
-
+	
 	// Now load individual ellipse center visualization based on data type
 	// Load nothing if 
 	switch (g.data_info.original_data.dataset_type) {
 		case 'image':
 			$.ajax({
-				url:'http://' + g.uri.host + g.uri.directory + 'basisims.js',
+				url:'/basisims.js',
 				async:false,
 				dataType:'script',
 				success:function(response) {
@@ -23,7 +23,7 @@ var INDIV = (function($, g){
 			break;
 		case 'gene':
 			$.ajax({
-				url:'http://' + g.uri.host + g.uri.directory + 'basispcoords.js',
+				url:'/basispcoords.js',
 				async:false,
 				dataType:'script',
 				success:function(response) {

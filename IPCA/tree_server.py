@@ -135,40 +135,59 @@ class Root(object):
 		self.data_names = names_list
 		
 	@cherrypy.expose
-	@cherrypy.tools.gzip()
 	def index(self):
 		
-		return json.dumps(self.data_names)
+		raise cherrypy.HTTPRedirect("/resource_index")
 		
 
-# Storing server name and port in a json file for easy config
-server_filename = '../server_conf.json'
-server_opts = json.loads(open(server_filename).read())
+if __name__ == '__main__':
+    
+    # Storing server name and port in a json file for easy config
+    server_filename = '../server_conf.json'
+    server_opts = json.loads(open(server_filename).read())
 
-# Go through data directory and add methods to root for each data set
-data_dir = server_opts['ipca_data_dir']
-vis_page = 'ipca_context.html'
-data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*')) if os.path.isdir(xx)]
-data_dirnames = [os.path.basename(xx) for xx in data_paths]
+    # Go through data directory and add methods to root for each data set
+    data_dir = server_opts['ipca_data_dir']
+    vis_page = 'ipca_context.html'
+    data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*')) if os.path.isdir(xx)]
+    data_dirnames = [os.path.basename(xx) for xx in data_paths]
 
-# Storing the dataset names in the root so they can easily be passed to the html pages
-root = Root(data_dirnames)
+    # Storing the dataset names in the root so they can easily be passed to the html pages
+    root = Root(data_dirnames)
 
-# This adds the methods for each data directory
-for ii,name in enumerate(data_dirnames):
-	print name, data_paths[ii]
-	setattr(root, name, TreeServer(data_paths[ii]))
+    # This adds the methods for each data directory
+    for ii,name in enumerate(data_dirnames):
+        print name, data_paths[ii]
+        setattr(root, name, TreeServer(data_paths[ii]))
 
-# add the resource index, which will list links to the data sets
-base_url = 'http://' + server_opts['server_name'] + '/~' + server_opts['account'] + '/' + server_opts['ipca_web_path'] + '/' + vis_page
-root.resource_index = ResourceIndex(server_url=base_url, data_names=data_dirnames)
+    # add the resource index, which will list links to the data sets
+    # base_url = 'http://' + server_opts['server_name'] + '/~' + server_opts['account'] + '/' + server_opts['ipca_web_path'] + '/' + vis_page
+    base_url = 'http://' + server_opts['server_name'] + ':' + str(server_opts['ipca_port']) + '/' + vis_page
+    root.resource_index = ResourceIndex(server_url=base_url, data_names=data_dirnames)
 
-# Start up server
-cherrypy.config.update({
-		# 'tools.gzip.on' : True,
-		'server.socket_port': server_opts['ipca_port'], 
-		# 'server.socket_host':'127.0.0.1'
-		'server.socket_host':str(server_opts['server_name'])
-		})
-cherrypy.quickstart(root)
+    # Start up server
+    conf = {
+        '/': {
+        'tools.sessions.on': True,
+        'tools.staticdir.root': os.path.abspath(os.getcwd()),
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': '.'
+        },
+        '/libs': {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': '../libs'
+        },
+        '/conf': {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': '..'
+        }
+    }
+    cherrypy.config.update({
+            # 'tools.gzip.on' : True,
+            'server.socket_port': server_opts['ipca_port'], 
+            # 'server.socket_host':'127.0.0.1'
+            'server.socket_host':str(server_opts['server_name'])
+            })
+    # cherrypy.quickstart(root)
+    cherrypy.quickstart(root, '/', conf)
 

@@ -137,7 +137,7 @@ var ICICLE = (function(d3, $, g){
 
 	ic.init_icicle_view = function() {
 	
-		d3.json(g.data_proxy_root + '/' + g.dataset + "/index", function(json) {
+		d3.json('/' + g.dataset + "/index", function(json) {
 		
 			// TODO: Don't need to send 's' as an attribute, partition function calculates
 			//   attribute 'depth'...

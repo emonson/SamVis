@@ -82,7 +82,7 @@ var NODE_BASIS_VIS = (function(d3, $, g){
 	// Get basis images from server
 	nbv.getBasisDataFromServer = function(id) {
 
-		d3.json(g.data_proxy_root + '/' + g.dataset + "/ellipsebasis?id=" + id, function(json) {
+		d3.json('/' + g.dataset + "/ellipsebasis?id=" + id, function(json) {
 	
 			g.center_data = json.center;
 			g.bases_data = json.bases;

@@ -2,19 +2,9 @@ var GLOBALS = (function($){
 
 	var globals = { version: '0.0.1' };
 		
-	// Make it easier to swtich the server config when switching between machines (not async)
-	$.ajax({
-		url:'../server_conf.json',
-		async:false,
-		dataType:'json',
-		success:function(data) {
-			globals.data_proxy_root = "http://" + data.server_name + "/remote" + data.ipca_port;
-		}
-	});	
-	
 	// Grabbing possible data set names (not async)
 	$.ajax({
-		url:globals.data_proxy_root + '/resource_index/datasets',
+		url:'/resource_index/datasets',
 		async:false,
 		dataType:'json',
 		success:function(data) {
@@ -56,7 +46,7 @@ var GLOBALS = (function($){
 	// 	}
 
 	$.ajax({
-		url:globals.data_proxy_root + '/' + globals.dataset + '/datainfo',
+		url:'/' + globals.dataset + '/datainfo',
 		async:false,
 		dataType:'json',
 		success:function(data) {
