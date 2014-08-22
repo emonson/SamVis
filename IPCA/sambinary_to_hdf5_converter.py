@@ -1,16 +1,24 @@
 import h5py
+import os
 import numpy as N
 import ipca_sambinary_read as IR
 
-tdf = '../../test/mnist12.ipca'
-ldf = '../../test/mnist12_labels.data.hdr'
-df = '../../test/mnist12.data.hdr'		
+data_root_path = '/Users/emonson/Data/GMRA_data
+data_folder_name = 'mnist12_v5_d8c2'
 
-outfile = '../../test/test1_mnist12.hdf5'
+data_path = os.path.join(data_root_path, data_folder_name)
+outfile = data_path + '.hdf5'
 
-tree_root, nodes_by_id = IR.read_sambinary_ipcadata(tdf)
-labels_array = IR.read_sambinary_labeldata(ldf)
-original_data_array = IR.read_sambinary_originaldata(df)
+# Read data from binary file
+data_info = IR.read_data_info(data_path)
+
+tree_data_file = os.path.join(data_path, data_info['full_tree']['filename'])
+print 'Trying to load data from .ipca file... ', tree_data_file
+tree_root, nodes_by_id = IR.read_sambinary_v3_ipcadata(tree_data_file)
+
+original_data_file = os.path.join(data_path, data_info['original_data']['filename'])
+print 'Trying to load original data from .data file... ', original_data_file
+original_data_array = IR.read_sambinary_originaldata(original_data_file)
 
 print 'data read in. starting hdf5 original data writing'
 
@@ -20,14 +28,28 @@ with h5py.File(outfile, 'w') as f:
 	original_data_g = f.create_group("original_data")
 	original_data_g.create_dataset("data", data=original_data_array)
 	
-	original_data_g.attrs['dataset_type'] = 'image'
-	original_data_g.attrs['image_n_rows'] = 28
-	original_data_g.attrs['image_n_columns'] = 28
+	original_data_g.attrs['dataset_type'] = data_info['original_data']['dataset_type']
+	if data_info['oroginal_data']['dataset_type'] == 'image':
+	    original_data_g.attrs['image_n_rows'] = data_info['oroginal_data']['image_n_rows']
+	    original_data_g.attrs['image_n_columns'] = data_info['oroginal_data']['image_n_columns']
 	
 	# Original data labels
-	original_data_labels_g = original_data_g.create_group('labels')
-	digit_id = original_data_labels_g.create_dataset('digit_id', data=labels_array)
-	digit_id.attrs['description'] = 'Identity of the digit depicted in each image. Label is the actual digit, here 1 and 2.'
+	if 'labels' in data_info['original_data']:
+        original_data_labels_g = original_data_g.create_group('labels')
+    
+        for label_name, label_info in data_info['original_data']['labels']:
+            # Read labels data
+            labels_data_file = os.path.join(data_path, label_info['filename'])
+            labels_array = IR.read_sambinary_labeldata(labels_data_file)
+            # Store labels in HDF5
+            label = original_data_labels_g.create_dataset(label_name, data=labels_array)
+            # Transfer label attributes
+            for attr_name, attr_value in label_info:
+                # Dataset attributes must be scalars, strings or arrays
+                if isinstance(attr_value, dict):
+                    label.attrs[attr_name] = [(k,v) for k,v in attr_value]
+                else:
+                    label.attrs[attr_name] = attr_value
 		
 	# Tree
 	# Storing main copy of the tree nodes in a flat set of groups under full_tree group
