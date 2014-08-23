@@ -1,5 +1,5 @@
 import ipca_sambinary_read as IR
-# import ipca_hdf5_read as IH
+import ipca_hdf5_read as IH
 import numpy as N
 # from scipy import stats
 import collections as C
@@ -37,12 +37,18 @@ class IPCATree(object):
 			# NOTE: Parsing data_info here for now... May want to move this to reader instead?
 			
 			# Read data from binary file
-			self.data_info = IR.read_data_info(data_path)
+			# self.data_info = IR.read_data_info(data_path)
 			
-			tree_data_file = os.path.join(data_path, self.data_info['full_tree']['filename'])
-			print 'Trying to load data set from .ipca file... ', tree_data_file
-			self.tree_root, self.nodes_by_id = IR.read_sambinary_v3_ipcadata(tree_data_file)
-			# self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(self.tree_data_file)
+			# Read some metadata from the hdf5 file
+			self.data_info = IH.read_hdf5_data_info(data_path)
+			
+			# Read tree data from binary file
+			# tree_data_file = os.path.join(data_path, self.data_info['full_tree']['filename'])
+			# print 'Trying to load data set from .ipca file... ', tree_data_file
+			# self.tree_root, self.nodes_by_id = IR.read_sambinary_v3_ipcadata(tree_data_file)
+			
+			# Read tree data from HDF5 file
+			self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(data_path)
 			
 			self.post_process_nodes(self.tree_root)
 
@@ -56,16 +62,18 @@ class IPCATree(object):
 			self.tree_data_loaded = True
 
 			# Read labels from binary file(s)
-			self.labels = {}
-			for name, info in self.data_info['original_data']['labels'].iteritems():
-				label_data_file = os.path.join(data_path, info['filename'])
-				self.labels[name] = IR.read_sambinary_labeldata(label_data_file, info['data_type'])
-				# self.labels = IH.read_hdf5_labeldata(self.label_file)
+			# self.labels = {}
+			# for name, info in self.data_info['original_data']['labels'].iteritems():
+			# 	label_data_file = os.path.join(data_path, info['filename'])
+			# 	self.labels[name] = IR.read_sambinary_labeldata(label_data_file, info['data_type'])
+
+			# Read labels from hdf5 file
+			self.labels = IH.read_hdf5_labeldata(data_path)
 
 			# For now loading original data if the filename field is specified in the metadata
-			if 'filename' in self.data_info['original_data']:
-				orig_data_path = os.path.join(data_path, self.data_info['original_data']['filename'])
-				self.orig_data = IR.read_sambinary_originaldata(orig_data_path, self.data_info['original_data']['data_type'])
+			# if 'filename' in self.data_info['original_data']:
+			# 	orig_data_path = os.path.join(data_path, self.data_info['original_data']['filename'])
+			# 	self.orig_data = IR.read_sambinary_originaldata(orig_data_path, self.data_info['original_data']['data_type'])
 
 			# Now that data is loaded, default projection basis is
 			# root node first two PCA directions
@@ -624,11 +632,12 @@ if __name__ == "__main__":
 	# v3 sambinary
 	# tree_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/tree.ipca'
 	# label_file = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2/labels.data.hdr'
-	data_path = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2'
+	# data_path = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2'
 	
 	# HDF5
 	# tree_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
 	# label_file = '/Users/emonson/Programming/Sam/test/test1_mnist12.hdf5'
+	data_path = '/Users/emonson/Data/GMRA_data/mnist12_v5_d8c2_test1.hdf5'
 
 	# DataSource loads .ipca file and can generate data from it for other views
 	# tree = IPCATree(tree_file)

@@ -72,8 +72,7 @@ def read_hdf5_ipcadata(tree_data_filename):
 	
 
 def read_hdf5_labeldata(label_data_filename):
-	"""Read IPCA tree label data from Sam's binary format, which is basically an
-	R datastructure, I think..."""
+	"""Read IPCA original data labels and store them in dictionary by name"""
 	
 	labels = {}
 	label_descriptions = {}
@@ -105,7 +104,7 @@ def checked_filename(filename):
 
 
 def read_hdf5_originaldata(orig_data_file):
-	"""Read the original data used for IPCA. Basically an R binary format, I think..."""
+	"""Read the original data used for IPCA"""
 
 	with h5py.File(orig_data_file, 'r') as f:
 	
@@ -122,6 +121,23 @@ def read_hdf5_originaldata(orig_data_file):
 			image_n_columns = original_data_g.attrs['image_n_columns']
 	
 	return orig_data
+
+def read_hdf5_data_info(orig_data_file):
+	"""Read some metadata from the hdf5 file"""
+
+	with h5py.File(orig_data_file, 'r') as f:
+	
+		data_info = {}
+		
+		# Original data
+		original_data_g = f['/original_data']
+		
+		data_info['original_data'] = {}
+		
+		for k,v in original_data_g.attrs.items():
+		    data_info['original_data'][k] = v
+	
+	return data_info
 
 
 # --------------------

@@ -149,8 +149,14 @@ if __name__ == '__main__':
     # Go through data directory and add methods to root for each data set
     data_dir = server_opts['ipca_data_dir']
     vis_page = 'ipca_context.html'
-    data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*')) if os.path.isdir(xx)]
-    data_dirnames = [os.path.basename(xx) for xx in data_paths]
+    
+    # Sambinary files in directories
+    # data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*')) if os.path.isdir(xx)]
+    # data_dirnames = [os.path.basename(xx) for xx in data_paths]
+    
+    # HDF5 files
+    data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*.hdf5')) if os.path.isfile(xx)]
+    data_dirnames = [os.path.splitext(os.path.basename(xx))[0] for xx in data_paths]
 
     # Storing the dataset names in the root so they can easily be passed to the html pages
     root = Root(data_dirnames)
