@@ -11,4 +11,7 @@ server_conf.json
 *.swp
 
 # This is the name I give CMake build/binary directories
-build
+build*
+
+# A type of file QtCreator makes from CMake files
+*.user
