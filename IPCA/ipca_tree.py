@@ -162,8 +162,8 @@ class IPCATree(object):
 			# 2 x n_points
 			projected_data = self.V.T * node_data
 			
-			# return x and y separately from matrix to array
-			return {'x':projected_data.A[0,:], 'y':projected_data.A[1,:]}
+                        # return 2 x n_points matrix
+                        return projected_data
 
 	# --------------------
 	def calculate_node_ellipse(self, node_id):
