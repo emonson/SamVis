@@ -15,9 +15,21 @@ h5create(filename, '/original_data/data', size(GMRA.X));
 h5write(filename, '/original_data/data', GMRA.X);
 
 % Labels
-n_pts = size(imgOpts.Labels, 1);
 for ii = 1:size(imgOpts.Labels, 2)
-    h5create(filename, 'original_data/
+    label_data = imgOpts.Labels(:,ii);
+    % TODO: need to have labels names stored in metadata...
+    h5create(filename, '/original_data/labels/digit_id', size(label_data));
+    h5write(filename, '/original_data/labels/digit_id', label_data);
+end
+
+% Full tree
+% First pass, store nodes by ID
+n_nodes = length(GMRA.cp);
+h5writeatt(filename, '/full_tree', 'n_nodes', n_nodes);
+for ii = 1:n_nodes,
+    % IDs for vis need to be zero-based
+    node_group_name = ['/full_tree/nodes/' int2str(ii-1)];
+    
 end
 
 end
