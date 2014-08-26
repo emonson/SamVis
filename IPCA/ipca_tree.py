@@ -176,6 +176,7 @@ class IPCATree(object):
 		sigma = N.matrix(N.diag(node['sigma']))
 		center = node['center']
 		
+		print 'A', A.shape, 'sigma', sigma.shape
 		A = A * N.sqrt(sigma)
 		C1 = self.V.T * A
 		C = C1 * C1.T
@@ -507,6 +508,7 @@ class IPCATree(object):
 		results['centers_bounds'] = (N.asscalar(c_bounds[:,0].min()),N.asscalar(c_bounds[:,1].max()))
 		results['bases_bounds'] = (N.asscalar(b_bounds[:,0].min()),N.asscalar(b_bounds[:,1].max()))
 		results['scalar_names'] = self.labels.keys()
+		print results
 		return json.dumps(results)
 
 	# --------------------
