@@ -78,15 +78,27 @@ for ii = 1:n_nodes,
     h5create(filename, [node_group_name '/npoints'], 1, 'Datatype', 'int64');
     h5write(filename, [node_group_name '/npoints'], int64(GMRA.Sizes(ii)));
     
-    % node_g.create_dataset('phi', data=node['phi'])
-    h5create(filename, [node_group_name '/phi'], size(GMRA.ScalFuns{ii}), 'Datatype', 'double');
-    h5write(filename, [node_group_name '/phi'], GMRA.ScalFuns{ii});
-    
-    % node_g.create_dataset('sigma', data=node['sigma'])
-    % NOTE: Careful, this Sigmas is normalized to 1/sqrt(n_points)...
-    h5create(filename, [node_group_name '/sigma'], length(GMRA.Sigmas{ii}), 'Datatype', 'double');
-    h5write(filename, [node_group_name '/sigma'], GMRA.Sigmas{ii});
+    d = size(GMRA.ScalFuns{ii},2);
+    if d == 0,
+        N = size(GMRA.ScalFuns{ii},1);
+        % node_g.create_dataset('phi', data=node['phi'])
+        h5create(filename, [node_group_name '/phi'], [N 1], 'Datatype', 'double');
+        h5write(filename, [node_group_name '/phi'], zeros([N 1]));
 
+        % node_g.create_dataset('sigma', data=node['sigma'])
+        % NOTE: Careful, this Sigmas is normalized to 1/sqrt(n_points)...
+        h5create(filename, [node_group_name '/sigma'], 1, 'Datatype', 'double');
+        h5write(filename, [node_group_name '/sigma'], 0);
+    else
+        % node_g.create_dataset('phi', data=node['phi'])
+        h5create(filename, [node_group_name '/phi'], size(GMRA.ScalFuns{ii}), 'Datatype', 'double');
+        h5write(filename, [node_group_name '/phi'], GMRA.ScalFuns{ii});
+
+        % node_g.create_dataset('sigma', data=node['sigma'])
+        % NOTE: Careful, this Sigmas is normalized to 1/sqrt(n_points)...
+        h5create(filename, [node_group_name '/sigma'], d, 'Datatype', 'double');
+        h5write(filename, [node_group_name '/sigma'], GMRA.Sigmas{ii}(1:d));
+    end
     % node_g.create_dataset('dir', data=node['dir'])
     % node_g.create_dataset('mse', data=node['mse'])
     
@@ -96,7 +108,7 @@ for ii = 1:n_nodes,
     
     % node_g.create_dataset('indices', data=node['indices'])
     h5create(filename, [node_group_name '/indices'], length(GMRA.PointsInNet{ii}), 'Datatype', 'int64');
-    h5write(filename, [node_group_name '/indices'], int64(GMRA.PointsInNet{ii}));
+    h5write(filename, [node_group_name '/indices'], int64(GMRA.PointsInNet{ii}-1));      % zero-based!
 
     % node_g.create_dataset('sigma2', data=node['sigma2'])
     % NOTE: Careful, this Sigmas is normalized to 1/sqrt(n_points)...

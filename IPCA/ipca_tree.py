@@ -432,6 +432,9 @@ class IPCATree(object):
 	def entropy(self, labels):
 		""" Computes entropy of label distribution. Originally called entropy2()"""
 
+		if not hasattr(labels, '__len__'):
+		    return 0
+		
 		n_labels = len(labels)
 
 		if n_labels <= 1:
@@ -538,7 +541,12 @@ class IPCATree(object):
 					labels = N.zeros((len(self.nodes_by_id),), dtype='int')
 					for id,node in self.nodes_by_id.iteritems():
 						indices = node['indices']
-						counts = N.bincount(labels_array[indices])
+						# NOTE: Sometimes a single point in a node ends up as a scalar index
+						# rather than an array of indices...
+						if hasattr(indices, '__len__'):
+						    counts = N.bincount(labels_array[indices])
+						else:
+						    counts = N.bincount([labels_array[indices]])
 						labels[id] = N.argmax(counts)
 					output = labels.tolist()
 					max = N.asscalar(N.max(labels))

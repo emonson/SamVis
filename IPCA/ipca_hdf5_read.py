@@ -139,7 +139,7 @@ def read_hdf5_data_info(orig_data_file):
         
         for k,v in original_data_g.attrs.items():
             # try to deal with matlab-saved values which show up as single arrays...
-            if v.dtype.char == 'l' and (len(v) == 1):
+            if isinstance(v, N.ndarray) and v.dtype.char == 'l' and (len(v) == 1):
                 data_info['original_data'][k] = N.asscalar(v)
             else:
                 data_info['original_data'][k] = v
