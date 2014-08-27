@@ -1,0 +1,5 @@
+{
+  "server_name":"servername.sub.school.edu",
+  "ipca_port":9002,
+  "ipca_data_dir":"../../test"
+}

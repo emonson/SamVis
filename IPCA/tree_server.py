@@ -143,7 +143,7 @@ class Root(object):
 if __name__ == '__main__':
     
     # Storing server name and port in a json file for easy config
-    server_filename = '../server_conf.json'
+    server_filename = 'server_conf.json'
     server_opts = json.loads(open(server_filename).read())
 
     # Go through data directory and add methods to root for each data set
