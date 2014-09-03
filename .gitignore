@@ -15,3 +15,8 @@ build*
 
 # A type of file QtCreator makes from CMake files
 *.user
+
+# Directory & files pyinstaller creates
+dist
+*.spec
+
