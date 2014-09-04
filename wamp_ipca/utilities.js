@@ -7,7 +7,12 @@ var UTILITIES = (function(d3, $, g){
 
 	ut.getScalarsFromServer = function(s_obj) {
 
-		d3.json('/' + g.dataset + "/scalars?name=" + g.scalars_name + "&aggregation=" + g.scalars_aggregator, function(json) {
+		// d3.json('/' + g.dataset + "/scalars?name=" + g.scalars_name + "&aggregation=" + g.scalars_aggregator, function(json) {
+		
+		g.session.call('test.ipca.scalars', [], {name: g.scalars_name, aggregation: g.scalars_aggregator}).then( function(json) {
+			
+			// DEBUG
+			console.log(json);
 			
 			// TODO: This doesn't work for histogram yet...
 			g.scalardata = json.labels;
@@ -51,7 +56,7 @@ var UTILITIES = (function(d3, $, g){
 			}
 			
 			$.publish("/scalars/updated");
-		});
+		});     // d3.json
 	};
 
 	return ut;

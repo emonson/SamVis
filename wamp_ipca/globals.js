@@ -83,7 +83,6 @@ var GLOBALS = (function($){
                         globals.node_id = 0;
                         globals.bkgd_scale = 1;
 
-                        return globals;
 
 
 
@@ -107,6 +106,7 @@ var GLOBALS = (function($){
 
      globals.connection.open();
 
+                        return globals;
 
 }(jQuery));
 
