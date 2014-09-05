@@ -36,11 +36,11 @@ var ICICLE = (function(d3, $, g){
 	// Icicle view SVG element
 	var vis = d3.select("#tree").append("svg:svg")
 			.attr("width", w_ice)
-			.attr("height", h_ice)
-			.on("mouseout", function() {
-					d3.select("#nodeinfo").text("id = , scale = ");
-					$.publish("/icicle/mouseout", g.node_id);
-				});
+			.attr("height", h_ice);
+// 			.on("mouseout", function() {
+// 					d3.select("#nodeinfo").text("id = , scale = ");
+// 					$.publish("/icicle/mouseout", g.node_id);
+// 				});
 
 	var zoomIcicleView = function(sel_id) {
 		
@@ -112,11 +112,14 @@ var ICICLE = (function(d3, $, g){
 		zoomIcicleView(0);
 	};
 
-	var rect_hover = function(d) {
-
+	var hover_timer;
+	var rect_enter = function(d) {
 		d3.select("#nodeinfo")
 			.text("id = " + d.i + ", scale = " + d.s);
-		$.publish("/icicle/rect_hover", d.i);
+		hover_timer = setTimeout(function(){$.publish("/icicle/rect_hover", d.i);}, 20);
+	};
+	var rect_exit = function(d) {
+		clearTimeout(hover_timer);
 	};
 
 	ic.updateScalarData = function() {
@@ -171,7 +174,8 @@ var ICICLE = (function(d3, $, g){
 					.attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); })
 					.on("click", rect_click)
 					.on("dblclick", rect_dblclick)
-					.on("mouseover", rect_hover);
+					.on("mouseover", rect_enter)
+					.on("mouseout", rect_exit);
 		});
 	};
 
