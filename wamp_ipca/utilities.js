@@ -5,14 +5,30 @@ var UTILITIES = (function(d3, $, g){
 
 	var ut = { version: '0.0.1' };
 
-	ut.getScalarsFromServer = function(s_obj) {
+    // WAMP datainfo
+    // TODO: Should probably pass this elsewhere so it is guaranteed to come back when needed...
+    ut.get_data_info = function() {
+        g.session.call("test.ipca.datainfo", [], {dataset:g.dataset}).then(
+            function (data) {
+                g.data_info = data.data_info;
+                g.centers_bounds = data.centers_bounds;
+                g.bases_bounds = data.bases_bounds;
+                g.scalar_names = data.scalar_names;
+                if (!g.scalars_name && g.scalar_names.length > 0) {
+                    g.scalars_name = g.scalar_names[0];
+                }
+                $.publish("/data_info/loaded");
+            }
+        );
+    };
+
+	ut.getScalarsFromServer = function() {
 
 		// d3.json('/' + g.dataset + "/scalars?name=" + g.scalars_name + "&aggregation=" + g.scalars_aggregator, function(json) {
 		
-		g.session.call('test.ipca.scalars', [], {name: g.scalars_name, aggregation: g.scalars_aggregator}).then( function(json) {
-			
-			// DEBUG
-			console.log(json);
+		g.session.call('test.ipca.scalars', [], {dataset: g.dataset, 
+		                                               name: g.scalars_name, 
+		                                               aggregation: g.scalars_aggregator}).then( function(json) {
 			
 			// TODO: This doesn't work for histogram yet...
 			g.scalardata = json.labels;

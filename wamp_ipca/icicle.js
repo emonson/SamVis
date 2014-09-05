@@ -137,8 +137,11 @@ var ICICLE = (function(d3, $, g){
 
 	ic.init_icicle_view = function() {
 	
-		d3.json('/' + g.dataset + "/index", function(json) {
+		// d3.json('/' + g.dataset + "/index", function(json) {
 		
+		g.session.call('test.ipca.tree', [], {dataset: g.dataset}).then( function(json) {
+			
+
 			// TODO: Don't need to send 's' as an attribute, partition function calculates
 			//   attribute 'depth'...
 			ice_data = json;

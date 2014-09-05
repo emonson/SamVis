@@ -192,7 +192,11 @@ var ELPLOT = (function(d3, $, g){
 	// Get projected ellipses from the server
 	el.getContextEllipsesFromServer = function() {
 
-		d3.json('/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
+		// d3.json('/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
+		
+		g.session.call('test.ipca.contextellipses', [], {dataset: g.dataset, 
+		                                               id: g.node_id, 
+		                                               bkgdscale: g.bkgd_scale}).then( function(json) {	
 
 			// Flag for keeping track of whether this is the first selection
 			var first_selection = (g.foreground_ellipse_data.length == 0);

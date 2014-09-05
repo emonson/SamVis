@@ -61,20 +61,20 @@ class IPCA_DataStore(ApplicationSession):
     def tree(self, dataset=None):
         
         if dataset in self.trees:
-            return self.trees[dataset].GetLiteTreeJSON()
+            return self.trees[dataset].GetLiteTree()
         
     @wamp.register(u"test.ipca.datainfo")
     def datainfo(self, dataset=None ):
         
         if dataset in self.trees:
             # {datatype:('image', 'function',...), shape:[n_rows, n_cols]}
-            return self.trees[dataset].GetDataInfo_JSON()
+            return self.trees[dataset].GetDataInfo()
 
     @wamp.register(u"test.ipca.scalars")
     def scalars(self, dataset=None, name=None, aggregation='mean'):
         
         if (dataset in self.trees) and name:
-            return self.trees[dataset].GetAggregatedScalarsByNameJSON(name, aggregation)
+            return self.trees[dataset].GetAggregatedScalarsByName(name, aggregation)
         
     @wamp.register(u"test.ipca.scaleellipses")
     def scaleellipses(self, dataset=None, id=None, basis=None):
@@ -91,7 +91,7 @@ class IPCA_DataStore(ApplicationSession):
                     print "id", node_id, "basis_id", basis_id
         
             # seems you can also just return the dictionary
-            return self.trees[dataset].GetScaleEllipses_NoProjectionJSON(node_id)
+            return self.trees[dataset].GetScaleEllipses_NoProjection(node_id)
         
     @wamp.register(u"test.ipca.allellipses")
     def allellipses(self, dataset=None, basis=None):
@@ -103,7 +103,7 @@ class IPCA_DataStore(ApplicationSession):
                 self.trees[dataset].SetBasisID_ReprojectAll(basis_id)
                 print "basis_id", basis_id
     
-        return self.trees[dataset].GetAllEllipses_NoProjectionJSON()
+        return self.trees[dataset].GetAllEllipses_NoProjection()
         
     @wamp.register(u"test.ipca.ellipsebasis")
     def ellipsebasis(self, dataset=None, id=None):
@@ -112,7 +112,7 @@ class IPCA_DataStore(ApplicationSession):
             node_id = int(id)
     
             # seems you can also just return the dictionary
-            return self.trees[dataset].GetNodeCenterAndBasesJSON(node_id)
+            return self.trees[dataset].GetNodeCenterAndBases(node_id)
         
     @wamp.register(u"test.ipca.contextellipses")
     def contextellipses(self, dataset=None, id=None, bkgdscale='0'):
@@ -125,7 +125,7 @@ class IPCA_DataStore(ApplicationSession):
             node_id = int(id)   
             bkgd_scale = int(bkgdscale)
     
-            return self.trees[dataset].GetContextEllipsesJSON(node_id, bkgd_scale)
+            return self.trees[dataset].GetContextEllipses(node_id, bkgd_scale)
         
 
 # =====================
