@@ -33,6 +33,7 @@ def read_hdf5_ipcadata(tree_data_filename):
         n_nodes = f['/full_tree'].attrs['n_nodes']
         nodes_g = f['/full_tree/nodes']
 
+        print '...first pass for node data'
         for id_str, node_g in nodes_g.iteritems():
             
             # temp space for the id
@@ -71,6 +72,8 @@ def read_hdf5_ipcadata(tree_data_filename):
         tree_root_id = N.asscalar(f['/full_tree/tree_root']['id'][()])
         tree_root = nodes_by_id[tree_root_id]
     
+        print '...ipca tree data finished reading'
+
     return tree_root, nodes_by_id
     
 

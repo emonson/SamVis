@@ -40,7 +40,7 @@ window.onload = function() {
 	
 	function set_individual_subscriptions() {
         $.subscribe("/icicle/rect_click", NODE_BASIS_VIS.getBasisDataFromServer);
-        $.subscribe("/icicle/rect_hover", NODE_BASIS_VIS.getBasisDataFromServer);
+        // $.subscribe("/icicle/rect_hover", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/icicle/mouseout", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/elplot/ellipse_click", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/elplot/ellipse_hover", NODE_BASIS_VIS.getBasisDataFromServer);
@@ -68,10 +68,12 @@ window.onload = function() {
 	$.subscribe("/icicle/rect_click", ELPLOT.highlightSelectedEllipse);
 	$.subscribe("/icicle/rect_click", ELPLOT.getContextEllipsesFromServer);
 	$.subscribe("/icicle/rect_click", ICICLE.highlightSelectedRect);
+	$.subscribe("/icicle/rect_alt_click", ICICLE.zoomIcicleView);
 	
 	$.subscribe("/elplot/ellipse_click", ELPLOT.getContextEllipsesFromServer);
 	$.subscribe("/elplot/ellipse_click", ELPLOT.highlightSelectedEllipse);
 	$.subscribe("/elplot/ellipse_click", ICICLE.highlightSelectedRect);
+	$.subscribe("/elplot/ellipse_alt_click", ICICLE.zoomIcicleView);
 
 	$.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
 	

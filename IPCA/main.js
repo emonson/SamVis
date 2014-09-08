@@ -53,16 +53,17 @@ window.onload = function() {
 
 	$.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
 	
-
+	function initialSelection() {
+	    GLOBALS.node_id = GLOBALS.root_node_id;
+	    $.publish("/icicle/rect_click", GLOBALS.node_id);
+	};
+    $.subscribe("/icicle/initialized", initialSelection);
+	
 	// Initialize icicle view
 	// NOTE: This is where scales_by_id and ids_by_scale get created
 	ICICLE.init_icicle_view();
-	ELPLOT.getContextEllipsesFromServer();
 	
 	// Do initial scalars retrieval
 	UTILITIES.getScalarsFromServer();
 
-	// TODO: Right now don't have it set up so there's a way to wait for the icicle data
-	//   to come back and then highlight an initial selection, which will populate the 
-	//   ellipse plot and grab images...
 };

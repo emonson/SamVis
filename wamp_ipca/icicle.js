@@ -37,13 +37,21 @@ var ICICLE = (function(d3, $, g){
 	var vis = d3.select("#tree").append("svg:svg")
 			.attr("width", w_ice)
 			.attr("height", h_ice);
+			// TODO: Need some sort of mostly transparent rectangle behind tree
+			//   elements so that mousing out of an individual icicle rectangle doesn't
+			//   cause a "mouseout"
 // 			.on("mouseout", function() {
 // 					d3.select("#nodeinfo").text("id = , scale = ");
 // 					$.publish("/icicle/mouseout", g.node_id);
 // 				});
 
-	var zoomIcicleView = function(sel_id) {
+	ic.zoomIcicleView = function(sel_id) {
 		
+		var node = g.nodes_by_id[sel_id];
+		
+        x_ice.domain([node.x, node.x + node.dx]);
+        y_ice.domain([node.y, 1]).range([node.y ? 20 : 0, h_ice]);
+        
 		// Change icicle zoom
 		vis.selectAll("rect")
 			.transition()
@@ -79,22 +87,16 @@ var ICICLE = (function(d3, $, g){
 
 	var rect_click = function(d) {
 	
-		// NOTE: If click on a different scale rectangle while scatterplot is
-		//   projected into a non-scale-0 basis, change to that different scale
-		//   representation in the scatterplot, but basis projected into is now not
-		//   one that is present in the ellipses on the plot...
+		// TODO: Decouple the events from the responses, and move them to main.js!!
 		
-		// Only update icicle zoom if alt has been selected
 		if (d3.event && d3.event.altKey) {
-			x_ice.domain([d.x, d.x + d.dx]);
-			y_ice.domain([d.y, 1]).range([d.y ? 20 : 0, h_ice]);
-			
-			zoomIcicleView(d.i);
+			$.publish("/icicle/rect_alt_click", d.i);
 		}
 		if (d3.event && d3.event.shiftKey) {
 			// TODO: Move this to a combo box or button instead of key click!
 			partition_toggle = partition_toggle ? false : true;
 			rescaleIcicleRectangles();
+			$.publish("/icicle/rect_shift_click", d.i);
 		}
 		else {
 			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
@@ -108,10 +110,12 @@ var ICICLE = (function(d3, $, g){
 		// Reset scales to original domain and y range
 		x_ice.domain([0, 1]);
 		y_ice.domain([0, 1]).range([0, h_ice]);
-	
-		zoomIcicleView(0);
+	    
+	    // Pass root node to zoom
+		ic.zoomIcicleView(ice_data.i);
 	};
 
+	// Set up a hover timer to rate-limit sending of requests for detailed data views
 	var hover_timer;
 	var rect_enter = function(d) {
 		d3.select("#nodeinfo")
@@ -152,10 +156,12 @@ var ICICLE = (function(d3, $, g){
 			// Before building tree, compile convenience data structures
 			ice_partition = do_partition(ice_data);
 			g.scales_by_id = new Array(ice_partition.length);
+			g.nodes_by_id = new Array(ice_partition.length);
 			for (var ii = 0; ii < ice_partition.length; ii++) {
 				var node = ice_partition[ii];
 				var scale = node.s
 				g.scales_by_id[node.i] = scale;
+				g.nodes_by_id[node.i] = node;
 				if (!g.ids_by_scale.hasOwnProperty(scale)) {
 					g.ids_by_scale[scale] = [];
 				}

@@ -69,7 +69,8 @@ var ELPLOT = (function(d3, $, g){
 	};
 
 	var setEllipseStrokeWidth = function(d,i) {
-	
+	    // NOTE: Scale 0 is root, then scale values go up as you go towards the leaves
+	    
 		// Calculate wrt current selection scale
 		var main_selection_scale = g.scales_by_id[g.node_id];
 		var this_scale = g.scales_by_id[d[5]];
@@ -107,10 +108,9 @@ var ELPLOT = (function(d3, $, g){
 				
 		var that = this;
 
-		// Only change projection basis if pressing alt
+		// Not changing projection basis if pressing alt
 		if (d3.event && d3.event.altKey) {
-			g.node_id = that.__data__[5];
-			el.getContextEllipsesFromServer();
+			$.publish("/elplot/ellipse_alt_click", that.__data__[5]);
 		}
 	
 		else {
@@ -148,7 +148,7 @@ var ELPLOT = (function(d3, $, g){
 			tmp_data.push('foreground');
 			visible_ellipse_data.push(tmp_data);
 		}
-	
+		
 		// Update the ellipses
 		// data = [[X, Y, RX, RY, Phi, i], ...]
 		var els = svg.selectAll("ellipse")
@@ -186,16 +186,21 @@ var ELPLOT = (function(d3, $, g){
 		els.exit()
 			.remove();
 	
+		// Reorder ellipses in the background by scale, higher scale later (drawn on top)
+		els.sort(function(a,b) {
+		    return g.scales_by_id[a[5]] - g.scales_by_id[b[5]];
+		});
+		
 		updateAxes();
 	};
 
 	// Get projected ellipses from the server
-	el.getContextEllipsesFromServer = function() {
+	el.getContextEllipsesFromServer = function(node_id) {
 
 		// d3.json('/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
 		
 		g.session.call('test.ipca.contextellipses', [], {dataset: g.dataset, 
-		                                               id: g.node_id, 
+		                                               id: node_id, 
 		                                               bkgdscale: g.bkgd_scale}).then( function(json) {	
 
 			// Flag for keeping track of whether this is the first selection

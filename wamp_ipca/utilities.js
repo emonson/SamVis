@@ -17,7 +17,10 @@ var UTILITIES = (function(d3, $, g){
                 if (!g.scalars_name && g.scalar_names.length > 0) {
                     g.scalars_name = g.scalar_names[0];
                 }
-                $.publish("/data_info/loaded");
+                g.root_node_id = data.root_node_id;
+                // Start selection off at root
+                g.node_id = g.root_node_id;
+                $.publish("/data_info/loaded", g.root_node_id);
             }
         );
     };

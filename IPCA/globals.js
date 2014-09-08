@@ -54,6 +54,9 @@ var GLOBALS = (function($){
 			globals.centers_bounds = data.centers_bounds;
 			globals.bases_bounds = data.bases_bounds;
 			globals.scalar_names = data.scalar_names;
+			globals.root_node_id = data.root_node_id;
+			// start by selecting root node
+			globals.node_id = globals.root_node_id;
 		}
 	});	
 	

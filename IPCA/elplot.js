@@ -190,9 +190,9 @@ var ELPLOT = (function(d3, $, g){
 	};
 
 	// Get projected ellipses from the server
-	el.getContextEllipsesFromServer = function() {
+	el.getContextEllipsesFromServer = function(node_id) {
 
-		d3.json('/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
+		d3.json('/' + g.dataset + "/contextellipses?id=" + node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
 
 			// Flag for keeping track of whether this is the first selection
 			var first_selection = (g.foreground_ellipse_data.length == 0);

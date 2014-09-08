@@ -169,6 +169,8 @@ var ICICLE = (function(d3, $, g){
 					.on("click", rect_click)
 					.on("dblclick", rect_dblclick)
 					.on("mouseover", rect_hover);
+		    
+		    $.publish("/icicle/initialized");
 		});
 	};
 

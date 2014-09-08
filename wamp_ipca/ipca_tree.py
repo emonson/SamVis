@@ -352,22 +352,25 @@ class IPCATree(object):
                 # If this is not the root node
                 if 'parent_id' in selected_node:
                     # Project into parent space
+                    chose_root_node = False
                     parent_id = selected_node['parent_id']
                 else:
-                    parent_id = 0
+                    chose_root_node = True
+                    parent_id = self.tree_root['id']
                 
-                # NOTE: In principle, might not want to go down two scales if choosing root node...
                 self.SetBasisID(parent_id)
                 ellipse_params.append(self.calculate_node_ellipse(parent_id))
 
                 parent_node = self.nodes_by_id[parent_id]
-                # also get children
-                for node in parent_node['children']:
-                    ellipse_params.append(self.calculate_node_ellipse(node['id']))
-                    # and children of children
-                    if 'children' in node:
-                        for child_node in node['children']:
-                            ellipse_params.append(self.calculate_node_ellipse(child_node['id']))
+                # also get children, if present
+                if 'children' in parent_node:
+                    for node in parent_node['children']:
+                        ellipse_params.append(self.calculate_node_ellipse(node['id']))
+                        # and children of children
+                        # unless choosing root node...
+                        if 'children' in node and not chose_root_node:
+                            for child_node in node['children']:
+                                ellipse_params.append(self.calculate_node_ellipse(child_node['id']))
                 
                 for node in self.nodes_by_scale[bkgd_scale]:
                     # * * * NOTE * * * Not passing any background scales!!
@@ -487,6 +490,7 @@ class IPCATree(object):
         results['centers_bounds'] = (N.asscalar(c_bounds[:,0].min()),N.asscalar(c_bounds[:,1].max()))
         results['bases_bounds'] = (N.asscalar(b_bounds[:,0].min()),N.asscalar(b_bounds[:,1].max()))
         results['scalar_names'] = self.labels.keys()
+        results['root_node_id'] = self.tree_root['id']
 
         return results
 
