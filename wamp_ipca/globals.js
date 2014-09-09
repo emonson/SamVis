@@ -2,11 +2,11 @@ var GLOBALS = (function($){
 
 	var globals = { version: '0.0.1' };
 	
-	 globals.comm_method = 'wamp'; // 'http';
+	 // TODO: Need a way to read this from the data server or conf...
+	 globals.comm_method = 'wamp'; //'wamp'; // 'http';
 	 
 	 // Comm initialization
 	 if (globals.comm_method == 'http') {
-	 
 	 } else {
          
          // WAMP / Websockets initialization
@@ -30,6 +30,7 @@ var GLOBALS = (function($){
          globals.connection.onopen = function (new_session) {
             console.log("connected to " + globals.wsuri);
             globals.session = new_session;
+            // HACK: Probably relying on the fact that this connection won't be open until after main.js loaded...
             $.publish('/connection/open');
          };
 

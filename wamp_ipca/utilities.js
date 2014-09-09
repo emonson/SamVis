@@ -24,7 +24,7 @@ var UTILITIES = (function(d3, $, g){
     ut.get_data_info = function() {
         if (g.comm_method == 'http') {
             $.ajax({
-                url:'/' + globals.dataset + '/datainfo',
+                url:'/' + g.dataset + '/datainfo',
                 async:false,
                 dataType:'json',
                 success:useUpdatedDataInfo
@@ -84,7 +84,7 @@ var UTILITIES = (function(d3, $, g){
 	ut.getScalarsFromServer = function() {
         
         if (g.comm_method == 'http') {
-		    d3.json('/' + g.dataset + "/scalars?name=" + g.scalars_name + "&aggregation=" + g.scalars_aggregator, useUpdatedScalars(json));
+		    d3.json('/' + g.dataset + "/scalars?name=" + g.scalars_name + "&aggregation=" + g.scalars_aggregator, useUpdatedScalars);
 		} else {
 		    g.session.call('test.ipca.scalars', [], {dataset: g.dataset, 
 		                                               name: g.scalars_name, 

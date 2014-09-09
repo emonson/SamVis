@@ -176,6 +176,8 @@ var ICICLE = (function(d3, $, g){
                 .on("dblclick", rect_dblclick)
                 .on("mouseover", rect_enter)
                 .on("mouseout", rect_exit);
+		
+		$.publish("/icicle/initialized");
     };
 	
 	ic.init_icicle_view = function() {
