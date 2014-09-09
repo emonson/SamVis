@@ -1,49 +1,70 @@
 var GLOBALS = (function($){
 
 	var globals = { version: '0.0.1' };
-		
-     // WAMP / Websockets initialization
-     
-     globals.session = null;
+	
+	 globals.comm_method = 'wamp'; // 'http';
+	 
+	 // Comm initialization
+	 if (globals.comm_method == 'http') {
+	 
+	 } else {
+         
+         // WAMP / Websockets initialization
+         globals.session = null;
 
-     // the URL of the WAMP Router (e.g. Crossbar.io)
-     //
-     if (document.location.origin == "file://") {
-        globals.wsuri = "ws://localhost:9002";
-     } else {
-        globals.wsuri = "ws://" + document.location.hostname + ":9002";
-     }
+         // the URL of the WAMP Router (e.g. Crossbar.io)
+         //
+         if (document.location.origin == "file://") {
+            globals.wsuri = "ws://localhost:9002";
+         } else {
+            globals.wsuri = "ws://" + document.location.hostname + ":9002";
+         }
 
-     // connect to WAMP server
-     //
-     globals.connection = new autobahn.Connection({
-        url: globals.wsuri,
-        realm: 'realm1'
-     });
+         // connect to WAMP server
+         //
+         globals.connection = new autobahn.Connection({
+            url: globals.wsuri,
+            realm: 'realm1'
+         });
 
-     globals.connection.onopen = function (new_session) {
-        console.log("connected to " + globals.wsuri);
-        globals.session = new_session;
-        $.publish('/connection/open');
-     };
+         globals.connection.onopen = function (new_session) {
+            console.log("connected to " + globals.wsuri);
+            globals.session = new_session;
+            $.publish('/connection/open');
+         };
 
-    globals.connection.onclose = function (reason, details) {
-        console.log("connection gone", reason, details);
-        new_session = null;
+        globals.connection.onclose = function (reason, details) {
+            console.log("connection gone", reason, details);
+            new_session = null;
+        }
+
+        globals.connection.open();
     }
-
-    globals.connection.open();
-
-
-    // WAMP dataset names
-    // TODO: Update some dataset combo box upon return...
-    globals.get_dataset_names = function() {
-        globals.session.call("test.ipca.datasets").then(
-            function (res) {
-                globals.dataset_names = res;
-           }
-        );
-    };
+    
+    // Get dataset names
+    if (globals.comm_method == 'http') {
+        globals.get_dataset_names = function() {
+            // Grabbing possible data set names (not async)
+            $.ajax({
+                url:'/resource_index/datasets',
+                async:false,
+                dataType:'json',
+                success:function(data) {
+                    globals.dataset_names = data;
+                }
+            });	
+        };
+    } else {
+        // WAMP dataset names
+        // TODO: Update some dataset combo box upon return...
+        globals.get_dataset_names = function() {
+            globals.session.call("test.ipca.datasets").then(
+                function (res) {
+                    globals.dataset_names = res;
+               }
+            );
+        };
+    }
     
     // NOTE: only allowing dataset passed in query string
     // TODO: Handle better no dataset passed...

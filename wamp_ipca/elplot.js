@@ -194,38 +194,41 @@ var ELPLOT = (function(d3, $, g){
 		updateAxes();
 	};
 
+    function useUpdatedContextEllipses(json) {	
+
+        // Flag for keeping track of whether this is the first selection
+        var first_selection = (g.foreground_ellipse_data.length == 0);
+    
+        // Update scale domains
+        // data = [[X, Y, RX, RY, Phi, i], ...]
+        g.foreground_ellipse_data = json.foreground;
+        g.background_ellipse_data = json.background;
+        // bounds = [[Xmin, Xmax], [Ymin, Ymax]]
+        g.ellipse_bounds = json.bounds;
+    
+        xScale.domain(g.ellipse_bounds[0]);
+        yScale.domain(g.ellipse_bounds[1]);
+        xrScale.domain([0, g.ellipse_bounds[0][1]-g.ellipse_bounds[0][0]]);
+        yrScale.domain([0, g.ellipse_bounds[1][1]-g.ellipse_bounds[1][0]]);
+
+        // Updating ellipses
+        if (first_selection) {
+            $.publish("/ellipses/updated", 150);
+        }
+        else {
+            $.publish("/ellipses/updated", 750);
+        }
+    }
+
 	// Get projected ellipses from the server
 	el.getContextEllipsesFromServer = function(node_id) {
-
-		// d3.json('/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, function(json) {
-		
-		g.session.call('test.ipca.contextellipses', [], {dataset: g.dataset, 
-		                                               id: node_id, 
-		                                               bkgdscale: g.bkgd_scale}).then( function(json) {	
-
-			// Flag for keeping track of whether this is the first selection
-			var first_selection = (g.foreground_ellipse_data.length == 0);
-		
-			// Update scale domains
-			// data = [[X, Y, RX, RY, Phi, i], ...]
-			g.foreground_ellipse_data = json.foreground;
-			g.background_ellipse_data = json.background;
-			// bounds = [[Xmin, Xmax], [Ymin, Ymax]]
-			g.ellipse_bounds = json.bounds;
-		
-			xScale.domain(g.ellipse_bounds[0]);
-			yScale.domain(g.ellipse_bounds[1]);
-			xrScale.domain([0, g.ellipse_bounds[0][1]-g.ellipse_bounds[0][0]]);
-			yrScale.domain([0, g.ellipse_bounds[1][1]-g.ellipse_bounds[1][0]]);
-
-			// Updating ellipses
-			if (first_selection) {
-				$.publish("/ellipses/updated", 150);
-			}
-			else {
-				$.publish("/ellipses/updated", 750);
-			}
-		});
+        if (g.comm_method == 'http') {
+            d3.json('/' + g.dataset + "/contextellipses?id=" + g.node_id + "&bkgdscale=" + g.bkgd_scale, useUpdatedContextEllipses );
+        } else {
+            g.session.call('test.ipca.contextellipses', [], {dataset: g.dataset, 
+                                                           id: node_id, 
+                                                           bkgdscale: g.bkgd_scale}).then( useUpdatedContextEllipses );
+        }
 	};
 
 	el.highlightSelectedEllipse = function(sel_id) {

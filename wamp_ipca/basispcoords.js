@@ -78,29 +78,31 @@ var NODE_BASIS_VIS = (function(d3, $, g){
 	var bases_color = d3.scale.linear()
 				.domain([-1, 0, 1])
 				.range(["#4575b4", "#ffffbf", "#d73027"]);
+    
+    // Basis data callback
+    function useUpdatedBasisData(json) {			
+        g.center_data = json.center;
+        g.bases_data = json.bases;
 
+        g.center_range = json.center_range;
+        g.bases_range = json.bases_range;
+        
+        // Adjust number of basis images if necessary
+        var n = g.bases_data.length;
+        if (n !== n_bases) {
+            set_number_of_images(n);
+            n_bases = n;
+        }
+        updateEllipseBasisImages();
+    }
+    
 	// Get basis images from server
 	nbv.getBasisDataFromServer = function(id) {
-
-		// d3.json('/' + g.dataset + "/ellipsebasis?id=" + id, function(json) {
-		
-		g.session.call('test.ipca.ellipsebasis', [], {dataset: g.dataset, id: id}).then( function(json) {
-			
-			g.center_data = json.center;
-			g.bases_data = json.bases;
-
-			g.center_range = json.center_range;
-			g.bases_range = json.bases_range;
-			
-			// Adjust number of basis images if necessary
-			var n = g.bases_data.length;
-			if (n !== n_bases) {
-				set_number_of_images(n);
-				n_bases = n;
-			}
-
-			updateEllipseBasisImages();
-		});
+        if (g.comm_method == 'http') {
+            d3.json('/' + g.dataset + "/ellipsebasis?id=" + id, useUpdatedBasisData);
+        } else {
+            g.session.call('test.ipca.ellipsebasis', [], {dataset: g.dataset, id: id}).then( useUpdatedBasisData );
+        }
 	};
 
 	var updateEllipseBasisImages = function() {

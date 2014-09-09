@@ -141,48 +141,49 @@ var ICICLE = (function(d3, $, g){
 		d3.select("#r_" + sel_id)
 			.classed('r_selected', true);			
 	};
-
-	ic.init_icicle_view = function() {
+    
+    function useUpdatedTree(json) {
+        // TODO: Don't need to send 's' as an attribute, partition function calculates
+        //   attribute 'depth'...
+        ice_data = json;
+        
+        // Before building tree, compile convenience data structures
+        ice_partition = do_partition(ice_data);
+        g.scales_by_id = new Array(ice_partition.length);
+        g.nodes_by_id = new Array(ice_partition.length);
+        for (var ii = 0; ii < ice_partition.length; ii++) {
+            var node = ice_partition[ii];
+            var scale = node.s
+            g.scales_by_id[node.i] = scale;
+            g.nodes_by_id[node.i] = node;
+            if (!g.ids_by_scale.hasOwnProperty(scale)) {
+                g.ids_by_scale[scale] = [];
+            }
+            g.ids_by_scale[scale].push(node.i);
+        }
+    
+        // Build tree
+        var rect = vis.selectAll("rect")
+                .data(ice_partition)
+            .enter().append("svg:rect")
+                .attr("id", function(d) {return "r_" + d.i;})
+                .attr("x", function(d) { return x_ice(d.x); })
+                .attr("y", function(d) { return y_ice(d.y); })
+                .attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
+                .attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); })
+                .attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); })
+                .on("click", rect_click)
+                .on("dblclick", rect_dblclick)
+                .on("mouseover", rect_enter)
+                .on("mouseout", rect_exit);
+    };
 	
-		// d3.json('/' + g.dataset + "/index", function(json) {
-		
-		g.session.call('test.ipca.tree', [], {dataset: g.dataset}).then( function(json) {
-			
-
-			// TODO: Don't need to send 's' as an attribute, partition function calculates
-			//   attribute 'depth'...
-			ice_data = json;
-			
-			// Before building tree, compile convenience data structures
-			ice_partition = do_partition(ice_data);
-			g.scales_by_id = new Array(ice_partition.length);
-			g.nodes_by_id = new Array(ice_partition.length);
-			for (var ii = 0; ii < ice_partition.length; ii++) {
-				var node = ice_partition[ii];
-				var scale = node.s
-				g.scales_by_id[node.i] = scale;
-				g.nodes_by_id[node.i] = node;
-				if (!g.ids_by_scale.hasOwnProperty(scale)) {
-					g.ids_by_scale[scale] = [];
-				}
-				g.ids_by_scale[scale].push(node.i);
-			}
-		
-			// Build tree
-			var rect = vis.selectAll("rect")
-					.data(ice_partition)
-				.enter().append("svg:rect")
-					.attr("id", function(d) {return "r_" + d.i;})
-					.attr("x", function(d) { return x_ice(d.x); })
-					.attr("y", function(d) { return y_ice(d.y); })
-					.attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
-					.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); })
-					.attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); })
-					.on("click", rect_click)
-					.on("dblclick", rect_dblclick)
-					.on("mouseover", rect_enter)
-					.on("mouseout", rect_exit);
-		});
+	ic.init_icicle_view = function() {
+	    if (g.comm_method == 'http') {
+		    d3.json('/' + g.dataset + "/index", useUpdatedTree );
+		} else {
+		    g.session.call('test.ipca.tree', [], {dataset: g.dataset}).then( useUpdatedTree );
+		}
 	};
 
 	return ic;

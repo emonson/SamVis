@@ -7,13 +7,13 @@ window.onload = function() {
 	// http://stackoverflow.com/questions/3446069/populate-dropdown-select-with-array-using-jquery
 	var update_scalar_names_combobox = function() {
         $.each(GLOBALS.scalar_names, function(val, text) {
-                        $('#scalars_name').append( $('<option></option>').val(text).html(text) )
-                    });
+            $('#scalars_name').append( $('<option></option>').val(text).html(text) )
+        });
 	};
 	
 	$.each(GLOBALS.scalar_aggregators, function(val, text) {
-					$('#scalars_aggregator').append( $('<option></option>').val(text).html(text) )
-				});
+        $('#scalars_aggregator').append( $('<option></option>').val(text).html(text) )
+    });
 
 
 	// Set combo boxes to default values before setting callback so can change defaults
