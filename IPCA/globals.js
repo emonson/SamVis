@@ -60,8 +60,8 @@ var GLOBALS = (function($){
 		}
 	});	
 	
-	// Arrays to hold all nodes scalar data
-	globals.scalardata = [];
+	// Obj/dict to hold all nodes scalar data
+	globals.scalardata = {};
 	globals.scalardomain = [0,1];
 	// NOTE: not testing for queryKey in scalar_names array...
 	globals.scalars_name = globals.uri.queryKey.scalars || (globals.scalar_names[0] || "");

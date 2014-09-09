@@ -503,9 +503,10 @@ class IPCATree(object):
         # bases bounds
         b_bounds = N.zeros((n_nodes,2))
         
-        for ii in range(n_nodes):
-            center = self.nodes_by_id[ii]['center']
-            bases = self.nodes_by_id[ii]['phi']
+        # NOTE: nodes_by_id is a dict
+        for ii, k in enumerate(self.nodes_by_id):
+            center = self.nodes_by_id[k]['center']
+            bases = self.nodes_by_id[k]['phi']
             c_bounds[ii,:] = (center.min(), center.max())
             b_bounds[ii,:] = (bases.min(), bases.max())
 
@@ -523,54 +524,59 @@ class IPCATree(object):
         """Take in scalar "name" and aggregation method
         and get out JSON of scalars for all nodes by id, calculated 'on the fly'.
         aggregation = 'mean', 'mode', 'entropy', 'hist'...
-        NOTE: only works with non-negative integer labels!!"""
+        NOTE: only works with non-negative integer labels!!
+        Output is a dict/obj of scalar labels by id and range array"""
         
         if name:
             if name in self.labels:
-                labels_array = self.labels[name]
+                # Original data labels is a numpy array
+                data_labels_arr = self.labels[name]
                 
                 # Average of only requested scalar
                 if aggregation == 'mean':
-                    labels = N.zeros((len(self.nodes_by_id),))
+                    node_labels_dict = {}
                     for id,node in self.nodes_by_id.iteritems():
                         indices = node['indices']
-                        labels[id] = N.mean(labels_array[indices])
-                    output = self.pretty_sci_floats(labels.tolist())
-                    max = N.asscalar(N.max(labels))
-                    min = N.asscalar(N.min(labels))
+                        node_labels_dict[id] = N.mean(data_labels_arr[indices])
+                    output = self.pretty_sci_floats(node_labels_dict)
+                    output_arr = N.array(node_labels_dict.values())
+                    max = N.asscalar(N.max(output_arr))
+                    min = N.asscalar(N.min(output_arr))
                     domain = self.pretty_sci_floats([min, max])
                         
                 # Winner is most highly represented label (integer in and out)
                 elif aggregation == 'mode':
-                    labels = N.zeros((len(self.nodes_by_id),), dtype='int')
+                    node_labels_dict = {}
                     for id,node in self.nodes_by_id.iteritems():
                         indices = node['indices']
                         # NOTE: Sometimes a single point in a node ends up as a scalar index
                         # rather than an array of indices...
                         if hasattr(indices, '__len__'):
-                            counts = N.bincount(labels_array[indices])
+                            counts = N.bincount(data_labels_arr[indices])
                         else:
-                            counts = N.bincount([labels_array[indices]])
-                        labels[id] = N.argmax(counts)
-                    output = labels.tolist()
-                    max = N.asscalar(N.max(labels))
-                    min = N.asscalar(N.min(labels))
-                    domain = N.unique(labels_array).tolist()
+                            counts = N.bincount([data_labels_arr[indices]])
+                        node_labels_dict[id] = N.argmax(counts)
+                    output = node_labels_dict
+                    output_arr = N.array(node_labels_dict.values(), dtype='int')
+                    max = N.asscalar(N.max(output_arr))
+                    min = N.asscalar(N.min(output_arr))
+                    domain = N.unique(output_arr).tolist()
                 
                 # "Standard" entropy
                 elif aggregation == 'entropy':
-                    labels = N.zeros((len(self.nodes_by_id),))
+                    node_labels_dict = {}
                     for id,node in self.nodes_by_id.iteritems():
                         indices = node['indices']
-                        labels[id] = self.entropy(labels_array[indices])
-                    output = self.pretty_sci_floats(labels.tolist())
-                    max = N.asscalar(N.max(labels))
-                    min = N.asscalar(N.min(labels))
+                        node_labels_dict[id] = self.entropy(data_labels_arr[indices])
+                    output = self.pretty_sci_floats(node_labels_dict)
+                    output_arr = N.array(node_labels_dict.values())
+                    max = N.asscalar(N.max(output_arr))
+                    min = N.asscalar(N.min(output_arr))
                     domain = self.pretty_sci_floats([min, max])
                 
                 # 'hist'
                 elif aggregation == 'hist':
-                    unique_labels = N.unique(labels_array)
+                    unique_labels = N.unique(data_labels_arr)
                     # want to be able to look up the indices of each of the labels
                     # for cases in which they're not sequential and individual nodes where
                     # not all labels are present
@@ -578,16 +584,18 @@ class IPCATree(object):
                     for ii,ul in enumerate(unique_labels):
                         reverse_lookup[ul] = ii
                     n_bins = len(unique_labels)
-                    labels = N.zeros((len(self.nodes_by_id),n_bins),dtype='int')
+                    node_labels_dict = {}
                     for id,node in self.nodes_by_id.iteritems():
                         indices = node['indices']
-                        bincount = N.bincount(labels_array[indices])
+                        bincount = N.bincount(data_labels_arr[indices])
                         node_unique_labels = N.nonzero(bincount)
                         label_indices = reverse_lookup[node_unique_labels]
-                        labels[id,label_indices] = bincount[node_unique_labels]
-                    output = labels.tolist()
+                        tmp_labels_arr = N.zeros((1,n_bins),dtype='int')
+                        tmp_labels_arr[label_indices] = bincount[node_unique_labels]
+                        node_labels_dict[id] = tmp_labels_arr.tolist()
+                    output = node_labels_dict
                     # For a histogram lower bound assumed to be zero, so only computing max
-                    domain = {'domain':N.unique(labels_array).tolist(), 'max':N.max(labels, axis=0).tolist()}
+                    domain = {'domain':unique_labels.tolist(), 'max':N.max(labels, axis=0).tolist()}
                                 
                 # Error on unsupported aggregation method
                 else:

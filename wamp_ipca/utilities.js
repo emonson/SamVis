@@ -34,6 +34,7 @@ var UTILITIES = (function(d3, $, g){
 		                                               aggregation: g.scalars_aggregator}).then( function(json) {
 			
 			// TODO: This doesn't work for histogram yet...
+			// This is scalar data on the tree, coming in as a dict/obj
 			g.scalardata = json.labels;
 			g.scalardomain = json.domain;
 			
