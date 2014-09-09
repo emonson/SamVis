@@ -52,21 +52,21 @@ class TreeServer:
 	@cherrypy.tools.gzip()
 	def index(self):
 		
-		return self.tree.GetLiteTreeJSON()
+		return json.dumps(self.tree.GetLiteTree())
 		
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def datainfo(self):
 		
 		# {datatype:('image', 'function',...), shape:[n_rows, n_cols]}
-		return self.tree.GetDataInfo_JSON()
+		return json.dumps(self.tree.GetDataInfo())
 
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
 	def scalars(self, name=None, aggregation='mean'):
 		
 		if name:
-			return self.tree.GetAggregatedScalarsByNameJSON(name, aggregation)
+			return json.dumps(self.tree.GetAggregatedScalarsByName(name, aggregation))
 		
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
@@ -84,7 +84,7 @@ class TreeServer:
 					print "id", node_id, "basis_id", basis_id
 		
 			# seems you can also just return the dictionary
-			return self.tree.GetScaleEllipses_NoProjectionJSON(node_id)
+			return json.dumps(self.tree.GetScaleEllipses_NoProjection(node_id))
 		
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
@@ -97,7 +97,7 @@ class TreeServer:
 				self.tree.SetBasisID_ReprojectAll(basis_id)
 				print "basis_id", basis_id
 	
-		return self.tree.GetAllEllipses_NoProjectionJSON()
+		return json.dumps(self.tree.GetAllEllipses_NoProjection())
 		
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
@@ -107,7 +107,7 @@ class TreeServer:
 			node_id = int(id)
 	
 			# seems you can also just return the dictionary
-			return self.tree.GetNodeCenterAndBasesJSON(node_id)
+			return json.dumps(self.tree.GetNodeCenterAndBases(node_id))
 		
 	@cherrypy.expose
 	@cherrypy.tools.gzip()
@@ -121,7 +121,7 @@ class TreeServer:
 			node_id = int(id)	
 			bkgd_scale = int(bkgdscale)
 	
-			return self.tree.GetContextEllipsesJSON(node_id, bkgd_scale)
+			return json.dumps(self.tree.GetContextEllipses(node_id, bkgd_scale))
 		
 
 # =====================

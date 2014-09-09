@@ -176,7 +176,6 @@ class IPCATree(object):
         sigma = N.matrix(N.diag(node['sigma']))
         center = node['center']
         
-        print 'A', A.shape, 'sigma', sigma.shape
         A = A * N.sqrt(sigma)
         C1 = self.V.T * A
         C = C1 * C1.T
@@ -332,11 +331,6 @@ class IPCATree(object):
             return return_obj
         
     # --------------------
-    def GetScaleEllipsesJSON(self, id = None):
-    
-        return json.dumps(self.GetScaleEllipses(id))
-        
-    # --------------------
     def GetContextEllipses(self, id = None, bkgd_scale = None):
         """Take in node_id and scale for background ellipses for vis context.
            Project into parent scale basis, and return ellipses for parent, self, sibling and
@@ -381,11 +375,6 @@ class IPCATree(object):
                 return_obj = {'foreground':ellipse_params, 'background':bkgd_ellipse_params, 'bounds':bounds}
 
                 return return_obj
-        
-    # --------------------
-    def GetContextEllipsesJSON(self, id = None, bkgd_scale = None):
-    
-        return json.dumps(self.GetContextEllipses(id, bkgd_scale))
         
     # --------------------
     def GetScaleEllipses_NoProjection(self, id = None):
@@ -472,27 +461,9 @@ class IPCATree(object):
                           'bases':bases, 'bases_range':(N.min(bases), N.max(bases))}
 
             return return_obj
-        
-    # --------------------
-    def GetScaleEllipses_NoProjectionJSON(self, id = None):
-        """Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
-    
-        return json.dumps(self.GetScaleEllipses_NoProjection(id))
-        
-    # --------------------
-    def GetAllEllipses_NoProjectionJSON(self):
-        """Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
-    
-        return json.dumps(self.GetAllEllipses_NoProjection())
-        
-    # --------------------
-    def GetNodeCenterAndBasesJSON(self, id = None):
-        """Take in _node ID_ and get out JSON of all ellipses for that nodes's scale in tree"""
 
-        return json.dumps(self.pretty_sci_floats(self.GetNodeCenterAndBases(id)))
-        
     # --------------------
-    def GetDataInfo_JSON(self):
+    def GetDataInfo(self):
         """Get the original data information. This is a slightly enhanced version of
         the data_info.json file stored on disk with the data."""
         
@@ -517,10 +488,10 @@ class IPCATree(object):
         results['scalar_names'] = self.labels.keys()
         results['root_node_id'] = self.tree_root['id']
 
-        return json.dumps(results)
+        return results
 
     # --------------------
-    def GetAggregatedScalarsByNameJSON(self, name = None, aggregation = 'mean'):
+    def GetAggregatedScalarsByName(self, name = None, aggregation = 'mean'):
         """Take in scalar "name" and aggregation method
         and get out JSON of scalars for all nodes by id, calculated 'on the fly'.
         aggregation = 'mean', 'mode', 'entropy', 'hist'...
@@ -601,11 +572,11 @@ class IPCATree(object):
                 else:
                     return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
 
-                return json.dumps({'labels':output, 'domain':domain})
+                return {'labels':output, 'domain':domain}
 
 
     # --------------------
-    def GetLiteTreeJSON(self, pretty = False):
+    def GetLiteTree(self):
         
                 # Lite node key names are minimized to reduce transferred JSON size
                 # 'i' = 'id'
@@ -615,10 +586,7 @@ class IPCATree(object):
         if not self.lite_tree_root:
             self.RegenerateLiteTree()
         
-        if pretty:
-            return json.dumps(self.lite_tree_root, indent=2)
-        else:
-            return json.dumps(self.lite_tree_root)
+        return self.lite_tree_root
     
     # --------------------
     def WriteLiteTreeJSON(self, filename, pretty = False):
