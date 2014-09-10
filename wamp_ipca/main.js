@@ -82,10 +82,4 @@ window.onload = function() {
 
 	$.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
 	
-	// Since no slow connection has to be made with http version, waiting until main.js loaded
-	// to trigger loading of the rest of the visualization.
-	if (GLOBALS.comm_method == 'http') {
-	    $.publish('/connection/open');
-	}
-	
 };

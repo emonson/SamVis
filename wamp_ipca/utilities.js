@@ -92,6 +92,28 @@ var UTILITIES = (function(d3, $, g){
 		}
 	};
 
+    function useDatasetNames(res) {
+        globals.dataset_names = res;
+        $.publish('/dataset_names/acquired');
+    }
+    
+    // Get dataset names
+    ut.get_dataset_names = function() {
+        if (g.comm_method == 'http') {
+            // Grabbing possible data set names (not async)
+            $.ajax({
+                url:'/resource_index/datasets',
+                async:false,
+                dataType:'json',
+                success: useDatasetNames
+            });	
+        } else {
+            // WAMP dataset names
+            // TODO: Update some dataset combo box upon return...
+            globals.session.call("test.ipca.datasets").then(useDatasetNames);
+        }
+    };
+    
 	return ut;
 
 }(d3, jQuery, GLOBALS));

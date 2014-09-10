@@ -2,71 +2,54 @@ var GLOBALS = (function($){
 
 	var globals = { version: '0.0.1' };
 	
-	 // TODO: Need a way to read this from the data server or conf...
-	 globals.comm_method = 'wamp'; //'wamp'; // 'http';
-	 
-	 // Comm initialization
-	 if (globals.comm_method == 'http') {
-	 } else {
-         
-         // WAMP / Websockets initialization
-         globals.session = null;
-
-         // the URL of the WAMP Router (e.g. Crossbar.io)
-         //
-         if (document.location.origin == "file://") {
-            globals.wsuri = "ws://localhost:9002";
-         } else {
-            globals.wsuri = "ws://" + document.location.hostname + ":9002";
-         }
-
-         // connect to WAMP server
-         //
-         globals.connection = new autobahn.Connection({
-            url: globals.wsuri,
-            realm: 'realm1'
-         });
-
-         globals.connection.onopen = function (new_session) {
-            console.log("connected to " + globals.wsuri);
-            globals.session = new_session;
-            // HACK: Probably relying on the fact that this connection won't be open until after main.js loaded...
-            $.publish('/connection/open');
-         };
-
-        globals.connection.onclose = function (reason, details) {
-            console.log("connection gone", reason, details);
-            new_session = null;
+	 // Load server config to check ports & methods
+    $.ajax({
+        url: "server_conf.json",
+		async:false,
+        dataType: "json",
+        success: function(response) {
+            globals.server_conf = response;
         }
+    });
+	 
+    // Try to default to WS
+	 
+     // WAMP / Websockets initialization
+     globals.session = null;
 
-        globals.connection.open();
+     // the URL of the WAMP Router (e.g. Crossbar.io)
+     //
+     globals.wsuri = "ws://" + globals.server_conf.server_name + ":" + globals.server_conf.ipca_port;
+
+     // connect to WAMP server
+     // Would like to set retries to zero to switch to http if ws isn't working...
+     globals.connection = new autobahn.Connection({
+        url: globals.wsuri,
+        max_retries: 1,
+        realm: 'realm1'
+     });
+
+     globals.connection.onopen = function (new_session) {
+        console.log("connected to " + globals.wsuri);
+        globals.session = new_session;
+        globals.comm_method = 'wamp';
+        // HACK: Probably relying on the fact that this connection won't be open until after main.js loaded...
+        $.publish('/connection/open');
+     };
+
+    globals.connection.onclose = function (reason, details) {
+        console.log("connection gone", reason, details);
+        if (reason == 'unreachable') {
+            // HACK: Fall back to 'http' if WS not running
+            globals.connection.close();
+            globals.comm_method = 'http';
+	        $.publish('/connection/open');
+        }
+        new_session = null;
     }
-    
-    // Get dataset names
-    if (globals.comm_method == 'http') {
-        globals.get_dataset_names = function() {
-            // Grabbing possible data set names (not async)
-            $.ajax({
-                url:'/resource_index/datasets',
-                async:false,
-                dataType:'json',
-                success:function(data) {
-                    globals.dataset_names = data;
-                }
-            });	
-        };
-    } else {
-        // WAMP dataset names
-        // TODO: Update some dataset combo box upon return...
-        globals.get_dataset_names = function() {
-            globals.session.call("test.ipca.datasets").then(
-                function (res) {
-                    globals.dataset_names = res;
-               }
-            );
-        };
-    }
-    
+
+    globals.connection.open();
+
     // NOTE: only allowing dataset passed in query string
     // TODO: Handle better no dataset passed...
     globals.uri = parseUri(location.toString());
