@@ -9,9 +9,12 @@ var ICICLE = (function(d3, $, g){
 	// Icicle view variables
 
 	var w_ice = 420;
-	var h_ice = 300;
+	var h_ice = 420;
 	var x_ice = d3.scale.linear().range([0, w_ice]);
 	var y_ice = d3.scale.linear().range([0, h_ice]);
+    var r_sun = Math.min(w_ice, h_ice) / 2;
+    var x_sun = d3.scale.linear().range([0, 2 * Math.PI]);
+    var y_sun = d3.scale.sqrt().range([0, r_sun]);
 	var color = d3.scale.category20c();
 	var brush_on = false;
 	var ice_partition = null;
@@ -33,10 +36,30 @@ var ICICLE = (function(d3, $, g){
 			.children(function(d){ return d.c ? d.c : null;})
 			.value(function(d){return d.v ? 1.0/d.v : null;});
 
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x_sun(d.x))); })
+        .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x_sun(d.x + d.dx))); })
+        .innerRadius(function(d) { return Math.max(0, y_sun(d.y)); })
+        .outerRadius(function(d) { return Math.max(0, y_sun(d.y + d.dy)); });
+	
+    // Interpolate the scales!
+    function arcTween(d) {
+      var xd = d3.interpolate(x_sun.domain(), [d.x, d.x + d.dx]),
+          yd = d3.interpolate(y_sun.domain(), [d.y, 1]),
+          yr = d3.interpolate(y_sun.range(), [d.y ? 20 : 0, r_sun]);
+      return function(d, i) {
+        return i
+            ? function(t) { return arc(d); }
+            : function(t) { x_sun.domain(xd(t)); y_sun.domain(yd(t)).range(yr(t)); return arc(d); };
+      };
+    }
+    
 	// Icicle view SVG element
 	var vis = d3.select("#tree").append("svg:svg")
 			.attr("width", w_ice)
-			.attr("height", h_ice);
+			.attr("height", h_ice)
+		.append("g")
+            .attr("transform", "translate(" + w_ice / 2 + "," + h_ice / 2 + ")");
 			// TODO: Need some sort of mostly transparent rectangle behind tree
 			//   elements so that mousing out of an individual icicle rectangle doesn't
 			//   cause a "mouseout"
@@ -47,19 +70,13 @@ var ICICLE = (function(d3, $, g){
 
 	ic.zoomIcicleView = function(sel_id) {
 		
-		var node = g.nodes_by_id[sel_id];
+		var d = g.nodes_by_id[sel_id];
 		
-        x_ice.domain([node.x, node.x + node.dx]);
-        y_ice.domain([node.y, 1]).range([node.y ? 20 : 0, h_ice]);
-        
 		// Change icicle zoom
-		vis.selectAll("rect")
+		vis.selectAll("path")
 			.transition()
-				.duration(750)
-				.attr("x", function(d) { return x_ice(d.x); })
-				.attr("y", function(d) { return y_ice(d.y); })
-				.attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
-				.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); });
+            .duration(750)
+            .attrTween("d", arcTween(d));
 	};
 
 	var rescaleIcicleRectangles = function() {
@@ -67,14 +84,11 @@ var ICICLE = (function(d3, $, g){
 		ice_partition = do_partition(ice_data);
 		
 		// Change icicle zoom
-		vis.selectAll("rect")
+		vis.selectAll("path")
 				.data(ice_partition, function(d){return d.i;})
 			.transition()
 				.duration(750)
-					.attr("x", function(d) { return x_ice(d.x); })
-					.attr("y", function(d) { return y_ice(d.y); })
-					.attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
-					.attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); });
+				.attr("d", arc);
 	};
 	
 	var do_partition = function(data) {
@@ -107,12 +121,8 @@ var ICICLE = (function(d3, $, g){
 
 	var rect_dblclick = function(d) {
 	
-		// Reset scales to original domain and y range
-		x_ice.domain([0, 1]);
-		y_ice.domain([0, 1]).range([0, h_ice]);
-	    
 	    // Pass root node to zoom
-		ic.zoomIcicleView(ice_data.i);
+		ic.zoomIcicleView(g.root_node_id);
 	};
 
 	// Set up a hover timer to rate-limit sending of requests for detailed data views
@@ -127,7 +137,7 @@ var ICICLE = (function(d3, $, g){
 	};
 
 	ic.updateScalarData = function() {
-		vis.selectAll("rect")
+		vis.selectAll("path")
 				.attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); });
 	};
 	
@@ -164,20 +174,17 @@ var ICICLE = (function(d3, $, g){
         }
     
         // Build tree
-        var rect = vis.selectAll("rect")
+        var rect = vis.selectAll("path")
                 .data(ice_partition)
-            .enter().append("svg:rect")
+            .enter().append("path")
                 .attr("id", function(d) {return "r_" + d.i;})
-                .attr("x", function(d) { return x_ice(d.x); })
-                .attr("y", function(d) { return y_ice(d.y); })
-                .attr("width", function(d) { return x_ice(d.x + d.dx) - x_ice(d.x); })
-                .attr("height", function(d) { return y_ice(d.y + d.dy) - y_ice(d.y); })
+                .attr("d", arc)
                 .attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); })
                 .on("click", rect_click)
                 .on("dblclick", rect_dblclick)
                 .on("mouseover", rect_enter)
                 .on("mouseout", rect_exit);
-		
+                
 		$.publish("/icicle/initialized");
     };
 	
