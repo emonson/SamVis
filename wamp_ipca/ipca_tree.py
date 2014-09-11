@@ -173,7 +173,12 @@ class IPCATree(object):
         
         # Compute projection of this node's covariance matrix
         A = node['phi'].T
-        sigma = N.matrix(N.diag(node['sigma']))
+        node_sigma = node['sigma']
+        if isinstance(node_sigma, N.ndarray):
+            sigma = N.matrix(N.diag(node_sigma))
+        else:
+            # counting on it being a number or list...
+            sigma = N.matrix(N.diag(N.array([node_sigma])))
         center = node['center']
         
         A = A * N.sqrt(sigma)
@@ -193,7 +198,12 @@ class IPCATree(object):
         # N.squeeze(N.asarray(N.sum(N.square(a),1)))
         
         # Calculate angles
-        phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
+        # Sometimes S only coming out with one singular value, so U is 1x1...
+        if len(S) > 1:
+            phi_deg = 360 * ( N.arctan(-U[0,1]/U[0,0] )/(2*N.pi))
+        else:
+            # NOTE: not sure this is the right default
+            phi_deg = 360 * ( N.arctan(-U[0,0]/U[0,0] )/(2*N.pi))
         # t2 = 360 * ( N.arctan(U[1,0]/U[1,1] )/(2*N.pi))
         
         # How many sigma ellipses cover
@@ -287,14 +297,14 @@ class IPCATree(object):
     # --------------------
     def SetBasisID(self, id):
     
-        if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+        if (id is not None) and self.tree_data_loaded and (id in self.nodes_by_id):
             
             self.V = self.nodes_by_id[id]['phi'][:2,:].T
 
     # --------------------
     def SetBasisID_ReprojectAll(self, id):
     
-        if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+        if (id is not None) and self.tree_data_loaded and (id in self.nodes_by_id):
             
             if id != self.basis_id:
                 self.basis_id = id
@@ -314,7 +324,7 @@ class IPCATree(object):
     def GetScaleEllipses(self, id = None):
         """Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
     
-        if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+        if (id is not None) and self.tree_data_loaded and (id in self.nodes_by_id):
             
             scale = self.nodes_by_id[id]['scale']
             
@@ -331,17 +341,12 @@ class IPCATree(object):
             return return_obj
         
     # --------------------
-    def GetScaleEllipsesJSON(self, id = None):
-    
-        return json.dumps(self.GetScaleEllipses(id))
-        
-    # --------------------
     def GetContextEllipses(self, id = None, bkgd_scale = None):
         """Take in node_id and scale for background ellipses for vis context.
            Project into parent scale basis, and return ellipses for parent, self, sibling and
            self and sibling's children, as well as background scale ellipses."""
 
-        if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+        if (id is not None) and self.tree_data_loaded and (id in self.nodes_by_id):
             if (bkgd_scale is not None) and (bkgd_scale < len(self.nodes_by_scale)):
             
                 ellipse_params = []
@@ -385,7 +390,7 @@ class IPCATree(object):
     def GetScaleEllipses_NoProjection(self, id = None):
         """Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
     
-        if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+        if (id is not None) and self.tree_data_loaded and (id in self.nodes_by_id):
             
             scale = self.nodes_by_id[id]['scale']
             
@@ -458,7 +463,7 @@ class IPCATree(object):
     def GetNodeCenterAndBases(self, id = None):
         """Take in _node ID_ and get out dict of all ellipses for that nodes's scale in tree"""
     
-        if (id is not None) and self.tree_data_loaded and id >= 0 and id < len(self.nodes_by_id):
+        if (id is not None) and self.tree_data_loaded and (id in self.nodes_by_id):
             
             center = self.nodes_by_id[id]['center'].tolist()
             bases = self.nodes_by_id[id]['phi'].tolist()

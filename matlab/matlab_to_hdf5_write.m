@@ -33,6 +33,8 @@ end
 
 %% Labels
 
+% TODO: This needs to be generalized!!
+
 fprintf('Writing original data labels\n');
 
 for ii = 1:size(imgOpts.Labels, 2)
@@ -171,7 +173,7 @@ end
 
 % Root node -- better be just one!
 gid_fulltree = H5G.open(fid, '/full_tree');
-root_id = (find(GMRA.cp == 0) - 1);
+root_id = (find(GMRA.cp == 0) - 1);      % zero-based!
 child_node_name = [nodes_root int2str(int64(root_id))];
 gid_child = H5G.open(fid, child_node_name);
 % Create the hard link
