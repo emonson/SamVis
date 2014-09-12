@@ -141,9 +141,6 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--debug", action = "store_true",
                        help = "Enable debug output.")
 
-    parser.add_argument("--web", type = int, default = 8080,
-                       help = 'Web port to use for embedded Web server. Use 0 to disable.')
-
     args = parser.parse_args()
 
     # Storing server name and port in a json file for easy config
@@ -151,7 +148,7 @@ if __name__ == '__main__':
     server_opts = json.loads(open(server_filename).read())
 
     # add the resource index, which will list links to the data sets
-    # base_url = 'http://' + server_opts['server_name'] + ':' + str(server_opts['ipca_port']) + '/' + vis_page
+    # base_url = 'http://' + server_opts['server_name'] + ':' + str(server_opts['ipca_http_port']) + '/' + vis_page
     # root.resource_index = ResourceIndex(server_url=base_url, data_names=data_dirnames)        
         
     if args.debug:
@@ -166,18 +163,17 @@ if __name__ == '__main__':
 
     ## create embedded web server for static files
     ##
-    if args.web:
-        from twisted.web.server import Site
-        from twisted.web.static import File
-        root = File(".")
-        root.putChild("libs", File("../libs"))
-        reactor.listenTCP(args.web, Site(root))
+    from twisted.web.server import Site
+    from twisted.web.static import File
+    root = File(".")
+    root.putChild("libs", File("../libs"))
+    reactor.listenTCP(server_opts['ipca_http_port'], Site(root))
 
 
     ## run WAMP application component
     ##
     from autobahn.twisted.wamp import ApplicationRunner
-    router = 'ws://' + server_opts['server_name'] + ':' + str(server_opts['ipca_port'])
+    router = 'ws://' + server_opts['server_name'] + ':' + str(server_opts['ipca_ws_port'])
 
     runner = ApplicationRunner(router, u"realm1", standalone = True,
         debug = False,             # low-level logging

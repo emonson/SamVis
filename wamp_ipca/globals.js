@@ -19,7 +19,7 @@ var GLOBALS = (function($){
 
      // the URL of the WAMP Router (e.g. Crossbar.io)
      //
-     globals.wsuri = "ws://" + globals.server_conf.server_name + ":" + globals.server_conf.ipca_port;
+     globals.wsuri = "ws://" + globals.server_conf.server_name + ":" + globals.server_conf.ipca_ws_port;
 
      // connect to WAMP server
      // Would like to set retries to zero to switch to http if ws isn't working...
@@ -54,6 +54,8 @@ var GLOBALS = (function($){
     // TODO: Handle better no dataset passed...
     globals.uri = parseUri(location.toString());
     globals.dataset = globals.uri.queryKey.data;
+    // Filled in later from server
+    globals.dataset_names = [];
 
 	// Obj/dict to hold all nodes scalar data
 	globals.scalardata = {};

@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     # Go through data directory and add methods to root for each data set
     data_dir = server_opts['ipca_data_dir']
-    vis_page = 'ipca_context.html'
+    vis_page = server_opts['vis_page']
     
     # Sambinary files in directories
     # data_paths = [xx for xx in glob.glob(os.path.join(data_dir,'*')) if os.path.isdir(xx)]
@@ -171,7 +171,7 @@ if __name__ == '__main__':
 
     # add the resource index, which will list links to the data sets
     # base_url = 'http://' + server_opts['server_name'] + '/~' + server_opts['account'] + '/' + server_opts['ipca_web_path'] + '/' + vis_page
-    base_url = 'http://' + server_opts['server_name'] + ':' + str(server_opts['ipca_port']) + '/' + vis_page
+    base_url = 'http://' + server_opts['server_name'] + ':' + str(server_opts['ipca_http_port']) + '/' + vis_page
     root.resource_index = ResourceIndex(server_url=base_url, data_names=data_dirnames)
 
     # Start up server
@@ -193,7 +193,7 @@ if __name__ == '__main__':
     }
     cherrypy.config.update({
             # 'tools.gzip.on' : True,
-            'server.socket_port': server_opts['ipca_port'], 
+            'server.socket_port': server_opts['ipca_http_port'], 
             # 'server.socket_host':'127.0.0.1'
             'server.socket_host':str(server_opts['server_name'])
             })

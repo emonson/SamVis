@@ -93,7 +93,7 @@ var UTILITIES = (function(d3, $, g){
 	};
 
     function useDatasetNames(res) {
-        globals.dataset_names = res;
+        g.dataset_names = res;
         $.publish('/dataset_names/acquired');
     }
     
@@ -110,7 +110,7 @@ var UTILITIES = (function(d3, $, g){
         } else {
             // WAMP dataset names
             // TODO: Update some dataset combo box upon return...
-            globals.session.call("test.ipca.datasets").then(useDatasetNames);
+            g.session.call("test.ipca.datasets").then(useDatasetNames);
         }
     };
     

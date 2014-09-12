@@ -9,8 +9,39 @@ window.onload = function() {
         $.each(GLOBALS.scalar_names, function(val, text) {
             $('#scalars_name').append( $('<option></option>').val(text).html(text) )
         });
+	    
+	    // Set default value
+	    $("#scalars_name").val(GLOBALS.scalars_name);
+	    
+	    // Set callback on change
+        $("#scalars_name").on('change', function(){
+            var name = $(this).val();
+            GLOBALS.scalars_name = name;
+            $.publish("/scalars/change");
+        });
 	};
 	
+	// Populate datasets names / links select 
+	var update_dataset_names_combobox = function() {
+        $.each(GLOBALS.dataset_names, function(val, text) {
+            var pg_url = "http://" + GLOBALS.server_conf.server_name + 
+                                  ":" + GLOBALS.server_conf.ipca_http_port + 
+                                  "/" + GLOBALS.server_conf.vis_page + 
+                           "?data=" + text;
+            $('#dataset_name').append( $('<option></option>').val(pg_url).html(text) )
+        });
+        
+        // Set default selection to current dataset
+	    $("#dataset_name").val(location.toString());
+	    
+        // And set callback function
+	    // http://stackoverflow.com/questions/13709716/open-a-new-webpage-from-a-combo-box-onclick-event-for-the-option-selected
+        $("#dataset_name").on('change', function(){
+            window.open(this.value, '_self');
+        });
+	};
+	
+	// Scalar aggregation functions. Hard coded in globals for now, so just load in combobox
 	$.each(GLOBALS.scalar_aggregators, function(val, text) {
         $('#scalars_aggregator').append( $('<option></option>').val(text).html(text) )
     });
@@ -18,25 +49,14 @@ window.onload = function() {
 
 	// Set combo boxes to default values before setting callback so can change defaults
 	// in globals.js rather than in the html
-	$("#scalars_name").val(GLOBALS.scalars_name);
 	$("#scalars_aggregator").val(GLOBALS.scalars_aggregator);
 
 	// COMBO Box callback
-	$("#scalars_name").on('change', function(){
-		var name = $(this).val();
-		GLOBALS.scalars_name = name;
-		$.publish("/scalars/change");
-	});
-	
 	$("#scalars_aggregator").on('change', function(){
 		var agg = $(this).val();
 		GLOBALS.scalars_aggregator = agg;
 		$.publish("/scalars/change");
 	});
-	
-	function load_individual_vis() {
-	    INDIV.load_individual_vis();
-	};
 	
 	function set_individual_subscriptions() {
         $.subscribe("/icicle/rect_click", NODE_BASIS_VIS.getBasisDataFromServer);
@@ -48,10 +68,12 @@ window.onload = function() {
 	};
 	
     // Initialization
-    $.subscribe("/connection/open", UTILITIES.get_data_info);
+    $.subscribe('/dataset_names/acquired', update_dataset_names_combobox);
+    $.subscribe("/data_info/loaded", UTILITIES.get_dataset_names);
 	$.subscribe("/data_info/loaded", update_scalar_names_combobox);
-	$.subscribe("/data_info/loaded", load_individual_vis);
+	$.subscribe("/data_info/loaded", INDIV.load_individual_vis);
 	$.subscribe("/individual_vis/loaded", set_individual_subscriptions);
+    $.subscribe("/connection/open", UTILITIES.get_data_info);
 	
 	// Do initial scalars retrieval
 	$.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
