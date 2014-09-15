@@ -23,6 +23,7 @@ window.onload = function() {
 	
 	// Populate datasets names / links select 
 	var update_dataset_names_combobox = function() {
+        $('#dataset_name').append( $('<option></option>').val("init").html("Select a dataset") )
         $.each(GLOBALS.dataset_names, function(val, text) {
             var pg_url = "http://" + GLOBALS.server_conf.server_name + 
                                   ":" + GLOBALS.server_conf.ipca_http_port + 
@@ -32,7 +33,11 @@ window.onload = function() {
         });
         
         // Set default selection to current dataset
-	    $("#dataset_name").val(location.toString());
+	    if (GLOBALS.dataset) {
+	        $("#dataset_name").val(location.toString());
+	    } else {
+	        $("#dataset_name").val("init");
+	    }
 	    
         // And set callback function
 	    // http://stackoverflow.com/questions/13709716/open-a-new-webpage-from-a-combo-box-onclick-event-for-the-option-selected
@@ -69,11 +74,11 @@ window.onload = function() {
 	
     // Initialization
     $.subscribe('/dataset_names/acquired', update_dataset_names_combobox);
-    $.subscribe("/data_info/loaded", UTILITIES.get_dataset_names);
 	$.subscribe("/data_info/loaded", update_scalar_names_combobox);
 	$.subscribe("/data_info/loaded", INDIV.load_individual_vis);
 	$.subscribe("/individual_vis/loaded", set_individual_subscriptions);
     $.subscribe("/connection/open", UTILITIES.get_data_info);
+    $.subscribe("/connection/open", UTILITIES.get_dataset_names);
 	
 	// Do initial scalars retrieval
 	$.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
@@ -104,4 +109,8 @@ window.onload = function() {
 
 	$.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
 	
+	// See if connection has already been made / comm_method established
+	if (GLOBALS.comm_method) {
+	    $.publish('/connection/open');
+	}
 };
