@@ -10,13 +10,13 @@
 #left_panel {
 	float: left;
 	width: 440px;
-	margin: 10px;
+	right-margin: 10px;
 }
 
 #right_panel {
 	float: left;
 	width: 440px;
-	margin: 10px;
+	left-margin: 10px;
 }
 
 #footer {

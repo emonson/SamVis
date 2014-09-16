@@ -15,52 +15,12 @@ var GLOBALS = (function($){
 	// After main.js is loaded, going to test whether this has a value already,
 	// and if so, fire off /connection/open since probably fired already...
 	globals.comm_method = false;
+	// If WS session established, will use these variables
+	globals.session = null;
+	globals.wsuri = null;
+	globals.connection = null;
 	
-    // Since can't turn off retries on WS connection, default to http and try request
-    $.ajax({
-        url: "resource_index/datasets",
-		async:false,
-        dataType: "json",
-        success: function(response) {
-            console.log('http server present');
-            globals.comm_method = 'http';
-            $.publish('/connection/open');
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-
-            // WAMP / Websockets initialization
-            globals.session = null;
-
-            // the URL of the WAMP Router (e.g. Crossbar.io)
-            //
-            globals.wsuri = "ws://" + globals.server_conf.server_name + ":" + globals.server_conf.ipca_ws_port;
-
-            // connect to WAMP server
-            // Would like to set retries to zero to switch to http if ws isn't working...
-            globals.connection = new autobahn.Connection({
-                url: globals.wsuri,
-                max_retries: 1,
-                realm: 'realm1'
-            });
-
-            globals.connection.onopen = function (new_session) {
-                console.log("connected to " + globals.wsuri);
-                globals.session = new_session;
-                globals.comm_method = 'wamp';
-                $.publish('/connection/open');
-            };
-
-            globals.connection.onclose = function (reason, details) {
-                console.log("connection gone", reason, details);
-                new_session = null;
-            }
-
-            globals.connection.open();
-        }
-    });
-	 
     // NOTE: only allowing dataset passed in query string
-    // TODO: Handle better no dataset passed...
     globals.uri = parseUri(location.toString());
     globals.dataset = globals.uri.queryKey.data;
     // Filled in later from server

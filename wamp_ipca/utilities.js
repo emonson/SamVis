@@ -5,7 +5,57 @@ var UTILITIES = (function(d3, $, g){
 
 	var ut = { version: '0.0.1' };
     
+    // -------------------------------------
+    // Establish whether http or WS, and if latter, make connection
+    
+    ut.establish_connection = function() {
+        // Since can't turn off retries on WS connection, default to http and try request
+        $.ajax({
+            url: "resource_index/datasets",
+            async:false,
+            dataType: "json",
+            success: function(response) {
+                console.log('http server present');
+                g.comm_method = 'http';
+                $.publish('/connection/open');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+
+                // WAMP / Websockets initialization
+                g.session = null;
+
+                // the URL of the WAMP Router (e.g. Crossbar.io)
+                //
+                g.wsuri = "ws://" + g.server_conf.server_name + ":" + g.server_conf.ipca_ws_port;
+
+                // connect to WAMP server
+                // Would like to set retries to zero to switch to http if ws isn't working...
+                g.connection = new autobahn.Connection({
+                    url: g.wsuri,
+                    max_retries: 1,
+                    realm: 'realm1'
+                });
+
+                g.connection.onopen = function (new_session) {
+                    console.log("connected to " + g.wsuri);
+                    g.session = new_session;
+                    g.comm_method = 'wamp';
+                    $.publish('/connection/open');
+                };
+
+                g.connection.onclose = function (reason, details) {
+                    console.log("connection gone", reason, details);
+                    new_session = null;
+                }
+
+                g.connection.open();
+            }
+        });
+    };
+
+    // -------------------------------------
     // Callback function once have data_info
+    
     function useUpdatedDataInfo(data) {
         g.data_info = data.data_info;
         g.centers_bounds = data.centers_bounds;
@@ -20,7 +70,7 @@ var UTILITIES = (function(d3, $, g){
         $.publish("/data_info/loaded", g.root_node_id);
     }
     
-    // DataInfo
+    // Get DataInfo
     ut.get_data_info = function() {
         if (g.comm_method == 'http') {
             $.ajax({
@@ -33,6 +83,9 @@ var UTILITIES = (function(d3, $, g){
             g.session.call("test.ipca.datainfo", [], {dataset:g.dataset}).then(useUpdatedDataInfo);
         }
     };
+    
+    // -------------------------------------
+    // Callback function once have scalar names
     
     function useUpdatedScalars(json) {
         
@@ -103,6 +156,9 @@ var UTILITIES = (function(d3, $, g){
 		}
 	};
 
+    // -------------------------------------
+    // Callback function once have dataset names
+    
     function useDatasetNames(res) {
         g.dataset_names = res;
         $.publish('/dataset_names/acquired');
