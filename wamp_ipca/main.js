@@ -65,7 +65,7 @@ window.onload = function() {
 	
 	function set_individual_subscriptions() {
         $.subscribe("/icicle/rect_click", NODE_BASIS_VIS.getBasisDataFromServer);
-        // $.subscribe("/icicle/rect_hover", NODE_BASIS_VIS.getBasisDataFromServer);
+        $.subscribe("/icicle/rect_hover", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/icicle/mouseout", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/elplot/ellipse_click", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/elplot/ellipse_hover", NODE_BASIS_VIS.getBasisDataFromServer);
@@ -84,7 +84,7 @@ window.onload = function() {
 	$.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
 	
 	// NOTE: This is where scales_by_id and ids_by_scale get created
-	$.subscribe("/scalars/updated", ICICLE.init_icicle_view);
+	$.subscribe("/scalars/initialized", ICICLE.init_icicle_view);
 	
 	function initialSelection() {
 	    GLOBALS.node_id = GLOBALS.root_node_id;

@@ -35,6 +35,13 @@ var UTILITIES = (function(d3, $, g){
     };
     
     function useUpdatedScalars(json) {
+        
+        // Keep track of first time through for app timing
+        var first_time = false;
+        if ($.isEmptyObject(g.scalardata)) {
+            first_time = true;
+        }
+        
         // TODO: This doesn't work for histogram yet...
         // This is scalar data on the tree, coming in as a dict/obj
         g.scalardata = json.labels;
@@ -77,7 +84,11 @@ var UTILITIES = (function(d3, $, g){
                         .interpolate(d3.interpolateLab);
         }
         
-        $.publish("/scalars/updated");
+        if (first_time) {
+            $.publish("/scalars/initialized");
+        } else {
+            $.publish("/scalars/updated");
+        }
     }
 	
 	// Scalars

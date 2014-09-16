@@ -91,14 +91,12 @@ var ICICLE = (function(d3, $, g){
 		
 		if (d3.event && d3.event.altKey) {
 			$.publish("/icicle/rect_alt_click", d.i);
-		}
-		if (d3.event && d3.event.shiftKey) {
+		} else if (d3.event && d3.event.shiftKey) {
 			// TODO: Move this to a combo box or button instead of key click!
 			partition_toggle = partition_toggle ? false : true;
 			rescaleIcicleRectangles();
 			$.publish("/icicle/rect_shift_click", d.i);
-		}
-		else {
+		} else {
 			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
 			g.node_id = d.i;
 			$.publish("/icicle/rect_click", d.i);
