@@ -7,6 +7,10 @@
 	/* border: 1px solid #333; */
 }
 
+#container p {
+	padding-right: 5em;
+}
+
 #left_panel {
 	float: left;
 	width: 440px;
@@ -16,7 +20,7 @@
 #right_panel {
 	float: left;
 	width: 440px;
-	left-margin: 10px;
+	left-margin: 20px;
 }
 
 #footer {
