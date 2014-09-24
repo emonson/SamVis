@@ -28,31 +28,31 @@ window.onload = function() {
 	};
 	
 	// Populate datasets names / links select 
-	var update_dataset_names_combobox = function() {
-	    // Place a selection to sit if no dataset was chosen in URL data= query
-        $('#dataset_name').append( $('<option></option>').val("init").html("Select a dataset") )
-        // Loop through the actual data set names
-        $.each(GLOBALS.dataset_names, function(val, text) {
-            var pg_url = "http://" + GLOBALS.server_conf.server_name + 
-                                  ":" + GLOBALS.server_conf.ipca_http_port + 
-                                  "/" + GLOBALS.server_conf.vis_page + 
-                           "?data=" + text;
-            $('#dataset_name').append( $('<option></option>').val(pg_url).html(text) )
-        });
-        
-        // Set default selection to current dataset, or "init" if none chosen in URL data= query
-	    if (GLOBALS.dataset) {
-	        $("#dataset_name").val(location.toString());
-	    } else {
-	        $("#dataset_name").val("init");
-	    }
-	    
-        // And set callback function
-	    // http://stackoverflow.com/questions/13709716/open-a-new-webpage-from-a-combo-box-onclick-event-for-the-option-selected
-        $("#dataset_name").on('change', function(){
-            window.open(this.value, '_self');
-        });
-	};
+// 	var update_dataset_names_combobox = function() {
+// 	    // Place a selection to sit if no dataset was chosen in URL data= query
+//         $('#dataset_name').append( $('<option></option>').val("init").html("Select a dataset") )
+//         // Loop through the actual data set names
+//         $.each(GLOBALS.dataset_names, function(val, text) {
+//             var pg_url = "http://" + GLOBALS.server_conf.server_name + 
+//                                   ":" + GLOBALS.server_conf.ipca_http_port + 
+//                                   "/" + GLOBALS.server_conf.vis_page + 
+//                            "?data=" + text;
+//             $('#dataset_name').append( $('<option></option>').val(pg_url).html(text) )
+//         });
+//         
+//         // Set default selection to current dataset, or "init" if none chosen in URL data= query
+// 	    if (GLOBALS.dataset) {
+// 	        $("#dataset_name").val(location.toString());
+// 	    } else {
+// 	        $("#dataset_name").val("init");
+// 	    }
+// 	    
+//         // And set callback function
+// 	    // http://stackoverflow.com/questions/13709716/open-a-new-webpage-from-a-combo-box-onclick-event-for-the-option-selected
+//         $("#dataset_name").on('change', function(){
+//             window.open(this.value, '_self');
+//         });
+// 	};
 	
 	var update_scalar_aggregators_combobox = function() {
         // Scalar aggregation functions. Hard coded in globals for now, so just load in combobox
@@ -124,10 +124,15 @@ window.onload = function() {
         }
 	}
 	
+    var scope_apply = function() {
+        scope.$apply();
+    };
+
     // Initialization
     $.subscribe("/connection/open", UTILITIES.get_dataset_names);
-    $.subscribe('/dataset_names/acquired', update_dataset_names_combobox);
+    // $.subscribe('/dataset_names/acquired', update_dataset_names_combobox);
     $.subscribe('/dataset_names/acquired', set_have_dataset_subscriptions);
+    $.subscribe('/dataset_names/acquired', scope_apply);
 	// Need at least a dataset name (doesn't have to be valid) to try to get data_info
 	if (GLOBALS.dataset) {
             $.subscribe("/connection/open", UTILITIES.get_data_info);	
@@ -135,4 +140,11 @@ window.onload = function() {
 	    
 	// Now that everything else is loaded, figure out type of connection
 	UTILITIES.establish_connection()
+	
+	// Angular debugging
+	rootEle = document.querySelector("#dataset_selector");
+    ele = angular.element(rootEle);
+    scope = ele.scope();
+    ctrl = ele.controller();
+    
 };

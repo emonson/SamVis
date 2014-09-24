@@ -160,7 +160,14 @@ var UTILITIES = (function(d3, $, g){
     // Callback function once have dataset names
     
     function useDatasetNames(res) {
-        g.dataset_names = res;
+        g.dataset_names.length = 0;
+        g.dataset_names.push({'label':'Select a dataset'});
+        res.forEach(function(n) { 
+            var data_obj = {};
+            data_obj.label = n;
+            data_obj.url = g.uri + n;
+            g.dataset_names.push(data_obj); 
+        });
         $.publish('/dataset_names/acquired');
     }
     

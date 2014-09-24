@@ -1,0 +1,50 @@
+<!-- File: chapter4/checkbox-example.html -->
+<html ng-app="notesApp">
+<head><title>Notes App</title></head>
+<body ng-controller="MainCtrl as ctrl">
+
+<div id="id_selector">
+  <select ng-model="ctrl.selectedCountryId"
+          ng-options="c.id as c.label for c in ctrl.countries">
+  </select>
+  Selected Country ID : {{ctrl.selectedCountryId}}
+</div>
+
+<div>
+  <select ng-model="ctrl.selectedCountry"
+          ng-options="c.label for c in ctrl.countries">
+  </select>
+
+  Selected Country : {{ctrl.selectedCountry}}
+</div>
+
+<script src="../../libs/angular-1.2.25/angular.min.js"></script>
+
+<script type="text/javascript">
+  angular.module('notesApp', [])
+    .controller('MainCtrl', [function() {
+      this.countries = [
+        {label: 'USA', id: 1},
+        {label: 'India', id: 2},
+        {label: 'Other', id: 3}
+      ];
+      this.selectedCountryId = 2;
+      this.selectedCountry = this.countries[1];
+    }]);
+    
+    // DEBUGGING
+    // https://www.ng-book.com/p/Debugging-AngularJS/
+    var rootEle, 
+        ele, 
+        scope, 
+        ctrl;
+    
+    window.onload = function() {
+        rootEle = document.querySelector("#id_selector");
+        ele = angular.element(rootEle);
+        scope = ele.scope();
+        ctrl = ele.controller();
+    };
+</script>
+</body>
+</html>
