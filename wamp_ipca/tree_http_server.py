@@ -125,6 +125,14 @@ class TreeServer:
             bkgd_scale = int(bkgdscale)
     
             return json.dumps(self.tree.GetContextEllipses(node_id, bkgd_scale))
+
+    @cherrypy.expose
+    @cherrypy.tools.gzip()
+    def embedding(self, xdim=1, ydim=2):
+        
+        # {data: , bounds: [(xmin, xmax), (ymin, ymax)]
+        return json.dumps(self.tree.GetDiffusionEmbedding(xdim=int(xdim), ydim=int(ydim)))
+
         
 
 # =====================

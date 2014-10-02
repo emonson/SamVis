@@ -126,7 +126,14 @@ class IPCA_DataStore(ApplicationSession):
             bkgd_scale = int(bkgdscale)
     
             return self.trees[dataset].GetContextEllipses(node_id, bkgd_scale)
+
+    @wamp.register(u"test.ipca.embedding")
+    def embedding(self, dataset=None, xdim=1, ydim=2):
         
+        # {data: , bounds: [(xmin, xmax), (ymin, ymax)]
+        return self.trees[dataset].GetDiffusionEmbedding(xdim=int(xdim), ydim=int(ydim))
+
+   
 
 # =====================
 

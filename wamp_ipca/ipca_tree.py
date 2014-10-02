@@ -70,7 +70,7 @@ class IPCATree(object):
             # Read labels from hdf5 file
             self.labels = IH.read_hdf5_labeldata(data_path)
             
-            # Read diffusion embedding (returns None if not present)
+            # Read diffusion embedding (returns None if not present) [n_dims, n_points]
             self.eigenvecs = IH.read_hdf5_diffusion_embedding(data_path)
 
             # For now loading original data if the filename field is specified in the metadata
@@ -419,6 +419,26 @@ class IPCATree(object):
             return_obj = {'data':self.all_ellipse_params, 'bounds':bounds}
 
             return return_obj
+        
+    # --------------------
+    def GetDiffusionEmbedding(self, xdim = 1, ydim = 2):
+        """If present, return diffusion embedding {data: , bounds: }
+            data: [n_points, 2]
+            bounds: [(minX, maxX), (minY, maxY)]"""
+    
+        if self.eigenvecs is not None:
+            n_dims = self.eigenvecs.shape[0]
+            if (xdim >= 0 and xdim < n_dims) and (ydim >= 0 and ydim < n_dims):
+                # TODO: smart sampling if too many points...
+                # Starts off as [n_dims, n_points], but will transpose that before delivery
+                data = self.eigenvecs[[xdim,ydim],:]
+                dmin = data.min(axis=1)
+                dmax = data.max(axis=1)
+                bounds = [(dmin[0], dmax[0]), (dmin[1], dmax[1])]
+                data_list = self.pretty_sci_floats(data.T.tolist())
+                return_obj = {'data':data_list, 'bounds':bounds}
+
+                return return_obj
         
     # --------------------
     # http://stackoverflow.com/questions/1447287/format-floats-with-standard-json-module
