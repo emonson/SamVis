@@ -69,6 +69,9 @@ class IPCATree(object):
 
             # Read labels from hdf5 file
             self.labels = IH.read_hdf5_labeldata(data_path)
+            
+            # Read diffusion embedding (returns None if not present)
+            self.eigenvecs = IH.read_hdf5_diffusion_embedding(data_path)
 
             # For now loading original data if the filename field is specified in the metadata
             # if 'filename' in self.data_info['original_data']:

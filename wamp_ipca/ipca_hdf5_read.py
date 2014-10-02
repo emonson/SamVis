@@ -96,6 +96,26 @@ def read_hdf5_labeldata(label_data_filename):
             
     return labels #, label_descriptions
 
+def read_hdf5_diffusion_embedding(filename):
+    """Read IPCA original data labels and store them in dictionary by name"""
+    
+    eigenvecs = None
+    eigenvals = None
+    
+    with h5py.File(filename, 'r') as f:
+
+        if '/original_data/diffusion_graph' in f:
+            graph_g = f['/original_data/diffusion_graph']
+            if 'eigenvectors' in graph_g:
+                ed = graph_g['eigenvectors']
+                eigenvecs = N.empty(ed.shape, dtype=ed.dtype)
+                ed.read_direct(eigenvecs)
+            if 'eigenvalues' in graph_g:
+                ed = graph_g['eigenvalues']
+                eigenvals = N.empty(ed.shape, dtype=ed.dtype)
+                ed.read_direct(eigenvals)
+            
+    return eigenvecs #, eigenvals
 
 def checked_filename(filename):
     if filename and type(filename) == str:

@@ -33,18 +33,59 @@ end
 
 %% Labels
 
-% TODO: This needs to be generalized!!
+% imgOpts will probalby have to evolve into a more general metadata store
+%   about the original data
+
+% imgOpts.Labels should be an [n_points, n_labels] array of label data
+%        .LabelNames ? a cell array of strings {n_labels}
+%           NOTE: for now names must be unique and not contain spaces because
+%           they'll be used as the name of the hdf5 path!!
+%           TODO: Move to unique ID as path and explicit Name field...
+%        .LabelDataTypes ? a cell array of strings with the data types
+%           (e.g. 'int32', 'double'...)
+%        .LabelVariableTypes ? a cell array of strings listing
+%           whether the variable is 'categorical' or 'continuous'
+%        .LabelDescriptions (optional) ? descriptions of what the label is
+%           or how it was generated
+%        .LabelKeys (not used yet) ? a mapping between categorical integer label
+%           values and more human-readable strings (not totally worked out
+%           yet how to store...)
 
 fprintf('Writing original data labels\n');
 
 for ii = 1:size(imgOpts.Labels, 2)
     label_data = imgOpts.Labels(:,ii);
-    % TODO: need to have labels names stored in metadata...
-    h5create(filename, '/original_data/labels/digit_id', length(label_data), 'Datatype', 'int32');
-    h5write(filename, '/original_data/labels/digit_id', int32(label_data));
-    h5writeatt(filename, '/original_data/labels/digit_id', 'description', 'digit ids');
-    h5writeatt(filename, '/original_data/labels/digit_id', 'variable_type', 'categorical');
-    % h5writeatt(filename, '/original_data/labels/digit_id', 'key', {{'1', 'digit1'}, {'2', 'digit2'}});
+    label_name = imgOpts.LabelNames{ii};
+    label_data_type = imgOpts.LabelDataTypes{ii};
+    label_variable_type = imgOpts.LabelVariableTypes{ii};
+    label_description = label_name;
+    if isfield(imgOpts, 'LabelDescriptions'),
+        label_description = imgOpts.LabelDescriptions{ii};
+    end
+    
+    label_path = ['/original_data/labels/' label_name];
+    
+    h5create(filename, label_path, length(label_data), 'Datatype', label_data_type);
+    % not totally sure I shouldn't be using typecast()...
+    h5write(filename, label_path, cast(label_data, label_data_type));
+    h5writeatt(filename, label_path, 'description', label_description);
+    h5writeatt(filename, label_path, 'variable_type', label_variable_type);
+    % h5writeatt(filename, label_path, 'key', {{'1', 'digit1'}, {'2', 'digit2'}});
+end
+
+%% Diffusion graph (only eigenvectors for now...)
+
+if isfield(GMRA, 'Graph') && isfield(GMRA.Graph, 'EigenVecs'),
+    fprintf('Writing original data diffusion embedding\n');
+    
+    eigenvecs = GMRA.Graph.EigenVecs;
+    eigenvals = GMRA.Graph.EigenVals;
+    h5create(filename, '/original_data/diffusion_graph/eigenvectors', size(eigenvecs), 'Datatype', 'double');
+    h5write(filename, '/original_data/diffusion_graph/eigenvectors', eigenvecs);
+    h5create(filename, '/original_data/diffusion_graph/eigenvalues', size(eigenvals), 'Datatype', 'double');
+    h5write(filename, '/original_data/diffusion_graph/eigenvalues', eigenvals);
+    
+    % TODO: Copy over all GMRA.Graph.Opts options to attributes of /original_data/diffusion_graph
 end
 
 %% Full tree by ID
