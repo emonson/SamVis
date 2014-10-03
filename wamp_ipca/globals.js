@@ -60,6 +60,11 @@ var GLOBALS = (function($){
     // Initial selection. node_id sets the scale for now...
     globals.node_id = 0;
     globals.bkgd_scale = 1;
+    
+    // Embedding scatterplot
+    globals.embedding = [];
+    globals.xdim = 1;
+    globals.ydim = 2;
 
     return globals;
 

@@ -81,10 +81,11 @@ window.onload = function() {
             
             $.subscribe("/data_info/loaded", update_scalar_names_combobox);
             $.subscribe("/data_info/loaded", update_scalar_aggregators_combobox);
-            $.subscribe("/scalars/initialized", SCATTER.init_scatterplot);
+            $.subscribe("/scalars/initialized", SCATTER.getEmbeddingFromServer);
 
             // Normal operation after initializations
             $.subscribe("/scalars/updated", SCATTER.updateScalarData);
+            $.subscribe("/embedding/updated", SCATTER.drawCustom);
     
         }
 	}
@@ -99,5 +100,7 @@ window.onload = function() {
 	}
 	    
 	// Now that everything else is loaded, figure out type of connection
-	UTILITIES.establish_connection()
+	UTILITIES.establish_connection();
+	
+	SCATTER.getEmbeddingFromServer();
 };
