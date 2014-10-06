@@ -70,8 +70,19 @@ var SCATTER = (function(d3, $, g){
 
    // Function to render out to canvas our custom
     // in memory nodes
+    
+    // Playing around with ways to stop render loop when not needed
+    // https://github.com/mbostock/d3/wiki/Force-Layout
+    // http://bl.ocks.org/cloudshapes/5662234
+    // https://groups.google.com/forum/#!msg/d3-js/WC_7Xi6VV50/j1HK0vIWI-EJ
+    // https://github.com/mbostock/d3/blob/master/src/layout/force.js
+    
+    var timer_elapsed = 0;
     sc.drawCanvas = function() {
-
+        timer_elapsed += 1;
+        if (timer_elapsed == 1000) {
+            return true;
+        }
         // clear canvas
         context.fillStyle = "#fff";
         context.rect(0,0,chart.attr("width"),chart.attr("height"));

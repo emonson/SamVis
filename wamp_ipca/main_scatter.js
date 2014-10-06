@@ -113,6 +113,6 @@ window.onload = function() {
         GLOBALS.ydim += 1;
         $.publish("/embedding/dims_updated");
       }
-    }, 2000);
+    }, 3000);
     
 };
