@@ -72,6 +72,8 @@ class IPCATree(object):
             
             # Read diffusion embedding (returns None if not present) [n_dims, n_points]
             self.eigenvecs = IH.read_hdf5_diffusion_embedding(data_path)
+            # Lazy generation of embedding for nodes (rather than points, which is read in from HDF5 file)
+            self.node_embedding = None
 
             # For now loading original data if the filename field is specified in the metadata
             # if 'filename' in self.data_info['original_data']:
@@ -259,6 +261,30 @@ class IPCATree(object):
         return [(minX, maxX), (minY, maxY)]
     
     # --------------------
+    def generate_node_embedding(self):
+        """Calculate embedding coordinates per node rather than per point"""
+        
+        if self.eigenvecs is not None:
+            
+            n_dims, n_pts = self.eigenvecs.shape
+            n_nodes = len(self.nodes_by_id)
+            self.node_embedding = N.zeros((n_dims, n_nodes))
+            # Here really want to keep the coordinates as an array (for slicing), rather than a dictionary
+            # like the scalars are (so IDs don't have to be sequential. So, need a map of IDs for each
+            # index. This will not work well if we need to pick out just certain IDs, in which case I'll need
+            # the reverse map... Items not guaranteed to come off of nodes_by_id in order, so sort after.
+            self.node_ids = N.zeros(n_nodes)
+            
+            for ii, (id,node) in enumerate(self.nodes_by_id.iteritems()):
+                indices = node['indices']
+                self.node_embedding[:,id] = N.mean(self.eigenvecs[:,indices], axis=1)
+                self.node_ids[ii] = id
+            
+            sort_idxs = N.argsort(self.node_ids)
+            self.node_embedding = self.node_embedding[:,sort_idxs]
+            self.node_ids = self.node_ids[sort_idxs]
+
+    # --------------------
     def RegenerateLiteTree(self, children_key='c', parent_id_key='p', key_dict = {'id':'i', 
                                                                                     'npoints':'v',
                                                                                     'scale':'s'}
@@ -422,20 +448,27 @@ class IPCATree(object):
         
     # --------------------
     def GetDiffusionEmbedding(self, xdim = 1, ydim = 2):
-        """If present, return diffusion embedding {data: , bounds: }
-            data: [n_points, 2]
-            bounds: [(minX, maxX), (minY, maxY)]"""
+        """If present, return diffusion embedding of nodes of tree {data: , bounds: }
+            data: [[x,y,i], [x,y,i], ...]
+            bounds: [(minX, maxX), (minY, maxY)]
+            Right now returning all points, but since embedding IDs, could also
+            return subset..."""
     
         if self.eigenvecs is not None:
-            n_dims = self.eigenvecs.shape[0]
+            # Lazy node embedding generation from point embedding
+            if self.node_embedding is None:
+                self.generate_node_embedding()
+            
+            n_dims, n_nodes = self.node_embedding.shape
             if (xdim >= 0 and xdim < n_dims) and (ydim >= 0 and ydim < n_dims):
                 # TODO: smart sampling if too many points...
                 # Starts off as [n_dims, n_points], but will transpose that before delivery
-                data = self.eigenvecs[[xdim,ydim],:]
+                data = self.node_embedding[[xdim,ydim],:]
                 dmin = data.min(axis=1)
                 dmax = data.max(axis=1)
                 bounds = [(dmin[0], dmax[0]), (dmin[1], dmax[1])]
-                data_list = self.pretty_sci_floats(data.T.tolist())
+                data_w_ids = N.vstack((data, self.node_ids))
+                data_list = self.pretty_sci_floats(data_w_ids.T.tolist())
                 return_obj = {'data':data_list, 'bounds':bounds}
 
                 return return_obj

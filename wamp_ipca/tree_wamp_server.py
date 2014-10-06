@@ -130,7 +130,7 @@ class IPCA_DataStore(ApplicationSession):
     @wamp.register(u"test.ipca.embedding")
     def embedding(self, dataset=None, xdim=1, ydim=2):
         
-        # {data: , bounds: [(xmin, xmax), (ymin, ymax)]
+        # {data: [[x,y,i], [x,y,i],...] , bounds: [(xmin, xmax), (ymin, ymax)]
         return self.trees[dataset].GetDiffusionEmbedding(xdim=int(xdim), ydim=int(ydim))
 
    

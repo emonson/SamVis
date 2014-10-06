@@ -37,14 +37,13 @@ var SCATTER = (function(d3, $, g){
     sc.drawCustom = function() {
 
         var dataBinding = dataContainer.selectAll("custom.rect")
-            .data(g.embedding);
+            .data(g.embedding, function(d){return d[2];});
 
         dataBinding
-            .attr("size", 8)
             .transition()
-            .duration(1000)
-            .attr("size", 15)
-            .attr("fillStyle", "green");
+            .duration(750)
+            .attr("x", function(d){ return x_scale(d[0]);})
+            .attr("y", function(d){ return y_scale(d[1]);});
 
         dataBinding.enter()
             .append("custom")
@@ -52,27 +51,33 @@ var SCATTER = (function(d3, $, g){
             .attr("id", function(d,i){ return "sc_" + i; })
             .attr("x", function(d){ return x_scale(d[0]);})
             .attr("y", function(d){ return y_scale(d[1]);})
-            .attr("size", 8)
-            .attr("fillStyle", "red");
+            .attr("size", 8);
 
         dataBinding.exit()
             .attr("size", 8)
             .transition()
-            .duration(1000)
-            .attr("size", 5)
-            .attr("fillStyle", "lightgrey");
+            .duration(750)
+            .attr("size", 3);
         
-        sc.drawCanvas();
+        // sc.drawCanvas();
     };
 
-    // Function to render out to canvas our custom
+ 	var setItemColor = function(d) {
+		// Selected overrides basis
+		if (d[2] == g.node_id) { return g.selectColor; }
+		else { return g.cScale(g.scalardata[d[2]]);}
+	};
+
+   // Function to render out to canvas our custom
     // in memory nodes
     sc.drawCanvas = function() {
 
         // clear canvas
-        context.fillStyle = "#cac";
+        context.fillStyle = "#fff";
         context.rect(0,0,chart.attr("width"),chart.attr("height"));
+        context.globalAlpha = 1.0;
         context.fill();
+        context.globalAlpha = 0.4;
 
         // select our dummy nodes and draw the data to canvas.
         var elements = dataContainer.selectAll("custom.rect");
@@ -80,14 +85,17 @@ var SCATTER = (function(d3, $, g){
             var node = d3.select(this);
 
             context.beginPath();
-            context.fillStyle = node.attr("fillStyle");
+            context.fillStyle = setItemColor(d);
             context.rect(node.attr("x"), node.attr("y"), node.attr("size"), node.attr("size"));
             context.fill();
+            if (d[2] == g.node_id) {
+                context.stroke();
+            }
             context.closePath();
       })
     };
 
-    // d3.timer(sc.drawCanvas);
+    d3.timer(sc.drawCanvas);
     // sc.drawCustom([1,2,13,20,23]);
     // sc.drawCustom([1,2,12,16,20]);
 
@@ -103,18 +111,18 @@ var SCATTER = (function(d3, $, g){
 
         // Flag for keeping track of whether this is the first selection
         var first_selection = (g.embedding.length == 0);
-        console.log("useUPdatedEmbedding");
         
-        // Update scale domains
+        // Update data store
         // data = [[X, Y], [X, Y], ...]
         g.embedding = json.data;
         // bounds = [[Xmin, Xmax], [Ymin, Ymax]]
         g.embedding_bounds = json.bounds;
-    
+        
+        // Update plot scaling domains
         x_scale.domain(g.embedding_bounds[0]);
         y_scale.domain(g.embedding_bounds[1]);
 
-        // Updating ellipses
+        // Broadcast that the data has been updated
         if (first_selection) {
             $.publish("/embedding/updated", 150);
         }
@@ -125,7 +133,6 @@ var SCATTER = (function(d3, $, g){
 
 	// Get diffusion embedded points from server
 	sc.getEmbeddingFromServer = function() {
-	    console.log('getting embedding from server');
         if (g.comm_method == 'http') {
             d3.json('/' + g.dataset + "/embedding?xdim=" + g.xdim + "&ydim=" + g.ydim, useUpdatedEmbedding );
         } else {
@@ -139,11 +146,11 @@ var SCATTER = (function(d3, $, g){
 
 		// Unhighlight previously selected ellipse
 		d3.select("custom.rect.sc_selected")
-			.classed("el_selected", false);
+			.classed("sc_selected", false);
 
 		// Highlight ellipse corresponding to current rect selection
 		d3.select("#sc_" + sel_id)
-			.classed("el_selected", true);
+			.classed("sc_selected", true);
 	};
 
 	return sc;

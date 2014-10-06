@@ -81,11 +81,15 @@ window.onload = function() {
             
             $.subscribe("/data_info/loaded", update_scalar_names_combobox);
             $.subscribe("/data_info/loaded", update_scalar_aggregators_combobox);
-            $.subscribe("/scalars/initialized", SCATTER.getEmbeddingFromServer);
+            $.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
+            $.subscribe("/data_info/loaded", SCATTER.getEmbeddingFromServer);
+            $.subscribe("/embedding/dims_updated", SCATTER.getEmbeddingFromServer);
+            $.subscribe("/embedding/updated", SCATTER.drawCustom);
 
             // Normal operation after initializations
-            $.subscribe("/scalars/updated", SCATTER.updateScalarData);
-            $.subscribe("/embedding/updated", SCATTER.drawCustom);
+            $.subscribe("/scalars/change", UTILITIES.getScalarsFromServer);
+            $.subscribe("/scalars/initialized", SCATTER.drawCanvas);
+            $.subscribe("/scalars/updated", SCATTER.drawCanvas);
     
         }
 	}
@@ -102,5 +106,13 @@ window.onload = function() {
 	// Now that everything else is loaded, figure out type of connection
 	UTILITIES.establish_connection();
 	
-	SCATTER.getEmbeddingFromServer();
+	// Grab a random sample of letters from the alphabet, in alphabetical order.
+    setInterval(function() {
+      if (GLOBALS.ydim < 19) {
+        GLOBALS.xdim += 1;
+        GLOBALS.ydim += 1;
+        $.publish("/embedding/dims_updated");
+      }
+    }, 2000);
+    
 };
