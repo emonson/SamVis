@@ -43,7 +43,17 @@ var SCATTER = (function(d3, $, g){
             .transition()
             .duration(750)
             .attr("x", function(d){ return x_scale(d[0]);})
-            .attr("y", function(d){ return y_scale(d[1]);});
+            .attr("y", function(d){ return y_scale(d[1]);})
+            .each("start", function(d,i){ 
+                if(i===0){
+                    d3.timer(sc.drawCanvas);
+                }
+            })
+            .each("end", function(d,i){ 
+                if(i===(g.embedding.length-1)){
+                    g.stop_drawloop=true; 
+                }
+            });
 
         dataBinding.enter()
             .append("custom")
@@ -51,15 +61,12 @@ var SCATTER = (function(d3, $, g){
             .attr("id", function(d,i){ return "sc_" + i; })
             .attr("x", function(d){ return x_scale(d[0]);})
             .attr("y", function(d){ return y_scale(d[1]);})
-            .attr("size", 8);
+            .attr("size", function(d){ return (d[2] == g.node_id) ? 12 : 8; });
 
         dataBinding.exit()
-            .attr("size", 8)
-            .transition()
-            .duration(750)
-            .attr("size", 3);
+            .remove();
         
-        // sc.drawCanvas();
+        sc.drawCanvas();
     };
 
  	var setItemColor = function(d) {
@@ -77,12 +84,15 @@ var SCATTER = (function(d3, $, g){
     // https://groups.google.com/forum/#!msg/d3-js/WC_7Xi6VV50/j1HK0vIWI-EJ
     // https://github.com/mbostock/d3/blob/master/src/layout/force.js
     
-    var timer_elapsed = 0;
     sc.drawCanvas = function() {
-        timer_elapsed += 1;
-        if (timer_elapsed == 1000) {
+        
+        // Using global flag for whether to stop drawloop d3.timer
+        if (g.stop_drawloop) {
+            // function has to be ready to run next time
+            g.stop_drawloop = false;
             return true;
         }
+        
         // clear canvas
         context.fillStyle = "#fff";
         context.rect(0,0,chart.attr("width"),chart.attr("height"));
@@ -106,7 +116,7 @@ var SCATTER = (function(d3, $, g){
       })
     };
 
-    d3.timer(sc.drawCanvas);
+    // d3.timer(sc.drawCanvas);
     // sc.drawCustom([1,2,13,20,23]);
     // sc.drawCustom([1,2,12,16,20]);
 

@@ -553,6 +553,11 @@ class IPCATree(object):
         results['bases_bounds'] = (N.asscalar(b_bounds[:,0].min()),N.asscalar(b_bounds[:,1].max()))
         results['scalar_names'] = self.labels.keys()
         results['root_node_id'] = self.tree_root['id']
+        
+        results['has_embedding'] = False
+        if self.eigenvecs is not None:
+            results['has_embedding'] = True
+            results['n_embedding_dims'] = self.eigenvecs.shape[0]
 
         return results
 

@@ -27,6 +27,28 @@ window.onload = function() {
         });
 	};
 	
+	var dim_increment = function() {
+	    if (GLOBALS.has_embedding && (GLOBALS.ydim < GLOBALS.n_embedding_dims-1)) {
+            console.log("increment");
+            GLOBALS.xdim += 1;
+            GLOBALS.ydim += 1;
+            $.publish("/embedding/dims_updated");
+	    }
+	};
+	
+	var dim_decrement = function() {
+	    if (GLOBALS.has_embedding && (GLOBALS.xdim > 0)) {
+            console.log("decrement");
+            GLOBALS.xdim -= 1;
+            GLOBALS.ydim -= 1;
+            $.publish("/embedding/dims_updated");
+	    }
+	};
+
+	// Embedding dimension increment/decrement callbacks
+	$("#dim_increment").click(dim_increment);
+	$("#dim_decrement").click(dim_decrement);
+	
 	// Populate datasets names / links select 
 	var update_dataset_names_combobox = function() {
 	    // Place a selection to sit if no dataset was chosen in URL data= query
@@ -107,12 +129,12 @@ window.onload = function() {
 	UTILITIES.establish_connection();
 	
 	// Grab a random sample of letters from the alphabet, in alphabetical order.
-    setInterval(function() {
-      if (GLOBALS.ydim < 19) {
-        GLOBALS.xdim += 1;
-        GLOBALS.ydim += 1;
-        $.publish("/embedding/dims_updated");
-      }
-    }, 3000);
+//     setInterval(function() {
+//       if (GLOBALS.ydim < 19) {
+//         GLOBALS.xdim += 1;
+//         GLOBALS.ydim += 1;
+//         $.publish("/embedding/dims_updated");
+//       }
+//     }, 5000);
     
 };

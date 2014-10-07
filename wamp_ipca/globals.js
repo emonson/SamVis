@@ -62,10 +62,13 @@ var GLOBALS = (function($){
     globals.bkgd_scale = 1;
     
     // Embedding scatterplot
+    globals.has_embedding = false;
+    globals.n_embedding_dims = -1;
     globals.embedding = [];
     globals.xdim = 1;
     globals.ydim = 2;
-
+    globals.stop_drawloop = false;
+    
     return globals;
 
 }(jQuery));

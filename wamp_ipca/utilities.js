@@ -67,6 +67,10 @@ var UTILITIES = (function(d3, $, g){
         g.root_node_id = data.root_node_id;
         // Start selection off at root
         g.node_id = g.root_node_id;
+        g.has_embedding = data.has_embedding;
+        if (g.has_embedding) {
+            g.n_embedding_dims = data.n_embedding_dims;
+        }
         $.publish("/data_info/loaded", g.root_node_id);
     }
     
