@@ -37,7 +37,7 @@ window.onload = function() {
 	};
 	
 	var dim_decrement = function() {
-	    if (GLOBALS.has_embedding && (GLOBALS.xdim > 0)) {
+	    if (GLOBALS.has_embedding && (GLOBALS.xdim > 1)) {
             console.log("decrement");
             GLOBALS.xdim -= 1;
             GLOBALS.ydim -= 1;
