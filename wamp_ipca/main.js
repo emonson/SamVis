@@ -35,7 +35,7 @@ window.onload = function() {
         $.each(GLOBALS.dataset_names, function(val, text) {
             var pg_url = "http://" + GLOBALS.server_conf.server_name + 
                                   ":" + GLOBALS.server_conf.ipca_http_port + 
-                                  "/" + GLOBALS.server_conf.vis_page + 
+                                  "/" + GLOBALS.uri.file + 
                            "?data=" + text;
             $('#dataset_name').append( $('<option></option>').val(pg_url).html(text) )
         });
