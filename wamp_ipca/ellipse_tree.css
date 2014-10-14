@@ -33,6 +33,11 @@
 	border: 1px solid #ccc;
 }
 
+#node_basis_data_vis {
+    height: 220px;
+    overflow-y: auto;
+}
+
 .basis_im {
 	float: left;
 	margin: 5px;
