@@ -6,8 +6,8 @@ var SCATTER = (function(d3, $, g){
 	var sc = { version: '0.0.1' };
 
 
-	var w_sc = 400;
-	var h_sc = 400;
+	var w_sc = 250;
+	var h_sc = 250;
 	var padding = 40;
 
     var x_scale = d3.scale.linear()

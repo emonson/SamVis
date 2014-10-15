@@ -46,8 +46,8 @@ window.onload = function() {
 	};
 
 	// Embedding dimension increment/decrement callbacks
-	$("#dim_increment").click(dim_increment);
-	$("#dim_decrement").click(dim_decrement);
+	$("#dim_increment").tooltip({container:'body', delay:{'show':1000}}).click(dim_increment);
+	$("#dim_decrement").tooltip({container:'body', delay:{'show':1000}}).click(dim_decrement);
 	
 	// Populate datasets names / links select 
 	var update_dataset_names_combobox = function() {

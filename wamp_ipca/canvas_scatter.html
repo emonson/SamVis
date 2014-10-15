@@ -11,44 +11,51 @@
 		<script type="text/javascript" src="/libs/parseuri.js"></script>
         <script type="text/javascript" src="/libs/autobahn.min.jgz"></script>
 
+        <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 	</head>
 	<body>
 	
-	<div id="container">
-        <div id="dataset_selector">
-            <label for="dataset_name">Dataset</label>
-            <!-- Will populate select values in JS -->
-            <select id="dataset_name"></select>
+	<div class="container-fluid">
+		<div class="row-fluid">
+		    <div class="col-sm-4">
+		    
+                <div class="well">
+                    <div id="dataset_selector">
+                        <label for="dataset_name">Dataset</label>
+                        <!-- Will populate select values in JS -->
+                        <select id="dataset_name"></select>
+                    </div>
+                
+                    <div id="scalars_selector">
+                        <label for="scalars_name">Scalars</label>
+                        <!-- Will populate select values in JS -->
+                        <select id="scalars_name"></select>
+                    </div>
+                
+                    <div id="scalars_aggregator_selector">
+                        <label for="scalars_aggregator">Scalars aggregation</label>
+                        <!-- Will populate select values in JS -->
+                        <select id="scalars_aggregator"></select>
+                    </div>
+                </div>
+            
+                <div class="well">
+                    <div class="row btn-group" id="dimension_buttons">
+                      <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down"><span></button>
+                      <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions"><span class="fa fa-arrow-circle-up"><span></button>
+                    </div>
+                    <div id="embedding" class="row"></div>
+                </div>
+                
+			</div>
         </div>
-
-		<div id="left_panel">
-		
-			<div id="scalars_selector">
-				<label for="scalars_name">Scalars</label>
-				<!-- Will populate select values in JS -->
-				<select id="scalars_name"></select>
-			</div>
-				
-			<div id="scalars_aggregator_selector">
-				<label for="scalars_aggregator">Scalars aggregation</label>
-				<!-- Will populate select values in JS -->
-				<select id="scalars_aggregator"></select>
-			</div>
-			
-			<div id="embedding"></div>
-			
-			<div id="dimension_buttons">
-			    <button type="button" id="dim_decrement">-</button>
-			    <button type="button" id="dim_increment">+</button>
-			</div>
-			
-		</div>
-
 	</div>
 	
 		<script type="text/javascript" src="/globals.js"></script>
 		<script type="text/javascript" src="/utilities.js"></script>
 		<script type="text/javascript" src="/scatter.js"></script>
+		<script type="text/javascript" src="/bower_components/bootstrap/js/tooltip.js"></script>
 		<script type="text/javascript" src="/main_scatter.js"></script>
 
 	</body>
