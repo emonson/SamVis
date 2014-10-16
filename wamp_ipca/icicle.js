@@ -8,7 +8,7 @@ var ICICLE = (function(d3, $, g){
 	// - - - - - - - - - - - - - - - -
 	// Icicle view variables
 
-	var w_ice = 420;
+	var w_ice = 350;
 	var h_ice = 300;
 	var x_ice = d3.scale.linear().range([0, w_ice]);
 	var y_ice = d3.scale.linear().range([0, h_ice]);

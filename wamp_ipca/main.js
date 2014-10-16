@@ -72,6 +72,34 @@ window.onload = function() {
         });
 	};
 	
+	// -------------
+	// Embedding scatter
+	var dim_increment = function() {
+	    if (GLOBALS.has_embedding && (GLOBALS.ydim < GLOBALS.n_embedding_dims-1)) {
+            console.log("increment");
+            GLOBALS.xdim += 1;
+            GLOBALS.ydim += 1;
+            $.publish("/embedding/dims_updated");
+	    }
+	};
+	
+	var dim_decrement = function() {
+	    if (GLOBALS.has_embedding && (GLOBALS.xdim > 1)) {
+            console.log("decrement");
+            GLOBALS.xdim -= 1;
+            GLOBALS.ydim -= 1;
+            $.publish("/embedding/dims_updated");
+	    }
+	};
+    
+    // Send out message on window resize
+    $(window).resize(function(){ $.publish("/window/resize"); });
+    
+	// Embedding dimension increment/decrement callbacks
+	$("#dim_increment").click(dim_increment);
+	$("#dim_decrement").click(dim_decrement);
+	// -------------
+	
 	// Callback : After icicle initialized, make inital selection
 	function makeInitialSelection() {
 	    GLOBALS.node_id = GLOBALS.root_node_id;
@@ -99,6 +127,11 @@ window.onload = function() {
             $.subscribe("/data_info/loaded", update_scalar_aggregators_combobox);
             $.subscribe("/data_info/loaded", INDIV.load_individual_vis);
             $.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
+            $.subscribe("/data_info/loaded", SCATTER.getEmbeddingFromServer);
+
+            $.subscribe("/embedding/dims_updated", SCATTER.getEmbeddingFromServer);
+            $.subscribe("/embedding/updated", SCATTER.drawCustom);
+
             $.subscribe("/individual_vis/loaded", set_individual_subscriptions);
         
             // NOTE: This is where scales_by_id and ids_by_scale get created
@@ -109,6 +142,8 @@ window.onload = function() {
             $.subscribe("/scalars/change", UTILITIES.getScalarsFromServer);
             $.subscribe("/scalars/updated", ELPLOT.updateScalarData);
             $.subscribe("/scalars/updated", ICICLE.updateScalarData);
+            $.subscribe("/scalars/initialized", SCATTER.drawCanvas);
+            $.subscribe("/scalars/updated", SCATTER.drawCanvas);
     
             $.subscribe("/icicle/rect_click", ELPLOT.highlightSelectedEllipse);
             $.subscribe("/icicle/rect_click", ELPLOT.getContextEllipsesFromServer);

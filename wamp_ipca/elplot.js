@@ -5,9 +5,9 @@ var ELPLOT = (function(d3, $, g){
 
 	var el = { version: '0.0.1' };
 
-	var w_el = 400;
-	var h_el = 400;
-	var padding = 40;
+	var w_el = 350;
+	var h_el = 280;
+	var padding = 20;
 
 	// Ellipse plot scale functions with placeholder domains
 	var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding]);
@@ -20,13 +20,13 @@ var ELPLOT = (function(d3, $, g){
 	var xAxis = d3.svg.axis()
 						.scale(xScale)
 						.orient("bottom")
-						.ticks(5);
+						.ticks(0);
 
 	// Define Y axis
 	var yAxis = d3.svg.axis()
 						.scale(yScale)
 						.orient("left")
-						.ticks(5);
+						.ticks(0);
 
 	// Ellipse plot SVG element
 	var svg = d3.select("#graph")

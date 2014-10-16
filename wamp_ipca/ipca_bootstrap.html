@@ -18,6 +18,7 @@
     }
     </style>
  -->
+
 	</head>
 	<body>
 	
@@ -36,19 +37,24 @@
 
 	    <div class="row">
 	    
-            <div class="col col-sm-6">
+            <div class="col col-sm-6" id="tree_container">
                     
                 <div class="btn-group" id="ice_tool_buttons">
-                  <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg"><span></button>
-                  <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions"><span class="fa fa-arrow-circle-up fa-lg"><span></button>
+                  <button type="button" class="btn btn-default" id="xxdim_decrement" title="lower dimensions"><span class="fa fa-circle fa-lg"><span></button>
+                  <button type="button" class="btn btn-default" id="xxdim_increment" title="higher dimensions"><span class="fa fa-circle fa-lg"><span></button>
                 </div>
 
                 <div id="tree"></div>
             
             </div>
 
-            <div class="col col-sm-6">
+            <div class="col col-sm-6" id="graph_container">
         
+                <div class="btn-group" id="ice_tool_buttons">
+                  <button type="button" class="btn btn-default" id="yydim_decrement" title="lower dimensions"><span class="fa fa-circle fa-lg"><span></button>
+                  <button type="button" class="btn btn-default" id="yydim_increment" title="higher dimensions"><span class="fa fa-circle fa-lg"><span></button>
+                </div>
+
                 <div id="graph"></div>
                         
             </div>
@@ -57,7 +63,7 @@
         
 	    <div class="row">
             
-            <div class="col col-sm-6">
+            <div class="col col-sm-6" id="embedding_container">
                     
                 <div class="btn-group" id="dimension_buttons">
                   <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg"><span></button>
@@ -68,7 +74,7 @@
             
             </div>
 
-            <div class="col col-sm-6">
+            <div class="col col-sm-6" id="basis_container">
                     
                 <div id="node_basis_data_vis"></div>
             
