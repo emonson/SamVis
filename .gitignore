@@ -22,3 +22,6 @@ dist
 
 # Matlab temp files
 *.m~
+
+# Bower js installs
+bower_components

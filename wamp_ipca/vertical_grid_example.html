@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<!-- https://gist.github.com/metaist/7632393 -->
+<head>
+<title>Bootstrap Resize Layout</title>
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" />
+<link rel="stylesheet" href="bootstrap-vertical-grid.css" />
+        <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+<style>
+.container-fixed { border: 1px solid red; }
+.col {
+  border: 1px solid #ccc;
+  text-align: center;
+}
+.row {
+  border: 1px solid #00c;
+  text-align: right;
+}
+</style>
+</head><body>
+<div class="container-fixed">
+  
+  <div class="row row-xs-2">
+    <div class="col col-xs-8">NorthWest</div>
+    <div class="col col-xs-4">NorthEast</div>
+  </div>
+  
+  <div class="row row-xs-9">
+    <div class="col col-xs-3">West
+        <div class="row row-xs-6">
+            <div class="btn-group btn-group-sm" id="dimension_buttons">
+              <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions">
+                <span class="fa fa-arrow-circle-down fa-2x"><span>
+              </button>
+              <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions">
+                <span class="fa fa-arrow-circle-up fa-2x"><span>
+              </button>
+            </div>
+        </div>
+        <div class="row row-xs-6">mid2</div>
+    </div>
+    <div class="col col-xs-4">Center</div>
+    <div class="col col-xs-5">East</div>
+  </div>
+  
+  <div class="row row-xs-1">
+    <div class="col col-xs-12">South</div>
+  </div>
+  
+</div>
+</body></html>

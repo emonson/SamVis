@@ -44,7 +44,10 @@ window.onload = function() {
             $.publish("/embedding/dims_updated");
 	    }
 	};
-
+    
+    // Send out message on window resize
+    $(window).resize(function(){ $.publish("/window/resize"); });
+    
 	// Embedding dimension increment/decrement callbacks
 	$("#dim_increment").tooltip({container:'body', delay:{'show':1000}}).click(dim_increment);
 	$("#dim_decrement").tooltip({container:'body', delay:{'show':1000}}).click(dim_decrement);
