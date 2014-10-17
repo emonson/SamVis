@@ -8,7 +8,7 @@ var ELPLOT = (function(d3, $, g){
     // resizable: http://www.tnoda.com/blog/2013-10-14
     
 	var w_el = $("#graph_container").width();
-	var aspect = 280/350; // height/width
+	var aspect = 350/350; // height/width
 	var h_el = aspect * w_el;
 	var padding = 40;
 
@@ -40,20 +40,17 @@ var ELPLOT = (function(d3, $, g){
 					$.publish("/elplot/mouseout", g.node_id);
 				});
     
-    // background rect
-//     svg_base.append("rect")
-//         .attr("class", "background")
-//         .attr("width", w_el)
-//         .attr("height", h_el)
-//         .attr("fill", "#ccc");
-
 	// Ellipse plot axes
-	var svg_xaxis = svg_base.append("g")
-		.attr("class", "x axis");
-	var svg_yaxis = svg_xaxis.append("g")
-		.attr("class", "y axis");
+	svg_base.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + (h_el - padding) + ")")
+		.call(xAxis);
+	svg_base.append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate(" + padding + ",0)")
+		.call(yAxis);
 	
-	var svg = svg_yaxis.append("g");
+	var svg = svg_base.append("g");
 
     el.resize = function() {
         w_el = $("#graph_container").width();
@@ -68,7 +65,7 @@ var ELPLOT = (function(d3, $, g){
         xrScale.range([0, w_el - padding * 2]);
         yrScale.range([0, h_el - padding * 2]);
         
-        el.updateEllipses(0.1);
+        el.updateEllipses(0.001);
         updateAxes();
     };
 
@@ -238,10 +235,10 @@ var ELPLOT = (function(d3, $, g){
 
         // Updating ellipses
         if (first_selection) {
-            $.publish("/ellipses/updated", 150);
+            $.publish("/ellipses/updated", 100);
         }
         else {
-            $.publish("/ellipses/updated", 750);
+            $.publish("/ellipses/updated", 500);
         }
     }
 
