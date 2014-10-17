@@ -156,6 +156,9 @@ window.onload = function() {
             $.subscribe("/elplot/ellipse_alt_click", ICICLE.zoomIcicleView);
 
             $.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
+            
+            // window resize
+            $.subscribe("/window/resize", ELPLOT.resize);
         }
 	}
 	
