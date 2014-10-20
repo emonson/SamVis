@@ -149,7 +149,7 @@ var SCATTER = (function(d3, $, g){
         if (g.comm_method == 'http') {
             d3.json('/' + g.dataset + "/embedding?xdim=" + g.xdim + "&ydim=" + g.ydim, useUpdatedEmbedding );
         } else {
-            g.session.call('test.ipca.contextellipses', [], {dataset: g.dataset, 
+            g.session.call('test.ipca.embedding', [], {dataset: g.dataset, 
                                                                    xdim: g.xdim, 
                                                                    ydim: g.ydim}).then( useUpdatedEmbedding );
         }
