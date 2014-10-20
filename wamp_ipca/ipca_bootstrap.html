@@ -61,7 +61,15 @@
         
 	    <div class="row">
             
-            <div class="col col-sm-6" id="embedding_container">
+            <!-- This section is ordered for mobile, and then for desktop the basis images
+            get pushed off to the right, and embedding gets pulled to the left -->
+            <div class="col col-sm-6 col-sm-push-6" id="basis_container">
+                    
+                <div id="node_basis_data_vis"></div>
+            
+            </div>
+            
+            <div class="col col-sm-6 col-sm-pull-6" id="embedding_container">
                     
                 <div class="btn-group" id="dimension_buttons">
                   <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg"><span></button>
@@ -72,12 +80,6 @@
             
             </div>
 
-            <div class="col col-sm-6" id="basis_container">
-                    
-                <div id="node_basis_data_vis"></div>
-            
-            </div>
-            
         </div> <!-- row -->
         
 	</div> <!-- container -->
@@ -91,7 +93,7 @@
 		<script type="text/javascript" src="/globals.js"></script>
 		<script type="text/javascript" src="/utilities.js"></script>
 		<script type="text/javascript" src="/elplot_resizable.js"></script>
-		<script type="text/javascript" src="/icicle.js"></script>
+		<script type="text/javascript" src="/icicle_resizable.js"></script>
 <!-- 
 		<script type="text/javascript" src="/sunburst.js"></script>
  -->

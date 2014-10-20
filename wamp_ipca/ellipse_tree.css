@@ -27,27 +27,31 @@
 	clear: both;
 }
 
+#node_basis_data_vis {
+    height: 220px;
+    overflow-y: auto;
+}
+
 #center_image {
 	float: left;
 	margin: 5px;
 	border: 1px solid #ccc;
 }
 
-#node_basis_data_vis {
-    height: 220px;
-    overflow-y: auto;
+/* separate container for the basis images group */
+/* overflow: hidden
+    keeps second line of images from wrapping beneath center image
+    http://stackoverflow.com/questions/11411219/css-to-stop-text-wrapping-under-image/15421257#15421257
+*/
+#basis_images {
+    overflow: hidden;
+	border: none;
 }
 
 .basis_im {
 	float: left;
 	margin: 5px;
 	border: 1px solid #ccc;
-}
-
-#basis_images {
-	float: left;
-	width: 300px;
-	border: none;
 }
 
 p, label {

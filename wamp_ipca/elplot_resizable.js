@@ -5,12 +5,12 @@ var ELPLOT = (function(d3, $, g){
 
 	var el = { version: '0.0.1' };
 
-    // resizable: http://www.tnoda.com/blog/2013-10-14
+    // resizable: http://eyeseast.github.io/visible-data/2013/08/28/responsive-charts-with-d3/
     
 	var w_el = $("#graph_container").width();
 	var aspect = 350/350; // height/width
 	var h_el = aspect * w_el;
-	var padding = 40;
+	var padding = 20;
 
 	// Ellipse plot scale functions with placeholder domains
 	var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding]);
@@ -23,13 +23,13 @@ var ELPLOT = (function(d3, $, g){
 	var xAxis = d3.svg.axis()
 						.scale(xScale)
 						.orient("bottom")
-						.ticks(5);
+						.ticks(0);
 
 	// Define Y axis
 	var yAxis = d3.svg.axis()
 						.scale(yScale)
 						.orient("left")
-						.ticks(5);
+						.ticks(0);
 
 	// Ellipse plot SVG element
 	var svg_base = d3.select("#graph")
@@ -42,13 +42,9 @@ var ELPLOT = (function(d3, $, g){
     
 	// Ellipse plot axes
 	svg_base.append("g")
-		.attr("class", "x axis")
-		.attr("transform", "translate(0," + (h_el - padding) + ")")
-		.call(xAxis);
+		.attr("class", "x axis");
 	svg_base.append("g")
-		.attr("class", "y axis")
-		.attr("transform", "translate(" + padding + ",0)")
-		.call(yAxis);
+		.attr("class", "y axis");
 	
 	var svg = svg_base.append("g");
 
@@ -72,16 +68,17 @@ var ELPLOT = (function(d3, $, g){
 	var updateAxes = function() {
 		
 		//Update X axis
-		svg.select(".x.axis")
+		svg_base.select(".x.axis")
 		    .attr("transform", "translate(0," + (h_el - padding) + ")")
 			.call(xAxis);
 
 		//Update Y axis
-		svg.select(".y.axis")
+		svg_base.select(".y.axis")
 		    .attr("transform", "translate(" + padding + ",0)")
 			.call(yAxis);
 	};
 	
+	// Adding transformation and axis call to axes
 	updateAxes();
 
 	var setEllipseStrokeColor = function(d,i) {

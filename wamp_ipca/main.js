@@ -93,8 +93,34 @@ window.onload = function() {
 	};
     
     // Send out message on window resize
-    $(window).resize(function(){ $.publish("/window/resize"); });
-    
+    // $(window).resize(function(){ $.publish("/window/resize"); });
+    // Debounced window resize
+    $(window).resize( debounce( function(){ $.publish("/window/resize"); }, 250) );
+
+    // Debounce (as opposed to throttling) so resize doesn't happen until movement done
+    // http://colingourlay.github.io/presentations/reusable-responsive-charts-with-d3js/#/54
+    //
+    // window.addEventListener("resize", debounce(function () {
+    //     var width = $(chart.base.node().parentNode).width();
+    //     chart.width(width);
+    // }, 250), false);
+    function debounce(fn, wait) {
+        var timeout;
+
+        return function () {
+            var context = this,              // preserve context
+                args = arguments,            // preserve arguments
+                later = function () {        // define a function that:
+                    timeout = null;          // * nulls the timeout (GC)
+                    fn.apply(context, args); // * calls the original fn
+                };
+
+            // (re)set the timer which delays the function call
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
 	// Embedding dimension increment/decrement callbacks
 	$("#dim_increment").click(dim_increment);
 	$("#dim_decrement").click(dim_decrement);
@@ -159,6 +185,7 @@ window.onload = function() {
             
             // window resize
             $.subscribe("/window/resize", ELPLOT.resize);
+            $.subscribe("/window/resize", ICICLE.resize);
         }
 	}
 	
