@@ -139,6 +139,9 @@ var ICICLE = (function(d3, $, g){
 		d3.select("#r_" + sel_id)
 			.classed('r_selected', true);			
 	};
+	
+	// placeholder during shift to resizable
+	ic.resize = function() {};
     
     function useUpdatedTree(json) {
         // TODO: Don't need to send 's' as an attribute, partition function calculates

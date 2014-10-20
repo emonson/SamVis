@@ -186,8 +186,8 @@ window.onload = function() {
             $.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
             
             // window resize
-//             $.subscribe("/window/resize", ELPLOT.resize);
-//             $.subscribe("/window/resize", ICICLE.resize);
+            $.subscribe("/window/resize", ELPLOT.resize);
+            $.subscribe("/window/resize", ICICLE.resize);
         }
 	}
 	

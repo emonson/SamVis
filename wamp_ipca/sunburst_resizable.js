@@ -8,8 +8,10 @@ var ICICLE = (function(d3, $, g){
 	// - - - - - - - - - - - - - - - -
 	// Icicle view variables
 
-	var w_ice = 420;
-	var h_ice = 420;
+	var w_ice = $("#tree_container").width();
+	var aspect = 350/350; // height/width
+	var h_ice = aspect * w_ice;
+
 	var x_ice = d3.scale.linear().range([0, w_ice]);
 	var y_ice = d3.scale.linear().range([0, h_ice]);
     var r_sun = Math.min(w_ice, h_ice) / 2;
@@ -19,7 +21,6 @@ var ICICLE = (function(d3, $, g){
 	var brush_on = false;
 	var ice_partition = null;
 	var ice_data = null;
-	var partition_toggle = true;
 
 	// Icicle view tree layout calculation function
 	// JSON object member keys have simplified names to keep file and transfer size down.
@@ -31,11 +32,6 @@ var ICICLE = (function(d3, $, g){
 			.children(function(d){ return d.c ? d.c : null;})
 			.value(function(d){return d.v ? d.v : null;});
 			
-	var partition_ice_inv = d3.layout.partition()
-			.sort(function(a,b){ return b.i - a.i; })
-			.children(function(d){ return d.c ? d.c : null;})
-			.value(function(d){return d.v ? 1.0/d.v : null;});
-
     var arc = d3.svg.arc()
         .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x_sun(d.x))); })
         .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x_sun(d.x + d.dx))); })
@@ -55,10 +51,11 @@ var ICICLE = (function(d3, $, g){
     }
     
 	// Icicle view SVG element
-	var vis = d3.select("#tree").append("svg:svg")
+	var vis_base = d3.select("#tree").append("svg:svg")
 			.attr("width", w_ice)
-			.attr("height", h_ice)
-		.append("g")
+			.attr("height", h_ice);
+		
+	var vis = vis_base.append("g")
             .attr("transform", "translate(" + w_ice / 2 + "," + h_ice / 2 + ")");
 			// TODO: Need some sort of mostly transparent rectangle behind tree
 			//   elements so that mousing out of an individual icicle rectangle doesn't
@@ -67,6 +64,22 @@ var ICICLE = (function(d3, $, g){
 // 					d3.select("#nodeinfo").text("id = , scale = ");
 // 					$.publish("/icicle/mouseout", g.node_id);
 // 				});
+
+    ic.resize = function() {
+        w_ice = $("#tree_container").width();
+        h_ice = aspect * w_ice;
+        r_sun = Math.min(w_ice, h_ice) / 2;
+        
+	    x_ice.range([0, w_ice]);
+	    y_ice.range([0, h_ice]);
+        y_sun.range([0, r_sun]);
+
+        vis_base.attr("width", w_ice);
+        vis_base.attr("height", h_ice);
+        vis.attr("transform", "translate(" + w_ice / 2 + "," + h_ice / 2 + ")");
+        
+        rescaleIcicleRectangles(0.001);
+    };
 
 	ic.zoomIcicleView = function(sel_id) {
 		
@@ -79,37 +92,27 @@ var ICICLE = (function(d3, $, g){
             .attrTween("d", arcTween(d));
 	};
 
-	var rescaleIcicleRectangles = function() {
+	var rescaleIcicleRectangles = function(trans_dur) {
 		
-		ice_partition = do_partition(ice_data);
+		// Default value for transition duration
+		trans_dur = trans_dur || 750;
+		
+		ice_partition = partition_ice(ice_data);
 		
 		// Change icicle zoom
 		vis.selectAll("path")
 				.data(ice_partition, function(d){return d.i;})
 			.transition()
-				.duration(750)
+				.duration(trans_dur)
 				.attr("d", arc);
 	};
 	
-	var do_partition = function(data) {
-		if (partition_toggle) {
-			return partition_ice(data);
-		} else {
-			return partition_ice_inv(data);
-		}
-	};
-
 	var rect_click = function(d) {
 	
 		// TODO: Decouple the events from the responses, and move them to main.js!!
 		
 		if (d3.event && d3.event.altKey) {
 			$.publish("/icicle/rect_alt_click", d.i);
-		} else if (d3.event && d3.event.shiftKey) {
-			// TODO: Move this to a combo box or button instead of key click!
-			partition_toggle = partition_toggle ? false : true;
-			rescaleIcicleRectangles();
-			$.publish("/icicle/rect_shift_click", d.i);
 		} else {
 			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
 			g.node_id = d.i;
@@ -134,9 +137,6 @@ var ICICLE = (function(d3, $, g){
 		clearTimeout(hover_timer);
 	};
 
-	// placeholder during shift to resizable
-	ic.resize = function() {};
-    
 	ic.updateScalarData = function() {
 		vis.selectAll("path")
 				.attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); });
@@ -159,7 +159,7 @@ var ICICLE = (function(d3, $, g){
         ice_data = json;
         
         // Before building tree, compile convenience data structures
-        ice_partition = do_partition(ice_data);
+        ice_partition = partition_ice(ice_data);
         // Node IDs are not necessarily sequential, so need to store as objects if indexing by ID
         g.scales_by_id = {};
         g.nodes_by_id = {};

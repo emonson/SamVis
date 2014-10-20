@@ -122,6 +122,9 @@ var ELPLOT = (function(d3, $, g){
 		}
 	};
 	
+	// placeholder during shift to resizable
+	el.resize = function() {};
+    
 	el.updateScalarData = function() {
 	
 		// Update colors in both visualizations when this returns
