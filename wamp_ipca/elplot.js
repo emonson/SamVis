@@ -6,7 +6,7 @@ var ELPLOT = (function(d3, $, g){
 	var el = { version: '0.0.1' };
 
 	var w_el = 350;
-	var h_el = 280;
+	var h_el = 350;
 	var padding = 20;
 
 	// Ellipse plot scale functions with placeholder domains

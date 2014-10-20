@@ -9,6 +9,8 @@ var SCATTER = (function(d3, $, g){
 	var w_sc = 300;
 	var h_sc = 300;
 	var padding = 40;
+	var default_point_size = 8;
+	var highlighted_point_size = 12;
 
     var x_scale = d3.scale.linear()
         .range([padding, w_sc-padding])
@@ -60,8 +62,7 @@ var SCATTER = (function(d3, $, g){
             .classed("rect", true)
             .attr("id", function(d,i){ return "sc_" + i; })
             .attr("x", function(d){ return x_scale(d[0]);})
-            .attr("y", function(d){ return y_scale(d[1]);})
-            .attr("size", function(d){ return (d[2] == g.node_id) ? 12 : 8; });
+            .attr("y", function(d){ return y_scale(d[1]);});
 
         dataBinding.exit()
             .remove();
@@ -104,29 +105,20 @@ var SCATTER = (function(d3, $, g){
         var elements = dataContainer.selectAll("custom.rect");
         elements.each(function(d) {
             var node = d3.select(this);
-
+            
             context.beginPath();
-            context.fillStyle = setItemColor(d);
-            context.rect(node.attr("x"), node.attr("y"), node.attr("size"), node.attr("size"));
-            context.fill();
             if (d[2] == g.node_id) {
+                context.fillStyle = g.selectColor;
+                context.rect(node.attr("x"), node.attr("y"), highlighted_point_size, highlighted_point_size);
                 context.stroke();
+            } else {
+                context.fillStyle = g.cScale(g.scalardata[d[2]]);
+                context.rect(node.attr("x"), node.attr("y"), default_point_size, default_point_size);
             }
+            context.fill();
             context.closePath();
       })
     };
-
-    // d3.timer(sc.drawCanvas);
-    // sc.drawCustom([1,2,13,20,23]);
-    // sc.drawCustom([1,2,12,16,20]);
-
-    // ==========================
-
-	sc.updateScalarData = function() {
-	
-		// Update colors 
-		
-	};
 
     function useUpdatedEmbedding(json) {	
 
@@ -163,7 +155,7 @@ var SCATTER = (function(d3, $, g){
         }
 	};
 
-	sc.highlightSelectedEllipse = function(sel_id) {
+	sc.highlightSelectedPoint = function(sel_id) {
 
 		// Unhighlight previously selected ellipse
 		d3.select("custom.rect.sc_selected")
@@ -172,6 +164,8 @@ var SCATTER = (function(d3, $, g){
 		// Highlight ellipse corresponding to current rect selection
 		d3.select("#sc_" + sel_id)
 			.classed("sc_selected", true);
+		
+		sc.drawCustom();
 	};
 
 	return sc;
