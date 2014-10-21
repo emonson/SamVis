@@ -76,7 +76,6 @@ window.onload = function() {
 	// Embedding scatter
 	var dim_increment = function() {
 	    if (GLOBALS.has_embedding && (GLOBALS.ydim < GLOBALS.n_embedding_dims-1)) {
-            console.log("increment");
             GLOBALS.xdim += 1;
             GLOBALS.ydim += 1;
             $.publish("/embedding/dims_updated");
@@ -85,7 +84,6 @@ window.onload = function() {
 	
 	var dim_decrement = function() {
 	    if (GLOBALS.has_embedding && (GLOBALS.xdim > 1)) {
-            console.log("decrement");
             GLOBALS.xdim -= 1;
             GLOBALS.ydim -= 1;
             $.publish("/embedding/dims_updated");

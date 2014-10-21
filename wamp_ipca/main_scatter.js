@@ -29,7 +29,6 @@ window.onload = function() {
 	
 	var dim_increment = function() {
 	    if (GLOBALS.has_embedding && (GLOBALS.ydim < GLOBALS.n_embedding_dims-1)) {
-            console.log("increment");
             GLOBALS.xdim += 1;
             GLOBALS.ydim += 1;
             $.publish("/embedding/dims_updated");
@@ -38,7 +37,6 @@ window.onload = function() {
 	
 	var dim_decrement = function() {
 	    if (GLOBALS.has_embedding && (GLOBALS.xdim > 1)) {
-            console.log("decrement");
             GLOBALS.xdim -= 1;
             GLOBALS.ydim -= 1;
             $.publish("/embedding/dims_updated");
@@ -46,11 +44,37 @@ window.onload = function() {
 	};
     
     // Send out message on window resize
-    $(window).resize(function(){ $.publish("/window/resize"); });
+    // $(window).resize(function(){ $.publish("/window/resize"); });
+    // Debounced window resize
+    $(window).resize( debounce( function(){ $.publish("/window/resize"); }, 250) );
+
+    // Debounce (as opposed to throttling) so resize doesn't happen until movement done
+    // http://colingourlay.github.io/presentations/reusable-responsive-charts-with-d3js/#/54
+    //
+    // window.addEventListener("resize", debounce(function () {
+    //     var width = $(chart.base.node().parentNode).width();
+    //     chart.width(width);
+    // }, 250), false);
+    function debounce(fn, wait) {
+        var timeout;
+
+        return function () {
+            var context = this,              // preserve context
+                args = arguments,            // preserve arguments
+                later = function () {        // define a function that:
+                    timeout = null;          // * nulls the timeout (GC)
+                    fn.apply(context, args); // * calls the original fn
+                };
+
+            // (re)set the timer which delays the function call
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
     
 	// Embedding dimension increment/decrement callbacks
-	$("#dim_increment").tooltip({container:'body', delay:{'show':1000}}).click(dim_increment);
-	$("#dim_decrement").tooltip({container:'body', delay:{'show':1000}}).click(dim_decrement);
+	$("#dim_increment").click(dim_increment);
+	$("#dim_decrement").click(dim_decrement);
 	
 	// Populate datasets names / links select 
 	var update_dataset_names_combobox = function() {
@@ -109,13 +133,15 @@ window.onload = function() {
             $.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
             $.subscribe("/data_info/loaded", SCATTER.getEmbeddingFromServer);
             $.subscribe("/embedding/dims_updated", SCATTER.getEmbeddingFromServer);
-            $.subscribe("/embedding/updated", SCATTER.drawCustom);
 
             // Normal operation after initializations
             $.subscribe("/scalars/change", UTILITIES.getScalarsFromServer);
-            $.subscribe("/scalars/initialized", SCATTER.drawCanvas);
-            $.subscribe("/scalars/updated", SCATTER.drawCanvas);
+            $.subscribe("/scalars/updated", SCATTER.updateScalarData);
     
+            $.subscribe("/embedding/updated", SCATTER.updatePoints);
+            $.subscribe("/node/selected", SCATTER.highlightSelectedPoint);
+
+            $.subscribe("/window/resize", SCATTER.resize);
         }
 	}
 	
@@ -131,13 +157,10 @@ window.onload = function() {
 	// Now that everything else is loaded, figure out type of connection
 	UTILITIES.establish_connection();
 	
-	// Grab a random sample of letters from the alphabet, in alphabetical order.
+	// Select a random point
 //     setInterval(function() {
-//       if (GLOBALS.ydim < 19) {
-//         GLOBALS.xdim += 1;
-//         GLOBALS.ydim += 1;
-//         $.publish("/embedding/dims_updated");
-//       }
-//     }, 5000);
+//         $.publish("/node/selected", Math.floor(Math.random() * 513));
+//     }, 500);
+    setTimeout(function(){$.publish("/node/selected", Math.floor(Math.random() * 513));}, 1000);
     
 };

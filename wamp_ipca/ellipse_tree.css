@@ -68,6 +68,22 @@ ellipse:hover {
 	fill-opacity: 0.2;
 }
 
+circle {
+    fill-opacity: 0.3
+}
+
+circle:hover {
+	fill-opacity: 1.0;
+}
+
+/* selection listed second so takes precedence over basis... */
+circle.sc_selected {
+    fill: gold;
+    fill-opacity: 1.0;
+	stroke: black;
+	stroke-width: 2;
+}
+
 .axis path,
 .axis line {
 	fill: none;
