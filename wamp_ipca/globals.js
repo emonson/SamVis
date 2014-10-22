@@ -31,7 +31,7 @@ var GLOBALS = (function($){
     globals.scalardomain = [0,1];
     // NOTE: not testing for queryKey in scalar_names array...
     globals.scalars_name = globals.uri.queryKey.scalars;
-    globals.scalar_aggregators = ["mean", "mode","entropy"];
+    globals.scalar_aggregators = ["mean", "mode", "entropy"];
     globals.scalars_aggregator = globals.scalar_aggregators[0];
     // Convenience tree data structures -- may not always need these...
     globals.scales_by_id = [];

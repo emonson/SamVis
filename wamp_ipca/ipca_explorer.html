@@ -2,6 +2,8 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
+		<!-- Necessary or page won't be responsive on small devices, but instead will be zoomed out -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 		<title>D3: IPCA ellipses and tree view with brushing</title>
 
 		<link rel="stylesheet" href="/ellipse_tree.css" media="screen">
@@ -65,7 +67,7 @@
             </div>
 
             <div class="col col-sm-6" id="graph_container">
-                <h4 class="text-muted pull-left">Parent projected context</h4>
+                <h4 class="text-muted pull-left">Projected context</h4>
                 
                 <div class="btn-group pull-right" id="graph_tool_buttons">
                   <button type="button" class="btn btn-default" id="graph_select_button"><span class="fa fa-crosshairs fa-lg text-muted"><span></button>
@@ -83,7 +85,7 @@
             <!-- This section is ordered for mobile, and then for desktop the basis images
             get pushed off to the right, and embedding gets pulled to the left -->
             <div class="col col-sm-6 col-sm-push-6" id="basis_container">
-                <h4 class="text-muted">Node center and bases</h4>
+                <h4 class="text-muted">Node center &amp; bases</h4>
                     
                 <div id="node_basis_data_vis"></div>
             
