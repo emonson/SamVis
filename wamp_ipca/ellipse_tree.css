@@ -35,7 +35,7 @@
 #center_image {
 	float: left;
 	margin: 5px;
-	border: 1px solid #ccc;
+	/* border: 1px solid #ccc; */
 }
 
 /* separate container for the basis images group */

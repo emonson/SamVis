@@ -7,17 +7,19 @@ var ELPLOT = (function(d3, $, g){
 
     // resizable: http://eyeseast.github.io/visible-data/2013/08/28/responsive-charts-with-d3/
     
-	var w_el = $("#graph_container").width();
+    var w_frac = 0.90;
+	var w_el = $("#graph_container").width() * w_frac;
 	var aspect = 350/350; // height/width
 	var h_el = aspect * w_el;
-	var padding = 20;
+	var padding = 30;
+	var rt_pad = 15;
 
 	// Ellipse plot scale functions with placeholder domains
-	var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding]);
-	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - padding, padding]);
+	var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - rt_pad]);
+	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - padding, rt_pad]);
 
-	var xrScale = d3.scale.linear().domain([0, 1]).range([0, w_el - padding * 2]);
-	var yrScale = d3.scale.linear().domain([0, 1]).range([0, h_el - padding * 2]);
+	var xrScale = d3.scale.linear().domain([0, 1]).range([0, w_el - (padding+rt_pad)]);
+	var yrScale = d3.scale.linear().domain([0, 1]).range([0, h_el - (padding+rt_pad)]);
 
 	// Define X axis
 	var xAxis = d3.svg.axis()
@@ -35,10 +37,10 @@ var ELPLOT = (function(d3, $, g){
 	var svg_base = d3.select("#graph")
 				.append("svg")
 				.attr("width", w_el)
-				.attr("height", h_el)
-				.on("mouseout", function() {
-					$.publish("/plot/mouseout", g.node_id);
-				});
+				.attr("height", h_el);
+// 				.on("mouseout", function() {
+// 					$.publish("/plot/mouseout", g.node_id);
+// 				});
     
 	// Ellipse plot axes
 	svg_base.append("g")
@@ -49,17 +51,17 @@ var ELPLOT = (function(d3, $, g){
 	var svg = svg_base.append("g");
 
     el.resize = function() {
-        w_el = $("#graph_container").width();
+        w_el = $("#graph_container").width() * w_frac;
         h_el = aspect * w_el;
 
         svg_base.attr("width", w_el);
         svg_base.attr("height", h_el);
 
-        xScale.range([padding, w_el - padding]);
-        yScale.range([h_el - padding, padding]);
+        xScale.range([padding, w_el - rt_pad]);
+        yScale.range([h_el - padding, rt_pad]);
 
-        xrScale.range([0, w_el - padding * 2]);
-        yrScale.range([0, h_el - padding * 2]);
+        xrScale.range([0, w_el - (padding+rt_pad)]);
+        yrScale.range([0, h_el - (padding+rt_pad)]);
         
         el.updateEllipses(0.001);
         updateAxes();

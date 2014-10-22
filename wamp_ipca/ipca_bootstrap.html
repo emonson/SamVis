@@ -27,27 +27,37 @@
 	<div class="container">
 	
         <nav class="navbar navbar-default" role="navigation">
-            <form class="navbar-form navbar-left" role="search">
-                <div class="form-group">
-                    <!-- Will populate select values in JS -->
-                    <select id="dataset_name" class="form-control"></select>
-
-                    <!-- Will populate select values in JS -->
-                    <select id="scalars_name" class="form-control"></select>
-
-                    <!-- Will populate select values in JS -->
-                    <select id="scalars_aggregator" class="form-control"></select>
+            <div class="container-fluid">
+                <div class="navbar-header">
+                  <a class="navbar-brand">IPCA explorer</a>
                 </div>
-            </form>
+                <form class="navbar-form navbar-left" role="search">
+                    <div class="form-group">
+                        <!-- Will populate select values in JS -->
+                        <select id="dataset_name" class="form-control"></select>
+
+                        <!-- Will populate select values in JS -->
+                        <select id="scalars_name" class="form-control"></select>
+
+                        <!-- Will populate select values in JS -->
+                        <select id="scalars_aggregator" class="form-control"></select>
+                    </div>
+                </form>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="about.html">About</a></li>
+                </ul>
+            </div>
         </nav>
 
 	    <div class="row">
 	    
             <div class="col col-sm-6" id="tree_container">
                     
-                <div class="btn-group" id="ice_tool_buttons">
-                  <button type="button" class="btn btn-default" id="xxdim_decrement" title="lower dimensions"><span class="fa fa-circle fa-lg"><span></button>
-                  <button type="button" class="btn btn-default" id="xxdim_increment" title="higher dimensions"><span class="fa fa-circle fa-lg"><span></button>
+                <h4 class="text-muted pull-left">Node hierarchy</h4>
+
+                <div class="btn-group pull-right" id="ice_tool_buttons">
+                  <button type="button" class="btn btn-default" id="tree_select_button"><span class="fa fa-crosshairs fa-lg text-muted"><span></button>
+                  <button type="button" class="btn btn-default" id="tree_zoom_button"><span class="fa fa-search fa-lg text-muted"><span></button>
                 </div>
 
                 <div id="tree"></div>
@@ -55,10 +65,11 @@
             </div>
 
             <div class="col col-sm-6" id="graph_container">
-        
-                <div class="btn-group" id="ice_tool_buttons">
-                  <button type="button" class="btn btn-default" id="yydim_decrement" title="lower dimensions"><span class="fa fa-circle fa-lg"><span></button>
-                  <button type="button" class="btn btn-default" id="yydim_increment" title="higher dimensions"><span class="fa fa-circle fa-lg"><span></button>
+                <h4 class="text-muted pull-left">Parent projected context</h4>
+                
+                <div class="btn-group pull-right" id="graph_tool_buttons">
+                  <button type="button" class="btn btn-default" id="graph_select_button"><span class="fa fa-crosshairs fa-lg text-muted"><span></button>
+                  <button type="button" class="btn btn-default" id="graph_zoom_button"><span class="fa fa-search fa-lg text-muted"><span></button>
                 </div>
 
                 <div id="graph"></div>
@@ -72,18 +83,20 @@
             <!-- This section is ordered for mobile, and then for desktop the basis images
             get pushed off to the right, and embedding gets pulled to the left -->
             <div class="col col-sm-6 col-sm-push-6" id="basis_container">
+                <h4 class="text-muted">Node center and bases</h4>
                     
                 <div id="node_basis_data_vis"></div>
             
             </div>
             
             <div class="col col-sm-6 col-sm-pull-6" id="embedding_container">
+                <h4 class="text-muted pull-left">Diffusion embedding</h4>
                     
                 <div id="embedding"></div>
             
                 <div class="btn-group-vertical" id="dimension_buttons">
-                  <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions"><span class="fa fa-arrow-circle-up fa-lg"><span></button>
-                  <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg"><span></button>
+                  <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions"><span class="fa fa-arrow-circle-up fa-lg text-muted"><span></button>
+                  <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg text-muted"><span></button>
                 </div>
                 
             </div>

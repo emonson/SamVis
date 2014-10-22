@@ -5,8 +5,7 @@ window.onload = function() {
 
 	// Gray out main panels until a real dataset is loaded
 	if (!GLOBALS.dataset) {
-        $('#left_panel').css({'opacity':0.3});
-        $('#right_panel').css({'opacity':0.3});
+        $('.row').css({'opacity':0.3});
 	}
 	
 	// Populate scalars select 
@@ -141,14 +140,12 @@ window.onload = function() {
     function set_have_dataset_subscriptions() {
         if ($.inArray(GLOBALS.dataset, GLOBALS.dataset_names) >= 0) {
             // Remove lowered opacity when really have dataset
-            $('#left_panel').removeAttr('style');
-            $('#right_panel').removeAttr('style');
+            $('.row').removeAttr('style');
             
             $.subscribe("/data_info/loaded", update_scalar_names_combobox);
             $.subscribe("/data_info/loaded", update_scalar_aggregators_combobox);
             $.subscribe("/data_info/loaded", INDIV.load_individual_vis);
             $.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
-            $.subscribe("/data_info/loaded", SCATTER.getEmbeddingFromServer);
 
             $.subscribe("/embedding/dims_updated", SCATTER.getEmbeddingFromServer);
             $.subscribe("/embedding/updated", SCATTER.updatePoints);
@@ -157,6 +154,7 @@ window.onload = function() {
         
             // NOTE: This is where scales_by_id and ids_by_scale get created
             $.subscribe("/scalars/initialized", ICICLE.init_icicle_view);
+            $.subscribe("/scalars/initialized", SCATTER.getEmbeddingFromServer);
             $.subscribe("/icicle/initialized", makeInitialSelection);
     
             // Normal operation after initializations

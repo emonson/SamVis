@@ -8,7 +8,8 @@ var ICICLE = (function(d3, $, g){
 	// - - - - - - - - - - - - - - - -
 	// Icicle view variables
 
-	var w_ice = $("#tree_container").width();
+    var w_frac = 1.0;
+	var w_ice = $("#tree_container").width() * w_frac;
 	var aspect = 280/350; // height/width
 	var h_ice = aspect * w_ice;
 
@@ -42,7 +43,7 @@ var ICICLE = (function(d3, $, g){
 // 				});
 
     ic.resize = function() {
-        w_ice = $("#tree_container").width();
+        w_ice = $("#tree_container").width() * w_frac;
         h_ice = aspect * w_ice;
 
 	    x_ice.range([0, w_ice]);

@@ -35,10 +35,10 @@ var SCATTER = (function(d3, $, g){
 	var svg_base = d3.select("#embedding")
 				.append("svg")
 				.attr("width", w_el)
-				.attr("height", h_el)
-				.on("mouseout", function() {
-					$.publish("/plot/mouseout", g.node_id);
-				});
+				.attr("height", h_el);
+// 				.on("mouseout", function() {
+// 					$.publish("/plot/mouseout", g.node_id);
+// 				});
     
 	// Ellipse plot axes
 	svg_base.append("g")
