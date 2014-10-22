@@ -127,17 +127,14 @@ window.onload = function() {
 	// Callback : After icicle initialized, make inital selection
 	function makeInitialSelection() {
 	    GLOBALS.node_id = GLOBALS.root_node_id;
-	    $.publish("/icicle/rect_click", GLOBALS.node_id);
+	    $.publish("/node/click", GLOBALS.node_id);
 	}
 	
 	// Callback : Only subscribe individual vis after JS loaded
 	function set_individual_subscriptions() {
-        $.subscribe("/icicle/rect_click", NODE_BASIS_VIS.getBasisDataFromServer);
-        $.subscribe("/icicle/rect_hover", NODE_BASIS_VIS.getBasisDataFromServer);
-        $.subscribe("/icicle/mouseout", NODE_BASIS_VIS.getBasisDataFromServer);
-        $.subscribe("/elplot/ellipse_click", NODE_BASIS_VIS.getBasisDataFromServer);
-        $.subscribe("/elplot/ellipse_hover", NODE_BASIS_VIS.getBasisDataFromServer);
-        $.subscribe("/elplot/mouseout", NODE_BASIS_VIS.getBasisDataFromServer);	
+        $.subscribe("/node/hover", NODE_BASIS_VIS.getBasisDataFromServer);
+        $.subscribe("/plot/mouseout", NODE_BASIS_VIS.getBasisDataFromServer);
+        $.subscribe("/node/click", NODE_BASIS_VIS.getBasisDataFromServer);
 	}
 	
 	// Callback : Only dataset names should be loaded if there is no valid dataset name passed in URL data= query
@@ -154,7 +151,7 @@ window.onload = function() {
             $.subscribe("/data_info/loaded", SCATTER.getEmbeddingFromServer);
 
             $.subscribe("/embedding/dims_updated", SCATTER.getEmbeddingFromServer);
-            $.subscribe("/embedding/updated", SCATTER.drawCustom);
+            $.subscribe("/embedding/updated", SCATTER.updatePoints);
 
             $.subscribe("/individual_vis/loaded", set_individual_subscriptions);
         
@@ -166,26 +163,20 @@ window.onload = function() {
             $.subscribe("/scalars/change", UTILITIES.getScalarsFromServer);
             $.subscribe("/scalars/updated", ELPLOT.updateScalarData);
             $.subscribe("/scalars/updated", ICICLE.updateScalarData);
-            $.subscribe("/scalars/initialized", SCATTER.drawCanvas);
-            $.subscribe("/scalars/updated", SCATTER.drawCanvas);
+            $.subscribe("/scalars/updated", SCATTER.updateScalarData);
     
-            $.subscribe("/icicle/rect_click", ELPLOT.highlightSelectedEllipse);
-            $.subscribe("/icicle/rect_click", ELPLOT.getContextEllipsesFromServer);
-            $.subscribe("/icicle/rect_click", ICICLE.highlightSelectedRect);
-            $.subscribe("/icicle/rect_click", SCATTER.highlightSelectedPoint);
-            $.subscribe("/icicle/rect_alt_click", ICICLE.zoomIcicleView);
+            $.subscribe("/node/click", ELPLOT.highlightSelectedEllipse);
+            $.subscribe("/node/click", ELPLOT.getContextEllipsesFromServer);
+            $.subscribe("/node/click", ICICLE.highlightSelectedRect);
+            $.subscribe("/node/click", SCATTER.highlightSelectedPoint);
+            $.subscribe("/node/alt_click", ICICLE.zoomIcicleView);
     
-            $.subscribe("/elplot/ellipse_click", ELPLOT.getContextEllipsesFromServer);
-            $.subscribe("/elplot/ellipse_click", ELPLOT.highlightSelectedEllipse);
-            $.subscribe("/elplot/ellipse_click", ICICLE.highlightSelectedRect);
-            $.subscribe("/elplot/ellipse_click", SCATTER.highlightSelectedPoint);
-            $.subscribe("/elplot/ellipse_alt_click", ICICLE.zoomIcicleView);
-
             $.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
             
             // window resize
             $.subscribe("/window/resize", ELPLOT.resize);
             $.subscribe("/window/resize", ICICLE.resize);
+            $.subscribe("/window/resize", SCATTER.resize);
         }
 	}
 	

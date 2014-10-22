@@ -110,7 +110,7 @@ var ELPLOT = (function(d3, $, g){
 
 		// Not changing projection basis if pressing alt
 		if (d3.event && d3.event.altKey) {
-			$.publish("/elplot/ellipse_alt_click", that.__data__[5]);
+			$.publish("/node/alt_click", that.__data__[5]);
 		}
 	
 		else {
@@ -118,7 +118,7 @@ var ELPLOT = (function(d3, $, g){
 					.attr("stroke", g.selectColor);
 			
 			g.node_id = that.__data__[5];
-			$.publish("/elplot/ellipse_click", that.__data__[5]);
+			$.publish("/node/click", that.__data__[5]);
 		}
 	};
 	

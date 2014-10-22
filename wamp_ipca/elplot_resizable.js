@@ -37,7 +37,7 @@ var ELPLOT = (function(d3, $, g){
 				.attr("width", w_el)
 				.attr("height", h_el)
 				.on("mouseout", function() {
-					$.publish("/elplot/mouseout", g.node_id);
+					$.publish("/plot/mouseout", g.node_id);
 				});
     
 	// Ellipse plot axes
@@ -118,8 +118,15 @@ var ELPLOT = (function(d3, $, g){
 		else {return op;}
 	};
 
-	var hoverfctn = function(d) {
-		$.publish("/elplot/ellipse_hover", d[5]);
+	// Set up a hover timer to rate-limit (throttle) sending of requests for detailed data views
+	var hover_timer;
+	var ellipse_enter = function(d) {
+		d3.select("#nodeinfo")
+			.text("id = " + d[5] + ", scale = " + g.scales_by_id[d[5]]);
+		hover_timer = setTimeout(function(){$.publish("/node/hover", d[5]);}, 20);
+	};
+	var ellipse_exit = function(d) {
+		clearTimeout(hover_timer);
 	};
 
 	// Ellipse click function (update projection basis)
@@ -129,7 +136,7 @@ var ELPLOT = (function(d3, $, g){
 
 		// Not changing projection basis if pressing alt
 		if (d3.event && d3.event.altKey) {
-			$.publish("/elplot/ellipse_alt_click", that.__data__[5]);
+			$.publish("/node/alt_click", that.__data__[5]);
 		}
 	
 		else {
@@ -137,7 +144,7 @@ var ELPLOT = (function(d3, $, g){
 					.attr("stroke", g.selectColor);
 			
 			g.node_id = that.__data__[5];
-			$.publish("/elplot/ellipse_click", that.__data__[5]);
+			$.publish("/node/click", that.__data__[5]);
 		}
 	};
 	
@@ -189,7 +196,8 @@ var ELPLOT = (function(d3, $, g){
 				.attr("stroke-opacity", 0.0)
 				.attr("fill-opacity", 0)
 					.on("click", clickfctn)
-					.on("mouseover", hoverfctn)
+					.on("mouseover", ellipse_enter)
+					.on("mouseout", ellipse_exit)
 			.transition()
 			.delay(trans_dur/2.0)
 			.duration(trans_dur)

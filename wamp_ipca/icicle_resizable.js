@@ -94,11 +94,11 @@ var ICICLE = (function(d3, $, g){
 		// TODO: Decouple the events from the responses, and move them to main.js!!
 		
 		if (d3.event && d3.event.altKey) {
-			$.publish("/icicle/rect_alt_click", d.i);
+			$.publish("/node/alt_click", d.i);
 		} else {
 			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
 			g.node_id = d.i;
-			$.publish("/icicle/rect_click", d.i);
+			$.publish("/node/click", d.i);
 		}
 	};
 
@@ -117,7 +117,7 @@ var ICICLE = (function(d3, $, g){
 	var rect_enter = function(d) {
 		d3.select("#nodeinfo")
 			.text("id = " + d.i + ", scale = " + d.s);
-		hover_timer = setTimeout(function(){$.publish("/icicle/rect_hover", d.i);}, 20);
+		hover_timer = setTimeout(function(){$.publish("/node/hover", d.i);}, 20);
 	};
 	var rect_exit = function(d) {
 		clearTimeout(hover_timer);

@@ -112,11 +112,11 @@ var ICICLE = (function(d3, $, g){
 		// TODO: Decouple the events from the responses, and move them to main.js!!
 		
 		if (d3.event && d3.event.altKey) {
-			$.publish("/icicle/rect_alt_click", d.i);
+			$.publish("/node/alt_click", d.i);
 		} else {
 			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
 			g.node_id = d.i;
-			$.publish("/icicle/rect_click", d.i);
+			$.publish("/node/click", d.i);
 		}
 	};
 

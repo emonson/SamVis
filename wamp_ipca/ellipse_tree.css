@@ -54,6 +54,10 @@
 	border: 1px solid #ccc;
 }
 
+#embedding {
+    float: left;
+}
+
 p, label {
 	font-family: sans-serif;
 	font-size: 80%;

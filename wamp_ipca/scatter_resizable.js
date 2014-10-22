@@ -7,7 +7,8 @@ var SCATTER = (function(d3, $, g){
 
     // resizable: http://eyeseast.github.io/visible-data/2013/08/28/responsive-charts-with-d3/
     
-	var w_el = $("#embedding_container").width();
+    var w_frac = 0.65;
+	var w_el = $("#embedding_container").width() * w_frac;
 	var aspect = 350/350; // height/width
 	var h_el = aspect * w_el;
 	var padding = 20;
@@ -36,7 +37,7 @@ var SCATTER = (function(d3, $, g){
 				.attr("width", w_el)
 				.attr("height", h_el)
 				.on("mouseout", function() {
-					$.publish("/elplot/mouseout", g.node_id);
+					$.publish("/plot/mouseout", g.node_id);
 				});
     
 	// Ellipse plot axes
@@ -48,7 +49,7 @@ var SCATTER = (function(d3, $, g){
 	var svg = svg_base.append("g");
 
     sc.resize = function() {
-        w_el = $("#embedding_container").width();
+        w_el = $("#embedding_container").width() * w_frac;
         h_el = aspect * w_el;
 
         svg_base.attr("width", w_el);
@@ -78,7 +79,7 @@ var SCATTER = (function(d3, $, g){
 	updateAxes();
 
 	var hoverfctn = function(d) {
-		$.publish("/scatter/point_hover", d[2]);
+		$.publish("/node/hover", d[2]);
 	};
 
 	// Ellipse click function (update projection basis)
@@ -88,15 +89,12 @@ var SCATTER = (function(d3, $, g){
 
 		// Not changing projection basis if pressing alt
 		if (d3.event && d3.event.altKey) {
-			$.publish("/scatter/point_alt_click", that.__data__[2]);
+			$.publish("/node/alt_click", that.__data__[2]);
 		}
 	
 		else {
-			d3.select(this)
-					.attr("stroke", g.selectColor);
-			
 			g.node_id = that.__data__[2];
-			$.publish("/scatter/point_click", that.__data__[2]);
+			$.publish("/node/click", that.__data__[2]);
 		}
 	};
 	
