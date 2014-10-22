@@ -11,13 +11,14 @@ var SCATTER = (function(d3, $, g){
 	var w_el = $("#embedding_container").width() * w_frac;
 	var aspect = 350/350; // height/width
 	var h_el = aspect * w_el;
-	var padding = 20;
+	var bl_pad = 30;
+	var rt_pad = 10;
 	var default_point_size = 6;
 	var highlighted_point_size = 12;
 
 	// Ellipse plot scale functions with placeholder domains
-	var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - padding]);
-	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - padding, padding]);
+	var xScale = d3.scale.linear().domain([0, 1]).range([bl_pad, w_el - rt_pad]);
+	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - bl_pad, rt_pad]);
 
 	// Define X axis
 	var xAxis = d3.svg.axis()
@@ -55,8 +56,8 @@ var SCATTER = (function(d3, $, g){
         svg_base.attr("width", w_el);
         svg_base.attr("height", h_el);
 
-        xScale.range([padding, w_el - padding]);
-        yScale.range([h_el - padding, padding]);
+        xScale.range([bl_pad, w_el - rt_pad]);
+        yScale.range([h_el - bl_pad, rt_pad]);
 
         sc.updatePoints(0.001);
         updateAxes();
@@ -66,12 +67,12 @@ var SCATTER = (function(d3, $, g){
 		
 		//Update X axis
 		svg_base.select(".x.axis")
-		    .attr("transform", "translate(0," + (h_el - padding) + ")")
+		    .attr("transform", "translate(0," + (h_el - bl_pad) + ")")
 			.call(xAxis);
 
 		//Update Y axis
 		svg_base.select(".y.axis")
-		    .attr("transform", "translate(" + padding + ",0)")
+		    .attr("transform", "translate(" + bl_pad + ",0)")
 			.call(yAxis);
 	};
 	

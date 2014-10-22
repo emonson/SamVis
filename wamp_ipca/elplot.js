@@ -11,15 +11,15 @@ var ELPLOT = (function(d3, $, g){
 	var w_el = $("#graph_container").width() * w_frac;
 	var aspect = 350/350; // height/width
 	var h_el = aspect * w_el;
-	var padding = 30;
+	var bl_pad = 30;
 	var rt_pad = 15;
 
 	// Ellipse plot scale functions with placeholder domains
-	var xScale = d3.scale.linear().domain([0, 1]).range([padding, w_el - rt_pad]);
-	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - padding, rt_pad]);
+	var xScale = d3.scale.linear().domain([0, 1]).range([bl_pad, w_el - rt_pad]);
+	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - bl_pad, rt_pad]);
 
-	var xrScale = d3.scale.linear().domain([0, 1]).range([0, w_el - (padding+rt_pad)]);
-	var yrScale = d3.scale.linear().domain([0, 1]).range([0, h_el - (padding+rt_pad)]);
+	var xrScale = d3.scale.linear().domain([0, 1]).range([0, w_el - (bl_pad+rt_pad)]);
+	var yrScale = d3.scale.linear().domain([0, 1]).range([0, h_el - (bl_pad+rt_pad)]);
 
 	// Define X axis
 	var xAxis = d3.svg.axis()
@@ -57,11 +57,11 @@ var ELPLOT = (function(d3, $, g){
         svg_base.attr("width", w_el);
         svg_base.attr("height", h_el);
 
-        xScale.range([padding, w_el - rt_pad]);
-        yScale.range([h_el - padding, rt_pad]);
+        xScale.range([bl_pad, w_el - rt_pad]);
+        yScale.range([h_el - bl_pad, rt_pad]);
 
-        xrScale.range([0, w_el - (padding+rt_pad)]);
-        yrScale.range([0, h_el - (padding+rt_pad)]);
+        xrScale.range([0, w_el - (bl_pad+rt_pad)]);
+        yrScale.range([0, h_el - (bl_pad+rt_pad)]);
         
         el.updateEllipses(0.001);
         updateAxes();
@@ -71,12 +71,12 @@ var ELPLOT = (function(d3, $, g){
 		
 		//Update X axis
 		svg_base.select(".x.axis")
-		    .attr("transform", "translate(0," + (h_el - padding) + ")")
+		    .attr("transform", "translate(0," + (h_el - bl_pad) + ")")
 			.call(xAxis);
 
 		//Update Y axis
 		svg_base.select(".y.axis")
-		    .attr("transform", "translate(" + padding + ",0)")
+		    .attr("transform", "translate(" + bl_pad + ",0)")
 			.call(yAxis);
 	};
 	
