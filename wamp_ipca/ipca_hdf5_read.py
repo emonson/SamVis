@@ -102,6 +102,7 @@ def read_hdf5_fulltree_labels(label_data_filename):
     
     labels = {}
     label_descriptions = {}
+    node_ids = None
     
     with h5py.File(label_data_filename, 'r') as f:
 
@@ -115,7 +116,7 @@ def read_hdf5_fulltree_labels(label_data_filename):
                 labels[lname] = label_data
                 label_descriptions[lname] = ld.attrs['description']
             
-    return labels #, label_descriptions
+    return node_ids, labels #, label_descriptions
 
 def read_hdf5_diffusion_embedding(filename):
     """Read IPCA original data labels and store them in dictionary by name"""

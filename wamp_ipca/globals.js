@@ -31,7 +31,7 @@ var GLOBALS = (function($){
 	// Obj/dict to hold a set of scalar data to color the nodes by
 	globals.scalardata = {};
     globals.scalardomain = [0,1];
-
+    
     // Convenience tree data structures -- may not always need these...
     globals.scales_by_id = [];
     globals.ids_by_scale = {};

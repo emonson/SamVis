@@ -103,6 +103,7 @@ var UTILITIES = (function(d3, $, g){
         // This is scalar data on the tree, coming in as a dict/obj
         g.scalardata = json.labels;
         g.scalardomain = json.domain;
+        g.scalars_aggregator = json.aggregator;
         
         // Use different color maps depending on aggregator function
         switch(g.scalars_aggregator) {
@@ -137,7 +138,7 @@ var UTILITIES = (function(d3, $, g){
             default:
             
                 // interpolateLab, Hsl, Hcl, Rgb
-                g.cScale.domain([0, 1]).range(["red","blue"])
+                g.cScale.domain(g.scalardomain).range(["red","blue"])
                         .interpolate(d3.interpolateLab);
         }
         
@@ -152,11 +153,10 @@ var UTILITIES = (function(d3, $, g){
 	ut.getScalarsFromServer = function() {
         
         if (g.comm_method == 'http') {
-		    d3.json('/' + g.dataset + "/scalars?name=" + g.scalars_name + "&aggregation=" + g.scalars_aggregator, useUpdatedScalars);
+		    d3.json('/' + g.dataset + "/nodescalars?name=" + g.scalars_name, useUpdatedScalars);
 		} else {
-		    g.session.call('test.ipca.scalars', [], {dataset: g.dataset, 
-		                                               name: g.scalars_name, 
-		                                               aggregation: g.scalars_aggregator}).then( useUpdatedScalars ); 
+		    g.session.call('test.ipca.nodescalars', [], {dataset: g.dataset, 
+		                                               name: g.scalars_name}).then( useUpdatedScalars ); 
 		}
 	};
 

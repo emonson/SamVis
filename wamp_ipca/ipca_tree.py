@@ -56,7 +56,9 @@ class IPCATree(object):
             self.originaldata_labels = IH.read_hdf5_originaldata_labels(data_path)
             
             # Read per-node labels from hdf5 file
-            self.pernode_labels = IH.read_hdf5_fulltree_labels(data_path)
+            # Keeping data as separate array of IDs and arrays of scalars for smaller storage
+            #   even though will produce a dict of {id:val, id:val,...} when scalars are requested
+            self.pernode_ids, self.pernode_labels = IH.read_hdf5_fulltree_labels(data_path)
             
             # Need to gather a data structure describing labels so they can be reported
             # and returned by "name"
@@ -533,7 +535,7 @@ class IPCATree(object):
         results['data_info'] = self.data_info
         results['centers_bounds'] = (N.asscalar(c_bounds[:,0].min()),N.asscalar(c_bounds[:,1].max()))
         results['bases_bounds'] = (N.asscalar(b_bounds[:,0].min()),N.asscalar(b_bounds[:,1].max()))
-        results['scalar_names'] = self.originaldata_labels.keys()
+        results['scalar_names'] = self.labels_info.keys()
         results['root_node_id'] = self.tree_root['id']
         
         results['has_embedding'] = False
@@ -584,7 +586,7 @@ class IPCATree(object):
                 # self.labels_info[aggname]['aggregation'] = 'hist'
                 # self.labels_info[aggname]['data'] = self.originaldata_labels[name]
                 
-         for name in self.pernode_labels:
+        for name in self.pernode_labels:
             # no aggregation 
             
             self.labels_info[name] = {}
@@ -624,7 +626,7 @@ class IPCATree(object):
                 else:
                     return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
 
-                result = {'labels':output, 'domain':domain}
+                result = {'labels':output, 'domain':domain, 'aggregation':aggregation}
                 return result
 
     # --------------------
@@ -638,8 +640,11 @@ class IPCATree(object):
             if name in self.labels_info:
                 # Original data labels is a numpy array
                 data_labels_arr = self.labels_info[name]['data']
+                aggregation = ''
                 
                 if 'aggregation' in self.labels_info[name]:
+                    
+                    # Using 'aggregation' field presence to indicate per-point original data labels
                     aggregation = self.labels_info[name]['aggregation']
                     
                     # Average of only requested scalar
@@ -661,8 +666,15 @@ class IPCATree(object):
                     # Error on unsupported aggregation method
                     else:
                         return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
-
-                result = {'labels':output, 'domain':domain}
+                else:
+                    
+                    # Per-node labels
+                    output = self.pretty_sci_floats(dict(zip(self.pernode_ids, data_labels_arr)))
+                    max = N.asscalar(N.max(data_labels_arr))
+                    min = N.asscalar(N.min(data_labels_arr))
+                    domain = self.pretty_sci_floats([min, max])        
+                    
+                result = {'labels':output, 'domain':domain, 'aggregator':aggregation}
                 return result
 
     # --------------------

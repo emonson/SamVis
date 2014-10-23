@@ -41,7 +41,11 @@ window.onload = function() {
         
         // Set default selection to current dataset, or "init" if none chosen in URL data= query
 	    if (GLOBALS.dataset) {
-	        $("#dataset_name").val(location.toString());
+            var pg_url = "http://" + GLOBALS.server_conf.server_name + 
+                                  ":" + GLOBALS.server_conf.ipca_http_port + 
+                                  "/" + GLOBALS.uri.file + 
+                           "?data=" + GLOBALS.dataset;
+	        $("#dataset_name").val(pg_url);
 	    } else {
 	        $("#dataset_name").val("init");
 	    }
@@ -52,25 +56,7 @@ window.onload = function() {
             window.open(this.value, '_self');
         });
 	};
-	
-	var update_scalar_aggregators_combobox = function() {
-        // Scalar aggregation functions. Hard coded in globals for now, so just load in combobox
-        $.each(GLOBALS.scalar_aggregators, function(val, text) {
-            $('#scalars_aggregator').append( $('<option></option>').val(text).html(text) )
-        });
-
-        // Set combo boxes to default values before setting callback so can change defaults
-        // in globals.js rather than in the html
-        $("#scalars_aggregator").val(GLOBALS.scalars_aggregator);
-
-        // Set callback on scalars aggregator combo box change
-        $("#scalars_aggregator").on('change', function(){
-            var agg = $(this).val();
-            GLOBALS.scalars_aggregator = agg;
-            $.publish("/scalars/change");
-        });
-	};
-	
+		
 	// -------------
 	// Embedding scatter
 	var dim_increment = function() {
@@ -143,7 +129,6 @@ window.onload = function() {
             $('.row').removeAttr('style');
             
             $.subscribe("/data_info/loaded", update_scalar_names_combobox);
-            $.subscribe("/data_info/loaded", update_scalar_aggregators_combobox);
             $.subscribe("/data_info/loaded", INDIV.load_individual_vis);
             $.subscribe("/data_info/loaded", UTILITIES.getScalarsFromServer);
 
