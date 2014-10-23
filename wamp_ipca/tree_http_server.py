@@ -63,6 +63,13 @@ class TreeServer:
 
     @cherrypy.expose
     @cherrypy.tools.gzip()
+    def nodescalars(self, name=None):
+        
+        if name:
+            return json.dumps(self.tree.GetNodeScalarsByName(name))
+        
+    @cherrypy.expose
+    @cherrypy.tools.gzip()
     def scalars(self, name=None, aggregation='mean'):
         
         if name:

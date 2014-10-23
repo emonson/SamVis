@@ -76,6 +76,12 @@ class IPCA_DataStore(ApplicationSession):
         if (dataset in self.trees) and name:
             return self.trees[dataset].GetAggregatedScalarsByName(name, aggregation)
         
+    @wamp.register(u"test.ipca.nodescalars")
+    def scalars(self, dataset=None, name=None):
+        
+        if (dataset in self.trees) and name:
+            return self.trees[dataset].GetNodeScalarsByName(name)
+        
     @wamp.register(u"test.ipca.scaleellipses")
     def scaleellipses(self, dataset=None, id=None, basis=None):
         

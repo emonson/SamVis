@@ -20,19 +20,18 @@ var GLOBALS = (function($){
 	globals.wsuri = null;
 	globals.connection = null;
 	
-    // NOTE: only allowing dataset passed in query string
+    // Data set name passed in URI
     globals.uri = parseUri(location.toString());
     globals.dataset = globals.uri.queryKey.data;
     // Filled in later from server
     globals.dataset_names = [];
 
-	// Obj/dict to hold all nodes scalar data
+    // Scalars name passed in URI
+    globals.scalars_name = globals.uri.queryKey.scalars;
+	// Obj/dict to hold a set of scalar data to color the nodes by
 	globals.scalardata = {};
     globals.scalardomain = [0,1];
-    // NOTE: not testing for queryKey in scalar_names array...
-    globals.scalars_name = globals.uri.queryKey.scalars;
-    globals.scalar_aggregators = ["mean", "mode", "entropy"];
-    globals.scalars_aggregator = globals.scalar_aggregators[0];
+
     // Convenience tree data structures -- may not always need these...
     globals.scales_by_id = [];
     globals.ids_by_scale = {};

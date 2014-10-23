@@ -34,18 +34,8 @@ class IPCATree(object):
 
         if data_path:
 
-            # NOTE: Parsing data_info here for now... May want to move this to reader instead?
-            
-            # Read data from binary file
-            # self.data_info = IR.read_data_info(data_path)
-            
             # Read some metadata from the hdf5 file
             self.data_info = IH.read_hdf5_data_info(data_path)
-            
-            # Read tree data from binary file
-            # tree_data_file = os.path.join(data_path, self.data_info['full_tree']['filename'])
-            # print 'Trying to load data set from .ipca file... ', tree_data_file
-            # self.tree_root, self.nodes_by_id = IR.read_sambinary_v3_ipcadata(tree_data_file)
             
             # Read tree data from HDF5 file
             self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(data_path)
@@ -61,30 +51,22 @@ class IPCATree(object):
         
             self.tree_data_loaded = True
 
-            # Read labels from binary file(s)
-            # self.labels = {}
-            # for name, info in self.data_info['original_data']['labels'].iteritems():
-            #   label_data_file = os.path.join(data_path, info['filename'])
-            #   self.labels[name] = IR.read_sambinary_labeldata(label_data_file, info['data_type'])
-
-            # Read labels from hdf5 file
-            self.labels = IH.read_hdf5_labeldata(data_path)
+            # Read per-point original data labels from hdf5 file
+            #   will be aggregated to per-node later
+            self.originaldata_labels = IH.read_hdf5_originaldata_labels(data_path)
+            
+            # Read per-node labels from hdf5 file
+            self.pernode_labels = IH.read_hdf5_fulltree_labels(data_path)
+            
+            # Need to gather a data structure describing labels so they can be reported
+            # and returned by "name"
+            self.post_process_labels()
             
             # Read diffusion embedding (returns None if not present) [n_dims, n_points]
             self.eigenvecs = IH.read_hdf5_diffusion_embedding(data_path)
             # Lazy generation of embedding for nodes (rather than points, which is read in from HDF5 file)
             self.node_embedding = None
 
-            # For now loading original data if the filename field is specified in the metadata
-            # if 'filename' in self.data_info['original_data']:
-            #   orig_data_path = os.path.join(data_path, self.data_info['original_data']['filename'])
-            #   self.orig_data = IR.read_sambinary_originaldata(orig_data_path, self.data_info['original_data']['data_type'])
-
-            # Now that data is loaded, default projection basis is
-            # root node first two PCA directions
-            # Using Sam's notation for now on matrices / arrays
-            # self.V = self.nodes_by_id[0]['phi'][:2,:].T
-            # self.SetBasisID_ReprojectAll(0)
         
     # --------------------
     def post_process_nodes(self, root_node, child_key='children', scale_key='scale'):
@@ -551,7 +533,7 @@ class IPCATree(object):
         results['data_info'] = self.data_info
         results['centers_bounds'] = (N.asscalar(c_bounds[:,0].min()),N.asscalar(c_bounds[:,1].max()))
         results['bases_bounds'] = (N.asscalar(b_bounds[:,0].min()),N.asscalar(b_bounds[:,1].max()))
-        results['scalar_names'] = self.labels.keys()
+        results['scalar_names'] = self.originaldata_labels.keys()
         results['root_node_id'] = self.tree_root['id']
         
         results['has_embedding'] = False
@@ -562,6 +544,54 @@ class IPCATree(object):
         return results
 
     # --------------------
+    def post_process_labels(self):
+        """Need to gather a data structure describing available scalar labels for the nodes,
+            along with what aggregation will need to be done on per-point origin data labels
+            before they can be returned. Using presence of 'aggregation' to indicate per-point data."""
+        
+        # self.originaldata_labels = IH.read_hdf5_originaldata_labels(data_path)
+        # self.pernode_labels = IH.read_hdf5_fulltree_labels(data_path)
+        # np.issubdtype(xx.dtype, np.number)
+        # np.issubdtype(xx.dtype, int)
+        # np.issubdtype(xx.dtype, float)
+        
+        self.labels_info = {}
+        
+        for name in self.originaldata_labels:
+            # types of aggregation available depend on data type
+            
+            # all numeric types can do a mean and entropy
+            if N.issubdtype(self.originaldata_labels[name].dtype, N.number):
+                aggname = name + '_mean'
+                self.labels_info[aggname] = {}
+                self.labels_info[aggname]['aggregation'] = 'mean'
+                self.labels_info[aggname]['data'] = self.originaldata_labels[name]
+
+                aggname = name + '_entropy'
+                self.labels_info[aggname] = {}
+                self.labels_info[aggname]['aggregation'] = 'entropy'
+                self.labels_info[aggname]['data'] = self.originaldata_labels[name]
+
+            # mode and hist can only be integer for now
+            if N.issubdtype(self.originaldata_labels[name].dtype, int):
+                aggname = name + '_mode'
+                self.labels_info[aggname] = {}
+                self.labels_info[aggname]['aggregation'] = 'mode'
+                self.labels_info[aggname]['data'] = self.originaldata_labels[name]
+
+                # aggname = name + '_hist'
+                # self.labels_info[aggname] = {}
+                # self.labels_info[aggname]['aggregation'] = 'hist'
+                # self.labels_info[aggname]['data'] = self.originaldata_labels[name]
+                
+         for name in self.pernode_labels:
+            # no aggregation 
+            
+            self.labels_info[name] = {}
+            self.labels_info[name]['data'] = self.pernode_labels[name]
+            
+   
+    # --------------------
     def GetAggregatedScalarsByName(self, name = None, aggregation = 'mean'):
         """Take in scalar "name" and aggregation method
         and get out JSON of scalars for all nodes by id, calculated 'on the fly'.
@@ -570,74 +600,25 @@ class IPCATree(object):
         Output is a dict/obj of scalar labels by id and range array"""
         
         if name:
-            if name in self.labels:
+            if name in self.originaldata_labels:
                 # Original data labels is a numpy array
-                data_labels_arr = self.labels[name]
+                data_labels_arr = self.originaldata_labels[name]
                 
                 # Average of only requested scalar
                 if aggregation == 'mean':
-                    node_labels_dict = {}
-                    for id,node in self.nodes_by_id.iteritems():
-                        indices = node['indices']
-                        node_labels_dict[id] = N.mean(data_labels_arr[indices])
-                    output = self.pretty_sci_floats(node_labels_dict)
-                    output_arr = N.array(node_labels_dict.values())
-                    max = N.asscalar(N.max(output_arr))
-                    min = N.asscalar(N.min(output_arr))
-                    domain = self.pretty_sci_floats([min, max])
-                        
+                    output, domain = self.labels_mean( data_labels_arr )
+                    
                 # Winner is most highly represented label (integer in and out)
                 elif aggregation == 'mode':
-                    node_labels_dict = {}
-                    for id,node in self.nodes_by_id.iteritems():
-                        indices = node['indices']
-                        # NOTE: Sometimes a single point in a node ends up as a scalar index
-                        # rather than an array of indices...
-                        if hasattr(indices, '__len__'):
-                            counts = N.bincount(data_labels_arr[indices])
-                        else:
-                            counts = N.bincount([data_labels_arr[indices]])
-                        node_labels_dict[id] = N.argmax(counts)
-                    output = node_labels_dict
-                    output_arr = N.array(node_labels_dict.values(), dtype='int')
-                    max = N.asscalar(N.max(output_arr))
-                    min = N.asscalar(N.min(output_arr))
-                    domain = N.unique(output_arr).tolist()
+                    output, domain = self.labels_mode( data_labels_arr )
                 
                 # "Standard" entropy
                 elif aggregation == 'entropy':
-                    node_labels_dict = {}
-                    for id,node in self.nodes_by_id.iteritems():
-                        indices = node['indices']
-                        node_labels_dict[id] = self.entropy(data_labels_arr[indices])
-                    output = self.pretty_sci_floats(node_labels_dict)
-                    output_arr = N.array(node_labels_dict.values())
-                    max = N.asscalar(N.max(output_arr))
-                    min = N.asscalar(N.min(output_arr))
-                    domain = self.pretty_sci_floats([min, max])
+                    output, domain = self.labels_entropy( data_labels_arr )
                 
                 # 'hist'
                 elif aggregation == 'hist':
-                    unique_labels = N.unique(data_labels_arr)
-                    # want to be able to look up the indices of each of the labels
-                    # for cases in which they're not sequential and individual nodes where
-                    # not all labels are present
-                    reverse_lookup = N.zeros(N.max(unique_labels)+1, dtype='int')-1
-                    for ii,ul in enumerate(unique_labels):
-                        reverse_lookup[ul] = ii
-                    n_bins = len(unique_labels)
-                    node_labels_dict = {}
-                    for id,node in self.nodes_by_id.iteritems():
-                        indices = node['indices']
-                        bincount = N.bincount(data_labels_arr[indices])
-                        node_unique_labels = N.nonzero(bincount)
-                        label_indices = reverse_lookup[node_unique_labels]
-                        tmp_labels_arr = N.zeros((1,n_bins),dtype='int')
-                        tmp_labels_arr[label_indices] = bincount[node_unique_labels]
-                        node_labels_dict[id] = tmp_labels_arr.tolist()
-                    output = node_labels_dict
-                    # For a histogram lower bound assumed to be zero, so only computing max
-                    domain = {'domain':unique_labels.tolist(), 'max':N.max(labels, axis=0).tolist()}
+                    output, domain = self.labels_hist( data_labels_arr )
                                 
                 # Error on unsupported aggregation method
                 else:
@@ -646,7 +627,117 @@ class IPCATree(object):
                 result = {'labels':output, 'domain':domain}
                 return result
 
+    # --------------------
+    def GetNodeScalarsByName(self, name = None):
+        """Take in scalar "name" and return per-node scalars to color visualizations.
+            Per-original-data-point labels are not aggregated before request, so 
+            self.all_labels data structure (dict) is used to determine where data is stored
+            and whether it needs to be aggregated before return."""
+        
+        if name:
+            if name in self.labels_info:
+                # Original data labels is a numpy array
+                data_labels_arr = self.labels_info[name]['data']
+                
+                if 'aggregation' in self.labels_info[name]:
+                    aggregation = self.labels_info[name]['aggregation']
+                    
+                    # Average of only requested scalar
+                    if aggregation == 'mean':
+                        output, domain = self.labels_mean( data_labels_arr )
+                    
+                    # Winner is most highly represented label (integer in and out)
+                    elif aggregation == 'mode':
+                        output, domain = self.labels_mode( data_labels_arr )
+                
+                    # "Standard" entropy
+                    elif aggregation == 'entropy':
+                        output, domain = self.labels_entropy( data_labels_arr )
+                
+                    # 'hist'
+                    elif aggregation == 'hist':
+                        output, domain = self.labels_hist( data_labels_arr )
+                                
+                    # Error on unsupported aggregation method
+                    else:
+                        return "Aggregation method " + aggregation + " not supported. Use mean, hist or mode"
 
+                result = {'labels':output, 'domain':domain}
+                return result
+
+    # --------------------
+    # Label Aggregation Functions : return (output_labels_dict, domain_dict)
+    
+    # -- Mean -- any type
+    def labels_mean(self, data_labels_arr):
+        node_labels_dict = {}
+        for id,node in self.nodes_by_id.iteritems():
+            indices = node['indices']
+            node_labels_dict[id] = N.mean(data_labels_arr[indices])
+        output = self.pretty_sci_floats(node_labels_dict)
+        output_arr = N.array(node_labels_dict.values())
+        max = N.asscalar(N.max(output_arr))
+        min = N.asscalar(N.min(output_arr))
+        domain = self.pretty_sci_floats([min, max])        
+        return output, domain
+        
+    # -- Entropy -- any type
+    def labels_entropy(self, data_labels_arr):
+        node_labels_dict = {}
+        for id,node in self.nodes_by_id.iteritems():
+            indices = node['indices']
+            node_labels_dict[id] = self.entropy(data_labels_arr[indices])
+        output = self.pretty_sci_floats(node_labels_dict)
+        output_arr = N.array(node_labels_dict.values())
+        max = N.asscalar(N.max(output_arr))
+        min = N.asscalar(N.min(output_arr))
+        domain = self.pretty_sci_floats([min, max])
+        return output, domain
+        
+    # -- Mode -- integer only (or, in principle, categorical...)
+    def labels_mode(self, data_labels_arr):
+        node_labels_dict = {}
+        for id,node in self.nodes_by_id.iteritems():
+            indices = node['indices']
+            # NOTE: Sometimes a single point in a node ends up as a scalar index
+            # rather than an array of indices...
+            if hasattr(indices, '__len__'):
+                counts = N.bincount(data_labels_arr[indices])
+            else:
+                counts = N.bincount([data_labels_arr[indices]])
+            node_labels_dict[id] = N.argmax(counts)
+        output = node_labels_dict
+        output_arr = N.array(node_labels_dict.values(), dtype='int')
+        max = N.asscalar(N.max(output_arr))
+        min = N.asscalar(N.min(output_arr))
+        domain = N.unique(output_arr).tolist()
+        return output, domain
+        
+    # -- Histogram -- integer only (or, in principle, categorical...)
+    def labels_hist(self, data_labels_arr):
+        unique_labels = N.unique(data_labels_arr)
+        # want to be able to look up the indices of each of the labels
+        # for cases in which they're not sequential and individual nodes where
+        # not all labels are present
+        reverse_lookup = N.zeros(N.max(unique_labels)+1, dtype='int')-1
+        for ii,ul in enumerate(unique_labels):
+            reverse_lookup[ul] = ii
+        n_bins = len(unique_labels)
+        node_labels_dict = {}
+        for id,node in self.nodes_by_id.iteritems():
+            indices = node['indices']
+            bincount = N.bincount(data_labels_arr[indices])
+            node_unique_labels = N.nonzero(bincount)
+            label_indices = reverse_lookup[node_unique_labels]
+            tmp_labels_arr = N.zeros((1,n_bins),dtype='int')
+            tmp_labels_arr[label_indices] = bincount[node_unique_labels]
+            node_labels_dict[id] = tmp_labels_arr.tolist()
+        output = node_labels_dict
+        # For a histogram lower bound assumed to be zero, so only computing max
+        domain = {'domain':unique_labels.tolist(), 'max':N.max(labels, axis=0).tolist()}
+        return output, domain
+        
+        
     # --------------------
     def GetLiteTree(self):
         

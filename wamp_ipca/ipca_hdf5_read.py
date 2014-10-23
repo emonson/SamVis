@@ -77,7 +77,7 @@ def read_hdf5_ipcadata(tree_data_filename):
     return tree_root, nodes_by_id
     
 
-def read_hdf5_labeldata(label_data_filename):
+def read_hdf5_originaldata_labels(label_data_filename):
     """Read IPCA original data labels and store them in dictionary by name"""
     
     labels = {}
@@ -86,13 +86,34 @@ def read_hdf5_labeldata(label_data_filename):
     with h5py.File(label_data_filename, 'r') as f:
 
         # Original data labels
-        labels_g = f['/original_data/labels']
-        for lname in labels_g.keys():
-            ld = labels_g[lname]
-            label_data = N.empty(ld.shape, dtype=ld.dtype)
-            ld.read_direct(label_data)
-            labels[lname] = label_data
-            label_descriptions[lname] = ld.attrs['description']
+        if ('original_data' in f['/']) and ('labels' in f['/original_data']):
+            labels_g = f['/original_data/labels']
+            for lname in labels_g.keys():
+                ld = labels_g[lname]
+                label_data = N.empty(ld.shape, dtype=ld.dtype)
+                ld.read_direct(label_data)
+                labels[lname] = label_data
+                label_descriptions[lname] = ld.attrs['description']
+            
+    return labels #, label_descriptions
+
+def read_hdf5_fulltree_labels(label_data_filename):
+    """Read IPCA full tree (per-node) labels and store them in dictionary by name"""
+    
+    labels = {}
+    label_descriptions = {}
+    
+    with h5py.File(label_data_filename, 'r') as f:
+
+        # Per-node full-tree data labels
+        if ('full_tree' in f['/']) and ('labels' in f['/full_tree']):
+            labels_g = f['/full_tree/labels']
+            for lname in labels_g.keys():
+                ld = labels_g[lname]
+                label_data = N.empty(ld.shape, dtype=ld.dtype)
+                ld.read_direct(label_data)
+                labels[lname] = label_data
+                label_descriptions[lname] = ld.attrs['description']
             
     return labels #, label_descriptions
 
