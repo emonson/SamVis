@@ -20,19 +20,23 @@ This is work with [Mauro Maggioni][mauro] and [Samuel Gerber][sam] at Duke Unive
 The modules required beyond that of the standard library are:
 
 - [CherryPy][] for a small HTTP server
-- [Autobahn | Python][autobahn] WAMP websockets protocol, which depends on [Twisted][]
-- [NumPy](http://numpy.org) for C-backed numerical processing and data structures
-- [SciPy](http://www.scipy.org) for linear algebra
+- [Autobahn | Python][autobahn] HTTP server + WAMP MVC websockets protocol (depends on [Twisted][])
+- [NumPy][] for C-backed numerical processing and data structures
+- [SciPy][] for linear algebra
+
+[NumPy]: http://numpy.org "NumPy"
+[SciPy]: http://www.scipy.org "SciPy"
 
 **Anaconda:** For my Python distribution I'm using [Anaconda][anaconda]
 from [Continuum Analytics](http://www.continuum.io/). It comes 
-with lots of pre-installed modules, including NumPy and SciPy, which are sometimes difficult
+with lots of pre-installed modules, including [NumPy][] and [SciPy][], which are sometimes difficult
 to install separately. It's free and available for all platforms,
 and you can even get free academic licences for some "Add-Ons" to accelerate execution and I/O.
 Also, it gets installed in your local home directory, so you don't need administrator
 priviledges to install, and it won't overwrite or interfere with your other Python
 installations. (The Anaconda executable directories must show up in your PATH before
-the system Python installations...)
+the system Python installations, but that gets taken care of as part of the installation
+process.)
 
 Anaconda doesn't come with [Autobahn | Python][autobahn] or [CherryPy][], 
 so I just install them with `pip`. You can use
@@ -43,7 +47,7 @@ usually bother. [Twisted][], which [Autobahn][autobahn] depends on, can be insta
 *Installation:* Go to [https://store.continuum.io/cshop/anaconda/][anaconda] to download Anaconda for your platform
 and run the installer. Then do:
 
-```
+```bash
 conda install twisted
 pip install anaconda
 pip install cherrypy
@@ -54,27 +58,50 @@ pip install cherrypy
 [autobahn]: http://autobahn.ws/python/
 [Twisted]: https://twistedmatrix.com/trac/
 
+**Homebrew:** Right now I'm using [homebrew][] to install all of the major
+dependencies under OS X 10.8 that I possibly can, including [Git][]. 
+See the [homebrew home page][homebrew]
+for installation instructions for homebrew itself.
+
+```bash
+homebrew install git
+```
+
+[git]: http://git-scm.com/ "Git"
+[homebrew]: http://brew.sh "Homebrew"
 
 ### JavaScript
 
-All of the javascript dependencies are in the repository in the
-libs directory off of the main repository, but here are a list of the currently used libraries:
+All of the javascript dependencies are currently in the repository in the
+libs directory off of the main repository:
 
 - [d3.js](http://d3js.org/)
 - [jQuery](http://jquery.com)
-- [jQueryUI](http://jqueryui.com) subset including only the slider for now
 - [jQuery tiny pubsub](https://gist.github.com/cowboy/661855) for events publish/subscribe
 - [parseUri](http://blog.stevenlevithan.com/archives/parseuri) for parsing the page URI
+- [Autobahn | JS](http://autobahn.ws/js/) for WAMP MVC websockets communication
 
-**Homebrew:** Right now I'm using [homebrew](http://brew.sh) to install all of the major
-dependencies under OS X 10.8 that I possibly can.
+### Bootstrap CSS and font-awesome
 
-[git]: http://git-scm.com/ "Git"
+I've been starting to use [Bower package manager][bower] to easily locally install all of my JavaScript 
+and other web dependencies. Currently the IPCA Explorer still uses the above-mentioned JS libraries
+in the libs directory, but I use [bower][] to install the [Bootstrap HTML/CSS/JS framework][bootstrap] 
+for developing responsive (mobile-first) web applications and [Font Awesome][] for icons. When you type
+
+```bash
+bower install
+```
+
+the `bower.json` file in this directory is used, and dependencies get installed in a new
+subdirectory called `bower_components`. (This will be ignored by git.)
+
 [node]: http://nodejs.org/ "node.js"
 [bower]: http://bower.io/ "Bower"
+[bootstrap]: http://getbootstrap.com/ "Bootstrap"
+[Font Awesome]: http://fortawesome.github.io/Font-Awesome/ "Font Awesome"
 
 
-## Local Web Server Name Configuration
+## Local Web Server Configuration
 
 The file `server_conf_example.json` is an example of the file which sets the local server
 name for both the Javascript and Python scripts. Make a copy and call it `server_conf.json`.
@@ -103,30 +130,38 @@ the scripts, so use that actual string in your reverse proxy name)*
 
 ## Data directory and files 
 
-Right now the projects are set up to load multiple datasets into memory
+The data servers are set up to load multiple datasets into memory
 so they can be served up when requested. There is a download link below with
-some sample data. 
+some sample data. The data is stored in an [HDF5][] file. This allows us to
+put all data and descriptive metadata into a single file, readable from almost
+any programming language.
 
 **HDF5 data:** The preliminary specification for the GMRA HDF5 file format is published
 on the web in a [Google Doc here][hdf5spec].
 
-**Matlab converter:**
+**Sam binary converter:** There is a Python script, `sambinary_to_hdf5_converter.py`, which
+will convert GMRA results generated by Sam's `gmra_src` code into the proper HDF5 format.
 
-**Resource Index:** When you start up the HTTP-based IPCA tree
-server it will look for directories in the `ipca_data_dir` and put links
-to visualizations at the address
+**Matlab converter:** Data generated with [Mauro's GMRA code][gmra] is converted to
+the proper format with a Matlab script, `matlab_to_hdf5_write.m`, located in the `matlab`
+directory of the man repository.
 
-`http://servername.sub.school.edu/remote9002/resource_index`
+### Initial visualization page location
 
-where that server name and 9002 port number you've set in the
-`server_conf.json` file. What you'll see is a list of names the same as
-your data directory names, but they'll all be links to visualization
-pages.
+To see the visualizaiton and choose a dataset you will go to the server and port
+you setup in the `server_conf.json` file, at the `ipca_explorer.html` page. For example:
+
+[http://localhost:8080/ipca_explorer.html](http://localhost:8080/ipca_explorer.html)
+[http://servername.sub.school.edu:8080/ipca_explorer.html](http://servername.sub.school.edu:8080/ipca_explorer.html)
 
 
 ## IPCA Example Data
 
+There is a sample data file available [at this link][sample_data]. It is a zip-compressed
+(6 Mb) HDF5 file of GMRA data processed in Matlab and converted to HDF5 with the Matlab script
+in the `matlab` direcotry of the main repository.
 
+[hdf5]: http://www.hdfgroup.org/HDF5/ "HDF5"
 [hdf5spec]: https://docs.google.com/document/d/1h50SPiZSpFG40TA8OfnBAC2E6csVmbTiOt6ltM3FIfo/pub
 [mnist]: http://yann.lecun.com/exdb/mnist/
 [sample_data]: http://people.duke.edu/~emonson/mnist12_1k.hdf5.zip
