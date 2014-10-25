@@ -140,7 +140,9 @@ window.onload = function() {
             // NOTE: This is where scales_by_id and ids_by_scale get created
             $.subscribe("/scalars/initialized", ICICLE.init_icicle_view);
             $.subscribe("/scalars/initialized", SCATTER.getEmbeddingFromServer);
+            // TODO: Figure out a way to only make initial selection once all are initialized...
             $.subscribe("/icicle/initialized", makeInitialSelection);
+            $.subscribe("/scatter/initialized", makeInitialSelection);
     
             // Normal operation after initializations
             $.subscribe("/scalars/change", UTILITIES.getScalarsFromServer);

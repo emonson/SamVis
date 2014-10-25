@@ -123,6 +123,9 @@ var SCATTER = (function(d3, $, g){
 	
 		// Default value for transition duration
 		trans_dur = trans_dur || 500;
+		
+		// Check if this is the first time through
+		var initial_circle_count = svg.selectAll("circle").size();
 	
 		// Update the circles
 		// data = [[X, Y, i], ...]
@@ -150,11 +153,16 @@ var SCATTER = (function(d3, $, g){
 			.remove();
 	
 		// Reorder ellipses in the background by scale, higher scale later (drawn on top)
+		// TODO: Figure out how to push the selected point up to the top...
 		els.sort(function(a,b) {
 		    return g.scales_by_id[a[2]] - g.scales_by_id[b[2]];
 		});
 		
 		updateAxes();
+		
+		if (initial_circle_count == 0) {
+		    $.publish("/scatter/initialized");
+		}
 	};
 
     function useUpdatedEmbedding(json) {	
