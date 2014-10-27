@@ -17,7 +17,9 @@ build*
 *.user
 
 # Directory & files pyinstaller creates
-dist
+# Bit of a conflict if we want to store bower installed packages
+# because they often come in dist directories...
+IPCA/dist
 *.spec
 
 # Matlab temp files
