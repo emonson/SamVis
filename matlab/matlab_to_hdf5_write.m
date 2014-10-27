@@ -17,6 +17,13 @@ H5F.close(fid);
 
 %% Original data
 
+% HACK: The MNIST data needs to be rotated and flipped to show up correctly
+% in the GUIs, so I'm doing this fragile test that if the original data is
+% 784 long (28x28) it must be MNIST...
+if (size(GMRA.X, 1) == 784)
+    GMRA.X = MNIST_image_flip(GMRA.X);
+end
+
 fprintf('Writing original data\n');
 
 % Original data : want [D x N]
@@ -31,7 +38,7 @@ if imgOpts.imageData,
     h5writeatt(filename, '/original_data', 'image_n_columns', int64(imgOpts.imC));
 end
 
-%% Labels
+%% Per-point original data Labels
 
 % imgOpts will probalby have to evolve into a more general metadata store
 %   about the original data
@@ -73,7 +80,7 @@ for ii = 1:size(imgOpts.Labels, 2)
     % h5writeatt(filename, label_path, 'key', {{'1', 'digit1'}, {'2', 'digit2'}});
 end
 
-%% Diffusion graph (only eigenvectors for now...)
+%% Per-point original data Diffusion graph (only eigenvectors for now...)
 
 if isfield(GMRA, 'Graph') && isfield(GMRA.Graph, 'EigenVecs'),
     fprintf('Writing original data diffusion embedding\n');
@@ -87,6 +94,9 @@ if isfield(GMRA, 'Graph') && isfield(GMRA.Graph, 'EigenVecs'),
     
     % TODO: Copy over all GMRA.Graph.Opts options to attributes of /original_data/diffusion_graph
 end
+
+%% TODO: Need Per-node Labels and Diffusion Embedding section
+
 
 %% Full tree by ID
 
