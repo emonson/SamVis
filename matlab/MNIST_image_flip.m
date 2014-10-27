@@ -7,7 +7,7 @@ function X1 = MNIST_image_flip(X0)
 % Rotate images for GUI
 yy = reshape(X0,28,28,[]);
 yy1 = permute(yy,[2 1 3]);
-yy2 = flip(yy1,2);
-X1 = reshape(yy2,784,[]);
+% yy2 = flip(yy1,2);    % old non-web-based GUI needed this line...
+X1 = reshape(yy1,784,[]);
 
 end

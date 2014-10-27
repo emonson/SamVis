@@ -1,4 +1,4 @@
-function [X, GWTopts, imgOpts] = GenerateData_and_SetParameters(pExampleName)
+function [X, GWTopts, imgOpts] = Mauro_GenerateData_and_SetParameters(pExampleName)
 
 % set GWT parameters
 GWTopts = struct();
@@ -49,13 +49,13 @@ switch pExampleName
         % generate the dataset
         dataset = struct();
         dataset.N = 1000;
-        dataset.digits = [0:9];
+        dataset.digits = [1 2];
         dataset.projectionDimension = 784;
         
         [X0,GraphDiffOpts,NetsOpts,Labels] = GenerateDataSets( 'BMark_MNIST', ...
             struct('NumberOfPoints',dataset.N,'AutotuneScales',false,'MnistOpts',struct('Sampling', 'FirstN', 'QueryDigits',dataset.digits, 'ReturnForm', 'vector'))); %#ok<ASGLU>
         
-        % image parameters
+        % image parameters metadata for visualization
         imgOpts.imageData = true;
         imgOpts.imR = 28;
         imgOpts.imC = 28;
@@ -64,6 +64,9 @@ switch pExampleName
         imgOpts.LabelDataTypes{1} = 'int32';
         imgOpts.LabelVariableTypes{1} = 'categorical';
         imgOpts.LabelDescriptions{1} = 'Integer equal to the identity of the handwritten digit in the image';
+        
+        % image data itself needs to be rotated and flipped for GUI
+        X0 = MNIST_image_flip(X0);
         
         if dataset.projectionDimension>0 && dataset.projectionDimension<imgOpts.imR*imgOpts.imC,
             imgOpts.X0 = X0;

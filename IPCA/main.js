@@ -142,7 +142,7 @@ window.onload = function() {
             $.subscribe("/scalars/initialized", SCATTER.getEmbeddingFromServer);
             // TODO: Figure out a way to only make initial selection once all are initialized...
             $.subscribe("/icicle/initialized", makeInitialSelection);
-            $.subscribe("/scatter/initialized", makeInitialSelection);
+            // $.subscribe("/scatter/initialized", makeInitialSelection);
     
             // Normal operation after initializations
             $.subscribe("/scalars/change", UTILITIES.getScalarsFromServer);

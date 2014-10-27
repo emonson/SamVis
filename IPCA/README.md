@@ -177,12 +177,16 @@ depending on the specifics of your `server_conf.json` file.
 
 ## IPCA Example Data
 
-There is a sample data file available [at this link][sample_data]. It is a zip-compressed
-(6 Mb) HDF5 file of GMRA data processed in Matlab and converted to HDF5 with the Matlab script
-in the `matlab` direcotry of the main repository. The original data consists of 1000 each of
-handwritten 1s and 2s from the [MNIST handwritten digits data set][mnist].
+There are two sample data files available. They are zip-compressed
+HDF5 files of GMRA data processed in Matlab and converted to HDF5 with the Matlab script
+`matlab_to_hdf5_write.m` in the `matlab` direcotry of the main repository. 
+The original data are images of handwritten digits from the [MNIST handwritten digits data set][mnist].
+The first one is [1000 each of 1s and 2s][mnist_12_data], and the second is
+[1000 each of 3, 5, 6, and 9][mnist_3569_data]. Unzip them and place the HDF5 files
+in the directory you set as the `ipca_data_dir` in `server_conf.json`.
 
 [hdf5]: http://www.hdfgroup.org/HDF5/ "HDF5"
 [hdf5spec]: https://docs.google.com/document/d/1h50SPiZSpFG40TA8OfnBAC2E6csVmbTiOt6ltM3FIfo/pub
 [mnist]: http://yann.lecun.com/exdb/mnist/
-[sample_data]: http://people.duke.edu/~emonson/mnist12_1k.hdf5.zip
+[mnist_12_data]: http://people.duke.edu/~emonson/mnist_12_1k.hdf5.zip
+[mnist_3569_data]: http://people.duke.edu/~emonson/mnist_3569_1k.hdf5.zip
