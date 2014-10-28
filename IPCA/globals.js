@@ -66,7 +66,6 @@ var GLOBALS = (function($){
     globals.embedding = [];
     globals.xdim = 1;
     globals.ydim = 2;
-    globals.stop_drawloop = false;
     
     return globals;
 

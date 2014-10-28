@@ -56,13 +56,21 @@ window.onload = function() {
             window.open(this.value, '_self');
         });
 	};
+	
+	// Take focus away from buttons after being depressed
+	// http://stackoverflow.com/questions/23443579/how-to-stop-buttons-from-staying-depressed-with-bootstrap-3
+	$(".btn").mouseup(function(){
+	    $(this).blur();
+	});
 		
 	// -------------
 	// Embedding scatter
+	
 	var dim_increment = function() {
 	    if (GLOBALS.has_embedding && (GLOBALS.ydim < GLOBALS.n_embedding_dims-1)) {
             GLOBALS.xdim += 1;
             GLOBALS.ydim += 1;
+            dim_button_check_disabled();
             $.publish("/embedding/dims_updated");
 	    }
 	};
@@ -71,8 +79,23 @@ window.onload = function() {
 	    if (GLOBALS.has_embedding && (GLOBALS.xdim > 1)) {
             GLOBALS.xdim -= 1;
             GLOBALS.ydim -= 1;
+            dim_button_check_disabled();
             $.publish("/embedding/dims_updated");
 	    }
+	};
+    
+	var dim_reset = function() {
+	    if (GLOBALS.has_embedding) {
+            GLOBALS.xdim = 1;
+            GLOBALS.ydim = 2;
+            dim_button_check_disabled();
+            $.publish("/embedding/dims_updated");
+	    }
+	};
+	
+	var dim_button_check_disabled = function() {
+        $("#dim_increment").toggleClass("disabled", (GLOBALS.ydim == GLOBALS.n_embedding_dims-1));
+        $("#dim_decrement").toggleClass("disabled", (GLOBALS.xdim == 1));
 	};
     
     // Send out message on window resize
@@ -103,10 +126,18 @@ window.onload = function() {
             timeout = setTimeout(later, wait);
         };
     }
-
+    
+	// -------------
+    // Tool buttons
+    
 	// Embedding dimension increment/decrement callbacks
 	$("#dim_increment").click(dim_increment);
 	$("#dim_decrement").click(dim_decrement);
+	$("#dim_reset").click(dim_reset);
+	
+	// Icicle plot tools
+	$("#tree_reset_button").click(ICICLE.reset_zoom);
+
 	// -------------
 	
 	// Callback : After icicle initialized, make inital selection
@@ -117,7 +148,8 @@ window.onload = function() {
 	
 	// Callback : Only subscribe individual vis after JS loaded
 	function set_individual_subscriptions() {
-        $.subscribe("/node/hover", NODE_BASIS_VIS.getBasisDataFromServer);
+        // $.subscribe("/node/hover", NODE_BASIS_VIS.getBasisDataFromServer);
+        $.subscribe("/node/info", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/plot/mouseout", NODE_BASIS_VIS.getBasisDataFromServer);
         $.subscribe("/node/click", NODE_BASIS_VIS.getBasisDataFromServer);
 	}
@@ -139,9 +171,9 @@ window.onload = function() {
         
             // NOTE: This is where scales_by_id and ids_by_scale get created
             $.subscribe("/scalars/initialized", ICICLE.init_icicle_view);
-            $.subscribe("/scalars/initialized", SCATTER.getEmbeddingFromServer);
+            $.subscribe("/icicle/initialized", SCATTER.getEmbeddingFromServer);
             // TODO: Figure out a way to only make initial selection once all are initialized...
-            $.subscribe("/icicle/initialized", makeInitialSelection);
+            $.subscribe("/scatter/initialized", makeInitialSelection);
             // $.subscribe("/scatter/initialized", makeInitialSelection);
     
             // Normal operation after initializations

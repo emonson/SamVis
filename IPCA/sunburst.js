@@ -109,18 +109,20 @@ var ICICLE = (function(d3, $, g){
 	
 	var rect_click = function(d) {
 	
-		// TODO: Decouple the events from the responses, and move them to main.js!!
-		
-		if (d3.event && d3.event.altKey) {
+		if (d3.event && $("#tree_treezoom_button").hasClass("active")) {
 			$.publish("/node/alt_click", d.i);
-		} else {
+		} 
+		else if (d3.event && $("#tree_info_button").hasClass("active")) {
+		    $.publish("/node/info", d.i);
+		}
+		else {
 			var new_scale = g.scales_by_id[g.node_id] == g.scales_by_id[d.i] ? false : true;
 			g.node_id = d.i;
 			$.publish("/node/click", d.i);
 		}
 	};
 
-	var rect_dblclick = function(d) {
+	ic.reset_zoom = function(d) {
 	
 	    // Pass root node to zoom
 		ic.zoomIcicleView(g.root_node_id);
@@ -182,7 +184,6 @@ var ICICLE = (function(d3, $, g){
                 .attr("d", arc)
                 .attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); })
                 .on("click", rect_click)
-                .on("dblclick", rect_dblclick)
                 .on("mouseover", rect_enter)
                 .on("mouseout", rect_exit);
                 

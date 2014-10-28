@@ -11,8 +11,8 @@
         <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
  -->
-        <link href="libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="libs/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+        <link href="/libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/libs/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 
 <!-- 
     <style>
@@ -52,30 +52,58 @@
         </nav>
 
 	    <div class="row">
-	    
+	        
+	        <!-- Icicle -->
             <div class="col col-sm-6" id="tree_container">
                     
                 <h4 class="text-muted pull-left">Node hierarchy</h4>
 
-                <div class="btn-group pull-right" id="ice_tool_buttons">
-                  <button type="button" class="btn btn-default" id="tree_select_button"><span class="fa fa-crosshairs fa-lg text-muted"><span></button>
-                  <button type="button" class="btn btn-default" id="tree_zoom_button"><span class="fa fa-search fa-lg text-muted"><span></button>
-                </div>
+                    <!-- with the pull-right, have to put this first to end up rightmost -->
+                    <div class="btn-group pull-right" id="tree_reset_buttons">
+                        <button type="button" class="btn btn-default pull-right" id="tree_reset_button">
+                            <span class="fa fa-refresh fa-lg text-muted"><span>
+                        </button>
+                    </div>
+                    <div class="btn-group pull-right" id="tree_tool_buttons" data-toggle="buttons">
+                        <label class="btn btn-default active" id="tree_select_button">
+                            <input type="radio" name="icicle_tools">
+                            <span class="fa fa-crosshairs fa-lg text-muted"><span>
+                        </label>
+                        <label class="btn btn-default" id="tree_info_button">
+                            <input type="radio" name="icicle_tools">
+                            <span class="fa fa-info-circle fa-lg text-muted"><span>
+                        </label>
+                        <label class="btn btn-default" id="tree_treezoom_button">
+                            <input type="radio" name="icicle_tools">
+                            <span class="fa fa-expand fa-lg text-muted"><span>
+                        </label>
+                    </div>
 
                 <div id="tree"></div>
             
             </div>
-
+            
+            <!-- Ellipse -->
             <div class="col col-sm-6" id="graph_container">
                 <h4 class="text-muted pull-left">Projected context</h4>
-                
-                <div class="btn-group pull-right" id="graph_tool_buttons">
-                  <button type="button" class="btn btn-default" id="graph_select_button"><span class="fa fa-crosshairs fa-lg text-muted"><span></button>
-                  <button type="button" class="btn btn-default" id="graph_zoom_button"><span class="fa fa-search fa-lg text-muted"><span></button>
-                </div>
+    
+                    <div class="btn-group pull-right" id="graph_tool_buttons" data-toggle="buttons">
+                        <label class="btn btn-default active" id="graph_select_button">
+                            <input type="radio" name="ellipse_tools">
+                            <span class="fa fa-crosshairs fa-lg text-muted"><span>
+                        </label>
+                         <label class="btn btn-default" id="graph_info_button">
+                            <input type="radio" name="ellipse_tools">
+                            <span class="fa fa-info-circle fa-lg text-muted"><span>
+                        </label>
+                       <label class="btn btn-default" id="graph_treezoom_button">
+                            <input type="radio" name="ellipse_tools">
+                            <span class="fa fa-expand fa-lg text-muted"><span>
+                        </label>
+                    </div>
 
                 <div id="graph"></div>
-                        
+            
             </div>
             
         </div> <!-- row -->
@@ -84,6 +112,8 @@
             
             <!-- This section is ordered for mobile, and then for desktop the basis images
             get pushed off to the right, and embedding gets pulled to the left -->
+            
+            <!-- Basis Ims -->
             <div class="col col-sm-6 col-sm-push-6" id="basis_container">
                 <h4 class="text-muted">Node center &amp; bases</h4>
                     
@@ -91,6 +121,7 @@
             
             </div>
             
+            <!-- Embedding -->
             <div class="col col-sm-6 col-sm-pull-6" id="embedding_container">
                 <h4 class="text-muted pull-left">Diffusion embedding</h4>
                     
@@ -98,7 +129,8 @@
             
                 <div class="btn-group-vertical" id="dimension_buttons">
                   <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions"><span class="fa fa-arrow-circle-up fa-lg text-muted"><span></button>
-                  <button type="button" class="btn btn-default" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg text-muted"><span></button>
+                  <button type="button" class="btn btn-default disabled" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg text-muted"><span></button>
+                  <button type="button" class="btn btn-default" id="dim_reset" title="reset to lowest"><span class="fa fa-refresh fa-lg text-muted"><span></button>
                 </div>
                 
             </div>
@@ -112,6 +144,7 @@
 		<script type="text/javascript" src="/libs/jquery.tinypubsub.js"></script>
 		<script type="text/javascript" src="/libs/parseuri.js"></script>
         <script type="text/javascript" src="/libs/autobahn.min.jgz"></script>
+        <script type="text/javascript" src="/libs/bootstrap/js/button.js"></script>
 
 		<script type="text/javascript" src="/globals.js"></script>
 		<script type="text/javascript" src="/utilities.js"></script>

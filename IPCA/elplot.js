@@ -137,10 +137,12 @@ var ELPLOT = (function(d3, $, g){
 		var that = this;
 
 		// Not changing projection basis if pressing alt
-		if (d3.event && d3.event.altKey) {
+		if (d3.event && $("#graph_treezoom_button").hasClass("active")) {
 			$.publish("/node/alt_click", that.__data__[5]);
 		}
-	
+		else if (d3.event && $("#graph_info_button").hasClass("active")) {
+		    $.publish("/node/info", that.__data__[5]);
+		}
 		else {
 			d3.select(this)
 					.attr("stroke", g.selectColor);
