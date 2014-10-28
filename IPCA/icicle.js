@@ -157,6 +157,9 @@ var ICICLE = (function(d3, $, g){
                 g.ids_by_scale[scale] = [];
             }
             g.ids_by_scale[scale].push(node.i);
+            if (scale > g.max_scale) {
+                g.max_scale = scale;
+            }
         }
     
         // Build tree

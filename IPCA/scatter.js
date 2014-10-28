@@ -89,10 +89,12 @@ var SCATTER = (function(d3, $, g){
 		var that = this;
 
 		// Not changing projection basis if pressing alt
-		if (d3.event && d3.event.altKey) {
+		if (d3.event && $("#scatter_treezoom_button").hasClass("active")) {
 			$.publish("/node/alt_click", that.__data__[2]);
 		}
-	
+		else if (d3.event && $("#scatter_info_button").hasClass("active")) {
+		    $.publish("/node/info", that.__data__[2]);
+		}
 		else {
 			g.node_id = that.__data__[2];
 			$.publish("/node/click", that.__data__[2]);
@@ -152,17 +154,30 @@ var SCATTER = (function(d3, $, g){
 		els.exit()
 			.remove();
 	
-		// Reorder ellipses in the background by scale, higher scale later (drawn on top)
-		// TODO: Figure out how to push the selected point up to the top...
-		els.sort(function(a,b) {
-		    return g.scales_by_id[a[2]] - g.scales_by_id[b[2]];
-		});
-		
 		updateAxes();
 		
 		if (initial_circle_count == 0) {
 		    $.publish("/scatter/initialized");
 		}
+	};
+	
+	sc.resort_points = function() {
+		// Reorder plot points so current scale is at the top of drawing order
+		
+		// Make an array with current scale at the beginning, going to max_scale, then top scales last
+		// e.g. [3, 4, 5, 6, 0, 1, 2] and put current scale at top in sort
+		scales = [];
+		for (var ii=0; ii <= g.max_scale; ii++) { scales.push(ii); }
+		scales.rotate(g.scales_by_id[g.node_id]);
+		scales_rev_lookup = {};
+		for (var ii=0; ii < scales.length; ii++) { scales_rev_lookup[scales[ii]] = ii; }
+		console.log(scales);
+		console.log(scales_rev_lookup);
+
+		var els = svg.selectAll("circle")
+		els.sort(function(a,b) {
+		    return scales_rev_lookup[g.scales_by_id[b[2]]] - scales_rev_lookup[g.scales_by_id[a[2]]];
+		});
 	};
 
     function useUpdatedEmbedding(json) {	
@@ -212,6 +227,9 @@ var SCATTER = (function(d3, $, g){
 			
 	    // NOTE: Right now just using CSS to color selected point. Would need
 	    //   to call update on data if want to change size of selected point.
+	    
+	    // NOTE: Resorting on each selection right now!!
+	    sc.resort_points();
 	};
 
 	return sc;

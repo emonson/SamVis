@@ -1,6 +1,39 @@
 // ===============
 // MAIN
 
+// http://stackoverflow.com/questions/1985260/javascript-array-rotate
+
+// Array.prototype.rotate = (function() {
+//     // save references to array functions to make lookup faster
+//     var push = Array.prototype.push,
+//         splice = Array.prototype.splice;
+// 
+//     return function(count) {
+//         var len = this.length >>> 0, // convert to uint
+//             count = count >> 0; // convert to int
+// 
+//         // convert count to value in range [0, len[
+//         count = ((count % len) + len) % len;
+// 
+//         // use splice.call() instead of this.splice() to make function generic
+//         push.apply(this, splice.call(this, 0, count));
+//         return this;
+//     };
+// })();
+
+Array.prototype.rotate = (function() {
+    var unshift = Array.prototype.unshift,
+        splice = Array.prototype.splice;
+
+    return function(count) {
+        var len = this.length >>> 0,
+            count = count >> 0;
+
+        unshift.apply(this, splice.call(this, count % len, len));
+        return this;
+    };
+})();
+
 window.onload = function() {
 
 	// Gray out main panels until a real dataset is loaded

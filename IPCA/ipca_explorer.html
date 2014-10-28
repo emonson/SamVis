@@ -61,7 +61,7 @@
                     <!-- with the pull-right, have to put this first to end up rightmost -->
                     <div class="btn-group pull-right" id="tree_reset_buttons">
                         <button type="button" class="btn btn-default pull-right" id="tree_reset_button">
-                            <span class="fa fa-refresh fa-lg text-muted"><span>
+                            <span class="fa fa-expand fa-lg text-muted"><span>
                         </button>
                     </div>
                     <div class="btn-group pull-right" id="tree_tool_buttons" data-toggle="buttons">
@@ -71,11 +71,11 @@
                         </label>
                         <label class="btn btn-default" id="tree_info_button">
                             <input type="radio" name="icicle_tools">
-                            <span class="fa fa-info-circle fa-lg text-muted"><span>
+                            <span class="fa fa-info fa-lg text-muted"><span>
                         </label>
                         <label class="btn btn-default" id="tree_treezoom_button">
                             <input type="radio" name="icicle_tools">
-                            <span class="fa fa-expand fa-lg text-muted"><span>
+                            <span class="fa fa-compress fa-lg text-muted"><span>
                         </label>
                     </div>
 
@@ -94,11 +94,11 @@
                         </label>
                          <label class="btn btn-default" id="graph_info_button">
                             <input type="radio" name="ellipse_tools">
-                            <span class="fa fa-info-circle fa-lg text-muted"><span>
+                            <span class="fa fa-info fa-lg text-muted"><span>
                         </label>
                        <label class="btn btn-default" id="graph_treezoom_button">
                             <input type="radio" name="ellipse_tools">
-                            <span class="fa fa-expand fa-lg text-muted"><span>
+                            <span class="fa fa-compress fa-lg text-muted"><span>
                         </label>
                     </div>
 
@@ -126,13 +126,34 @@
                 <h4 class="text-muted pull-left">Diffusion embedding</h4>
                     
                 <div id="embedding"></div>
-            
-                <div class="btn-group-vertical" id="dimension_buttons">
-                  <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions"><span class="fa fa-arrow-circle-up fa-lg text-muted"><span></button>
-                  <button type="button" class="btn btn-default disabled" id="dim_decrement" title="lower dimensions"><span class="fa fa-arrow-circle-down fa-lg text-muted"><span></button>
-                  <button type="button" class="btn btn-default" id="dim_reset" title="reset to lowest"><span class="fa fa-refresh fa-lg text-muted"><span></button>
-                </div>
                 
+                <div class="btn-toolbar">
+                <div class="btn-group-vertical" id="dimension_buttons">
+                    <button type="button" class="btn btn-default" id="dim_increment" title="higher dimensions">
+                        <span class="fa fa-arrow-up fa-lg text-muted"><span>
+                    </button>
+                    <button type="button" class="btn btn-default disabled" id="dim_decrement" title="lower dimensions">
+                        <span class="fa fa-arrow-down fa-lg text-muted"><span>
+                    </button>
+                    <button type="button" class="btn btn-default" id="dim_reset" title="reset to lowest">
+                        <span class="fa fa-arrow-circle-down fa-lg text-muted"><span>
+                    </button>
+                </div>
+                    <div class="btn-group-vertical" id="scatter_tool_buttons" data-toggle="buttons">
+                        <label class="btn btn-default" id="scatter_select_button">
+                            <input type="radio" name="scatter_tools">
+                            <span class="fa fa-crosshairs fa-lg text-muted"><span>
+                        </label>
+                         <label class="btn btn-default active" id="scatter_info_button">
+                            <input type="radio" name="scatter_tools">
+                            <span class="fa fa-info fa-lg text-muted"><span>
+                        </label>
+                       <label class="btn btn-default" id="scatter_treezoom_button">
+                            <input type="radio" name="scatter_tools">
+                            <span class="fa fa-compress fa-lg text-muted"><span>
+                        </label>
+                    </div>
+                  </div>
             </div>
 
         </div> <!-- row -->

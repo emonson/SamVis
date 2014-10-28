@@ -39,7 +39,7 @@ class IPCATree(object):
             
             # Read tree data from HDF5 file
             self.tree_root, self.nodes_by_id = IH.read_hdf5_ipcadata(data_path)
-            
+
             self.post_process_nodes(self.tree_root)
 
             # Since nodes now have scale (depth) info attached, can make nice 
@@ -198,10 +198,9 @@ class IPCATree(object):
         # How many sigma ellipses cover
         s_mult = 2.0
         results_tuple = (xm[0], xm[1], s_mult*S[0], s_mult*S[1], phi_deg)
-        # print results_tuple
+
         result_list = self.pretty_sci_floats(results_tuple)
         result_list.append(node['id'])
-        # print result_list
         
         return result_list
     
@@ -211,7 +210,6 @@ class IPCATree(object):
         
         # Ellipse params is a list of tuples (X, Y, RX, RY, Phi, i)
         params_array = N.array(e_params)
-        # print params_array
         n_ellipses = params_array.shape[0]
         X = params_array[:,0]
         Y = params_array[:,1]
@@ -233,14 +231,11 @@ class IPCATree(object):
         Ys[2*n_ellipses + idxs] = Y + RY * N.sin(PhiRmin)
         Xs[3*n_ellipses + idxs] = X + RY * N.cos(PhiRmin)
         Ys[3*n_ellipses + idxs] = Y - RY * N.sin(PhiRmin)
-        # print Xs
-        # print Ys
          
         minX = N.min(Xs)
         maxX = N.max(Xs)
         minY = N.min(Ys)
         maxY = N.max(Ys)
-        # print [(minX, maxX), (minY, maxY)]
         
         return [(minX, maxX), (minY, maxY)]
     
@@ -258,10 +253,10 @@ class IPCATree(object):
             # index. This will not work well if we need to pick out just certain IDs, in which case I'll need
             # the reverse map... Items not guaranteed to come off of nodes_by_id in order, so sort after.
             self.node_ids = N.zeros(n_nodes)
-            
+
             for ii, (id,node) in enumerate(self.nodes_by_id.iteritems()):
                 indices = node['indices']
-                self.node_embedding[:,id] = N.mean(self.eigenvecs[:,indices], axis=1)
+                self.node_embedding[:,ii] = N.mean(self.eigenvecs[:,indices], axis=1)
                 self.node_ids[ii] = id
             
             sort_idxs = N.argsort(self.node_ids)

@@ -35,6 +35,7 @@ var GLOBALS = (function($){
     // Convenience tree data structures -- may not always need these...
     globals.scales_by_id = [];
     globals.ids_by_scale = {};
+    globals.max_scale = -1;
 
     globals.visible_ellipse_data = [];
     globals.foreground_ellipse_data = [];
