@@ -12,13 +12,13 @@ var SCATTER = (function(d3, $, g){
 	var aspect = 350/350; // height/width
 	var h_el = aspect * w_el;
 	var bl_pad = 30;
-	var rt_pad = 10;
+	var tr_pad = 10;
 	var default_point_size = 6;
 	var highlighted_point_size = 12;
 
 	// Ellipse plot scale functions with placeholder domains
-	var xScale = d3.scale.linear().domain([0, 1]).range([bl_pad, w_el - rt_pad]);
-	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - bl_pad, rt_pad]);
+	var xScale = d3.scale.linear().domain([0, 1]).range([bl_pad, w_el - tr_pad]);
+	var yScale = d3.scale.linear().domain([0, 1]).range([h_el - bl_pad, tr_pad]);
 
 	// Define X axis
 	var xAxis = d3.svg.axis()
@@ -48,7 +48,21 @@ var SCATTER = (function(d3, $, g){
 		.attr("class", "y axis");
 	
 	var svg = svg_base.append("g");
-
+	
+	var xlabel = svg.append("text")
+        .attr("class", "x axislabel")
+        .attr("text-anchor", "middle")
+        .attr("x", (w_el - bl_pad - tr_pad)/2.0 + bl_pad)
+        .attr("y", h_el - bl_pad/4.0)
+        .text( g.xdim );
+        
+	var ylabel = svg.append("text")
+        .attr("class", "y axislabel")
+        .attr("text-anchor", "middle")
+        .attr("x", bl_pad/2.0)
+        .attr("y", h_el - (h_el - bl_pad - tr_pad)/2.0 - bl_pad)
+        .text( g.ydim );
+        
     sc.resize = function() {
         w_el = $("#embedding_container").width() * w_frac;
         h_el = aspect * w_el;
@@ -56,8 +70,11 @@ var SCATTER = (function(d3, $, g){
         svg_base.attr("width", w_el);
         svg_base.attr("height", h_el);
 
-        xScale.range([bl_pad, w_el - rt_pad]);
-        yScale.range([h_el - bl_pad, rt_pad]);
+        xScale.range([bl_pad, w_el - tr_pad]);
+        yScale.range([h_el - bl_pad, tr_pad]);
+
+	    xlabel.attr("x", (w_el - bl_pad - tr_pad)/2.0 + bl_pad).attr("y", h_el - bl_pad/4.0);
+	    ylabel.attr("x", bl_pad/2.0).attr("y", h_el - (h_el - bl_pad - tr_pad)/2.0 - bl_pad);
 
         sc.updatePoints(0.001);
         updateAxes();
@@ -154,6 +171,9 @@ var SCATTER = (function(d3, $, g){
 		els.exit()
 			.remove();
 	
+		xlabel.text( g.xdim );
+		ylabel.text (g.ydim );
+		
 		updateAxes();
 		
 		if (initial_circle_count == 0) {
@@ -171,8 +191,6 @@ var SCATTER = (function(d3, $, g){
 		scales.rotate(g.scales_by_id[g.node_id]);
 		scales_rev_lookup = {};
 		for (var ii=0; ii < scales.length; ii++) { scales_rev_lookup[scales[ii]] = ii; }
-		console.log(scales);
-		console.log(scales_rev_lookup);
 
 		var els = svg.selectAll("circle")
 		els.sort(function(a,b) {

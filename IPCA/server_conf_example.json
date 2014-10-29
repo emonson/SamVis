@@ -2,6 +2,6 @@
   "server_name":"machine.organization.net",
   "ipca_ws_port":9002,
   "ipca_http_port":8080,
-  "vis_page":"ipca_context.html",
+  "vis_page":"ipca_explorer.html",
   "ipca_data_dir":"../../../Data/GMRA_data"
 }
