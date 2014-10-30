@@ -81,7 +81,7 @@ libs directory off of the main repository:
 - [jQuery tiny pubsub](https://gist.github.com/cowboy/661855) for events publish/subscribe
 - [parseUri](http://blog.stevenlevithan.com/archives/parseuri) for parsing the page URI
 - [Autobahn | JS](http://autobahn.ws/js/) for WAMP MVC websockets communication
-- [Bootstrap][] for responsive CSS layout
+- [Bootstrap][] for responsive CSS layout and JavaScript tools
 - [Font Awesome][] for icons
 
 In the near future I may be moving to use [Bower][], a web package manager, to install 
@@ -181,12 +181,16 @@ There are two sample data files available. They are zip-compressed
 HDF5 files of GMRA data processed in Matlab and converted to HDF5 with the Matlab script
 `matlab_to_hdf5_write.m` in the `matlab` direcotry of the main repository. 
 The original data are images of handwritten digits from the [MNIST handwritten digits data set][mnist].
-The first one is [1000 each of 1s and 2s][mnist_12_data], and the second is
-[1000 each of 3, 5, 6, and 9][mnist_3569_data]. Unzip them and place the HDF5 files
+Unzip them and place the HDF5 files
 in the directory you set as the `ipca_data_dir` in `server_conf.json`.
+
+- [1000 each of digits 1 and 2][mnist_12_data]
+- [1000 each of digits 3, 5, 6, and 9][mnist_3569_data]
+- [1000 each of digits 0 - 9][mnist_0to9_data]
 
 [hdf5]: http://www.hdfgroup.org/HDF5/ "HDF5"
 [hdf5spec]: https://docs.google.com/document/d/1h50SPiZSpFG40TA8OfnBAC2E6csVmbTiOt6ltM3FIfo/pub
 [mnist]: http://yann.lecun.com/exdb/mnist/
 [mnist_12_data]: http://people.duke.edu/~emonson/mnist_12_1k.hdf5.zip
 [mnist_3569_data]: http://people.duke.edu/~emonson/mnist_3569_1k.hdf5.zip
+[mnist_0to9_data]: http://people.duke.edu/~emonson/mnist_0to9_1k.hdf5.zip
