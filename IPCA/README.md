@@ -49,7 +49,7 @@ and run the installer. Then do:
 
 ```Shell
 conda install twisted
-pip install anaconda
+pip install autobahn
 pip install cherrypy
 ```
 
