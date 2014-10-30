@@ -164,12 +164,22 @@ window.onload = function() {
     // Tool buttons
     
 	// Embedding dimension increment/decrement callbacks
-	$("#dim_increment").click(dim_increment);
-	$("#dim_decrement").click(dim_decrement);
-	$("#dim_reset").click(dim_reset);
+	$("#dim_increment").tooltip({container:'body', delay:{'show':1000}}).click(dim_increment);
+	$("#dim_decrement").tooltip({container:'body', delay:{'show':1000}}).click(dim_decrement);
+	$("#dim_reset").tooltip({container:'body', delay:{'show':500}}).click(dim_reset);
+	$("#scatter_select_button").tooltip({container:'body', delay:{'show':500}});
+	$("#scatter_info_button").tooltip({container:'body', delay:{'show':500}});
 	
 	// Icicle plot tools
-	$("#tree_reset_button").click(ICICLE.reset_zoom);
+	$("#tree_select_button").tooltip({container:'body', delay:{'show':500}});
+	$("#tree_info_button").tooltip({container:'body', delay:{'show':500}});
+	$("#tree_treezoom_button").tooltip({container:'body', delay:{'show':500}});
+	$("#tree_reset_button").tooltip({container:'body', delay:{'show':500}}).click(ICICLE.reset_zoom);
+
+	// Ellipse plot tools
+	$("#graph_select_button").tooltip({container:'body', delay:{'show':500}}).click(ICICLE.reset_zoom);
+	$("#graph_info_button").tooltip({container:'body', delay:{'show':500}});
+	$("#graph_treezoom_button").tooltip({container:'body', delay:{'show':500}});
 
 	// -------------
 	

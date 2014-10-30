@@ -60,20 +60,20 @@
 
                 <!-- with the pull-right, have to put this first to end up rightmost -->
                 <div class="btn-group pull-right" id="tree_reset_buttons">
-                    <button type="button" class="btn btn-default pull-right" id="tree_reset_button">
+                    <button type="button" class="btn btn-default pull-right" id="tree_reset_button" title="reset tree zoom">
                         <span class="fa fa-expand fa-lg text-muted"><span>
                     </button>
                 </div>
                 <div class="btn-group pull-right" id="tree_tool_buttons" data-toggle="buttons">
-                    <label class="btn btn-default active" id="tree_select_button">
+                    <label class="btn btn-default active" id="tree_select_button" title="select node">
                         <input type="radio" name="icicle_tools">
                         <span class="fa fa-crosshairs fa-lg text-muted"><span>
                     </label>
-                    <label class="btn btn-default" id="tree_info_button">
+                    <label class="btn btn-default" id="tree_info_button" title="node info">
                         <input type="radio" name="icicle_tools">
                         <span class="fa fa-info fa-lg text-muted"><span>
                     </label>
-                    <label class="btn btn-default" id="tree_treezoom_button">
+                    <label class="btn btn-default" id="tree_treezoom_button" title="zoom tree to node">
                         <input type="radio" name="icicle_tools">
                         <span class="fa fa-compress fa-lg text-muted"><span>
                     </label>
@@ -89,15 +89,15 @@
                 <h4 class="text-muted pull-left">Projected context</h4>
     
                 <div class="btn-group pull-right" id="graph_tool_buttons" data-toggle="buttons">
-                    <label class="btn btn-default active" id="graph_select_button">
+                    <label class="btn btn-default active" id="graph_select_button" title="select node">
                         <input type="radio" name="ellipse_tools">
                         <span class="fa fa-crosshairs fa-lg text-muted"><span>
                     </label>
-                     <label class="btn btn-default" id="graph_info_button">
+                     <label class="btn btn-default" id="graph_info_button" title="node info">
                         <input type="radio" name="ellipse_tools">
                         <span class="fa fa-info fa-lg text-muted"><span>
                     </label>
-                   <label class="btn btn-default" id="graph_treezoom_button">
+                   <label class="btn btn-default" id="graph_treezoom_button" title="zoom tree to node">
                         <input type="radio" name="ellipse_tools">
                         <span class="fa fa-compress fa-lg text-muted"><span>
                     </label>
@@ -129,11 +129,11 @@
                 <h4 class="text-muted pull-left">Embedding</h4>
                     
                 <div class="btn-group pull-right" id="scatter_tool_buttons" data-toggle="buttons">
-                    <label class="btn btn-default" id="scatter_select_button">
+                    <label class="btn btn-default" id="scatter_select_button" title="select node">
                         <input type="radio" name="scatter_tools">
                         <span class="fa fa-crosshairs fa-lg text-muted"><span>
                     </label>
-                     <label class="btn btn-default active" id="scatter_info_button">
+                     <label class="btn btn-default active" id="scatter_info_button" title="node info">
                         <input type="radio" name="scatter_tools">
                         <span class="fa fa-info fa-lg text-muted"><span>
                     </label>
@@ -164,6 +164,7 @@
 		<script type="text/javascript" src="/libs/parseuri.js"></script>
         <script type="text/javascript" src="/libs/autobahn.min.jgz"></script>
         <script type="text/javascript" src="/libs/bootstrap/js/button.js"></script>
+        <script type="text/javascript" src="/libs/bootstrap/js/tooltip.js"></script>
 
 		<script type="text/javascript" src="/globals.js"></script>
 		<script type="text/javascript" src="/utilities.js"></script>
