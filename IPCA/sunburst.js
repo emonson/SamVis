@@ -144,6 +144,20 @@ var ICICLE = (function(d3, $, g){
 				.attr("fill", function(d) { return g.cScale(g.scalardata[d.i]); });
 	};
 	
+	ic.updateActiveNodes = function() {
+	    
+		// Unhighlight previously active icicle rectangles
+		d3.selectAll(".r_active")
+			.classed("r_active", false);
+
+		// Go through foreground ellipses and mark as "active"
+		for (var ii=0; ii < g.foreground_ellipse_data.length; ii++) {
+		    var sel_id = g.foreground_ellipse_data[ii][5];
+            d3.select("#r_" + sel_id)
+                .classed('r_active', true); 
+		}
+	};
+	
 	ic.highlightSelectedRect = function(sel_id) {
 
 		// Unhighlight previously selected icicle rectangle
