@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+        <meta charset="UTF-8">
+		<!-- Necessary or page won't be responsive on small devices, but instead will be zoomed out -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<title>IPCA ellipses and tree view</title>
+
+		<link rel="stylesheet" href="/ellipse_tree.css" media="screen">
+<!-- 
+        <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+ -->
+        <link href="/libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/libs/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+	</head>
+	<body>
+	
+    <!-- navbar search box -->
+
+	<div class="container">
+	
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                  <a class="navbar-brand">IPCA explorer</a>
+                </div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a id="back_ref_link" href="#">Back</a></li>
+                </ul>
+            </div>
+        </nav>
+
+	    <div class="row">
+	        
+            <div class="col col-sm-6" id="tree_container">
+                    
+                <h3>IPCA Explorer</h3>
+                
+                <p>
+                The IPCA explorer is an ongoing project navigate data "sketches" generated with 
+                <a href="http://www.math.duke.edu/~mauro/code.html#GMRA">Geometric Multi-Resolution Analysis (GMRA)</a>
+                through a web-based interface. This is work in collaboration with
+                <a href="http://www.math.duke.edu/~mauro/">Mauro Maggioni</a>
+                at <a href="www.duke.edu">Duke University</a>
+                </p>
+                
+                <p>The visualization combines an icicle view, which represents the hierarchical, 
+                low-dimensional breakdown of the data at various scales, plus a new type of 
+                scatterplot representing the distribution of the data at that scale, projected 
+                into the space of the parent distribution.</p>
+                
+                
+            </div>
+
+        </div> <!-- row -->
+        
+	</div> <!-- container -->
+    <script>
+        document.getElementById("back_ref_link").href = document.referrer;
+    </script>	
+	</body>
+</html>

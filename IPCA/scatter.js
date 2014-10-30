@@ -138,6 +138,20 @@ var SCATTER = (function(d3, $, g){
 		
 	};
 
+	sc.updateActiveNodes = function() {
+	    
+		// Unhighlight previously active icicle rectangles
+		d3.selectAll(".sc_active")
+			.classed("sc_active", false);
+
+		// Go through foreground ellipses and mark as "active"
+		for (var ii=0; ii < g.foreground_ellipse_data.length; ii++) {
+		    var sel_id = g.foreground_ellipse_data[ii][5];
+            d3.select("#sc_" + sel_id)
+                .classed('sc_active', true); 
+		}
+	};
+	
 	sc.updatePoints = function(trans_dur) {
 	
 		// Default value for transition duration

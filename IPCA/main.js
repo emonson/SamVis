@@ -232,6 +232,8 @@ window.onload = function() {
             $.subscribe("/node/alt_click", ICICLE.zoomIcicleView);
     
             $.subscribe("/ellipses/updated", ELPLOT.updateEllipses);
+            $.subscribe("/ellipses/updated", ICICLE.updateActiveNodes);
+            $.subscribe("/ellipses/updated", SCATTER.updateActiveNodes);
             
             // window resize
             $.subscribe("/window/resize", ELPLOT.resize);

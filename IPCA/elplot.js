@@ -266,14 +266,10 @@ var ELPLOT = (function(d3, $, g){
 
 		// Unhighlight previously selected ellipse
 		d3.select(".el_selected")
-			.attr("stroke", function(d,i){return g.cScale(g.scalardata[d[5]]);})
-			.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : g.ellipseStrokeWidth;})
 			.classed("el_selected", false);
 
 		// Highlight ellipse corresponding to current rect selection
 		d3.select("#e_" + sel_id)
-			.attr("stroke", function(d,i){return g.selectColor;})
-			.attr("stroke-width", function(d,i){return d[6] == 'background' ? 0 : g.ellipseStrokeWidth;})
 			.classed("el_selected", true);
 	};
 
